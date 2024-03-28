@@ -1,6 +1,24 @@
 # Capture Application
 
+### Useful links
+- https://github.com/alaingalvan/CrossWindow
+- https://xcb.freedesktop.org/XcbUtil/
+- https://xcb.freedesktop.org/tutorial/
+- https://xcb.freedesktop.org/manual/modules.html
+- https://gist.github.com/penk/470486
+- https://stackoverflow.com/questions/40533318/xcb-custom-message-to-event-loop
+- https://github.com/Airblader/xedgewarp/blob/master/src/randr.c#L101
+- https://github.com/TAAPArthur/XMouseControl/blob/master/xutil.c
+- http://metan.ucw.cz/blog/things-i-wanted-to-know-about-libxcb.html
+- https://cppget.org/spdlog?f=full#description
+- https://unix.stackexchange.com/questions/503806/what-are-x-server-display-and-screen
+- https://unix.stackexchange.com/questions/367732/what-are-display-and-screen-with-regard-to-0-0
+- https://www.x.org/wiki/guide/
+- https://www.x.org/releases/current/doc/xproto/x11protocol.html
 
+### Some questions that could be answered
+- https://stackoverflow.com/questions/71131688/how-can-i-get-all-events-on-the-root-window-with-xcb
+- https://stackoverflow.com/questions/37359063/x11-list-top-level-windows
 
 ## Getting started
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="XMakeProjectSettings">
+    <option name="buildOutputDirectory" value="$PROJECT_DIR$/build" />
+    <option name="currentArchitecture" value="x86_64" />
+    <option name="currentMode" value="debug" />
+    <option name="workingDirectory" value="$PROJECT_DIR$" />
+  </component>
+</project>
