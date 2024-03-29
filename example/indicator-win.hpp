@@ -8,45 +8,54 @@
 #include <xcb/xcb.h>
 #endif
 
-class IndicatorWin {
+class IndicatorWin
+{
 public:
-  template <typename... Args> IndicatorWin(Args &&...args) noexcept {
+  template<typename... Args>
+  IndicatorWin(Args &&...args) noexcept
+  {
     win_ = std::shared_ptr<SDL_Window>(
-        SDL_CreateWindow(std::forward<Args>(args)...), &SDL_DestroyWindow);
+      SDL_CreateWindow(std::forward<Args>(args)...), &SDL_DestroyWindow);
+
     if (win_ == nullptr) {
-      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateWindow failed: %s",
+      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                   "SDL_CreateWindow failed: %s",
                    SDL_GetError());
     }
 
     if (SDL_SetWindowOpacity(win_.get(), SDL_ALPHA_TRANSPARENT) < 0) {
       SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
-                   "SDL_SetWindowOpacity failed: %s", SDL_GetError());
+                   "SDL_SetWindowOpacity failed: %s",
+                   SDL_GetError());
     }
 
     render_ = std::shared_ptr<SDL_Renderer>(
-        SDL_CreateRenderer(win_.get(), -1,
-                           SDL_RENDERER_ACCELERATED |
-                               SDL_RENDERER_PRESENTVSYNC),
-        &SDL_DestroyRenderer);
+      SDL_CreateRenderer(
+        win_.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
+      &SDL_DestroyRenderer);
 
     if (render_ == nullptr) {
       SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
-                   "SDL_CreateRenderer failed: %s", SDL_GetError());
+                   "SDL_CreateRenderer failed: %s",
+                   SDL_GetError());
     }
 
     if (SDL_SetRenderDrawBlendMode(render_.get(), SDL_BLENDMODE_BLEND) < 0) {
       SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
-                   "SDL_SetRenderDrawBlendMode failed: %s", SDL_GetError());
+                   "SDL_SetRenderDrawBlendMode failed: %s",
+                   SDL_GetError());
     }
 
     if (SDL_SetRenderDrawColor(render_.get(), 0, 0, 0, SDL_ALPHA_TRANSPARENT) <
         0) {
       SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
-                   "SDL_SetRenderDrawColor failed: %s", SDL_GetError());
+                   "SDL_SetRenderDrawColor failed: %s",
+                   SDL_GetError());
     }
   }
 
-  void draw() {
+  void draw()
+  {
     if (render_ == nullptr) {
       return;
     }
@@ -54,7 +63,8 @@ public:
       ticks_ = SDL_GetTicks64();
     }
     if (SDL_RenderClear(render_.get()) < 0) {
-      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_RenderClear failed: %s",
+      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                   "SDL_RenderClear failed: %s",
                    SDL_GetError());
     }
     // SDL_Rect r;
@@ -74,7 +84,8 @@ public:
     SDL_RenderPresent(render_.get());
   }
 
-  bool operator()() {
+  bool operator()()
+  {
     return this->win_ != nullptr && this->render_ != nullptr;
   }
 

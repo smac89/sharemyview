@@ -1,0 +1,5 @@
+# https://clang-format-configurator.site/
+---
+BasedOnStyle: Mozilla
+NamespaceIndentation: All
+PointerAlignment: Right

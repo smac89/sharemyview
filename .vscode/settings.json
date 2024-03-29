@@ -88,4 +88,7 @@
         "typeinfo": "cpp",
         "valarray": "cpp"
     },
+    "[cpp]": {
+        "editor.formatOnSave": true
+    }
 }

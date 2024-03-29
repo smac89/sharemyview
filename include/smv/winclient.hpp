@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace smv {
-void init() noexcept;
-void deinit() noexcept;
-void listen(EventType, const EventCallback& cb);
+  void init() noexcept;
+  void deinit() noexcept;
+  void listen(EventType, const EventCallback &cb);
 } // namespace smv

@@ -17,13 +17,12 @@ target_include_directories(capture PRIVATE
 )
 target_include_directories(capture SYSTEM PRIVATE
     /usr/include/SDL2
-    /home/chigozirim/.conan2/p/b/spdlo5e001d9a11710/p/include
-    /home/chigozirim/.conan2/p/b/fmtbc2b0e59d9954/p/include
 )
 target_compile_definitions(capture PRIVATE
     _REENTRANT
-    SPDLOG_FMT_EXTERNAL
+    SPDLOG_SHARED_LIB
     SPDLOG_COMPILED_LIB
+    SPDLOG_FMT_EXTERNAL
 )
 target_compile_options(capture PRIVATE
     $<$<COMPILE_LANGUAGE:C>:-m64>
@@ -96,25 +95,17 @@ target_link_libraries(capture PRIVATE
     Xau
     Xdmcp
     assert
-    cpptrace
-    dwarf
-    z
-    zstd
     pthread
-    m
 )
 target_link_directories(capture PRIVATE
     /usr/lib
-    /home/chigozirim/.conan2/p/b/spdlo5e001d9a11710/p/lib
-    /home/chigozirim/.conan2/p/b/fmtbc2b0e59d9954/p/lib
     build/linux/x86_64/debug
     /home/chigozirim/.xmake/packages/x/xcb-util-errors/1.0/f8f0bd746d0941a9a8e0d963105778f9/lib
-    /home/chigozirim/.xmake/packages/l/libassert/v1.2.2/5dffbf6f6e864d1fb0c141d9ca573128/lib
-    /home/chigozirim/.xmake/packages/c/cpptrace/v0.5.1/e07f9a254116474ca59692bc77a06d1b/lib
-    /home/chigozirim/.xmake/packages/l/libdwarf/0.9.0/5ec88f9f9d314a5293863b006422dc79/lib
+    /opt/vcpkg/installed/x64-linux/lib
 )
 target_link_options(capture PRIVATE
     -m64
+    -pthread
 )
 target_sources(capture PRIVATE
     src/main.cpp
@@ -129,20 +120,13 @@ target_include_directories(libcapture PRIVATE
     src/common
 )
 target_include_directories(libcapture SYSTEM PRIVATE
-    /home/chigozirim/.conan2/p/b/spdlo5e001d9a11710/p/include
-    /home/chigozirim/.conan2/p/b/fmtbc2b0e59d9954/p/include
     /home/chigozirim/.xmake/packages/x/xcb-util-errors/1.0/f8f0bd746d0941a9a8e0d963105778f9/include
-    /home/chigozirim/.xmake/packages/l/libassert/v1.2.2/5dffbf6f6e864d1fb0c141d9ca573128/include
-    /home/chigozirim/.xmake/packages/c/cpptrace/v0.5.1/e07f9a254116474ca59692bc77a06d1b/include
-    /home/chigozirim/.xmake/packages/l/libdwarf/0.9.0/5ec88f9f9d314a5293863b006422dc79/include
-    /home/chigozirim/.xmake/packages/m/magic_enum/v0.9.5/c9d129e2b37f49a5897d1ef2a130e7c3/include
+    /opt/vcpkg/installed/x64-linux/include
 )
 target_compile_definitions(libcapture PRIVATE
-    SPDLOG_FMT_EXTERNAL
+    SPDLOG_SHARED_LIB
     SPDLOG_COMPILED_LIB
-    ASSERT_DECOMPOSE_BINARY_LOGICAL
-    ASSERT_USE_MAGIC_ENUM
-    CPPTRACE_STATIC_DEFINE
+    SPDLOG_FMT_EXTERNAL
 )
 target_compile_options(libcapture PRIVATE
     $<$<COMPILE_LANGUAGE:C>:-m64>
@@ -209,26 +193,81 @@ target_link_libraries(libcapture PRIVATE
     xcb-icccm
     xcb-errors
     assert
-    cpptrace
-    dwarf
-    z
-    zstd
     pthread
-    m
 )
 target_link_directories(libcapture PRIVATE
-    /home/chigozirim/.conan2/p/b/spdlo5e001d9a11710/p/lib
-    /home/chigozirim/.conan2/p/b/fmtbc2b0e59d9954/p/lib
     /home/chigozirim/.xmake/packages/x/xcb-util-errors/1.0/f8f0bd746d0941a9a8e0d963105778f9/lib
-    /home/chigozirim/.xmake/packages/l/libassert/v1.2.2/5dffbf6f6e864d1fb0c141d9ca573128/lib
-    /home/chigozirim/.xmake/packages/c/cpptrace/v0.5.1/e07f9a254116474ca59692bc77a06d1b/lib
-    /home/chigozirim/.xmake/packages/l/libdwarf/0.9.0/5ec88f9f9d314a5293863b006422dc79/lib
+    /opt/vcpkg/installed/x64-linux/lib
 )
 target_link_options(libcapture PRIVATE
     -m64
+    -pthread
 )
 target_sources(libcapture PRIVATE
     src/linux/winclient.cpp
     src/linux/windowobject.cpp
+)
+
+# target
+add_executable(sdlapp "")
+set_target_properties(sdlapp PROPERTIES OUTPUT_NAME "sdlapp")
+set_target_properties(sdlapp PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build/linux/x86_64/debug")
+target_include_directories(sdlapp SYSTEM PRIVATE
+    /usr/include/SDL2
+    /opt/vcpkg/installed/x64-linux/include
+)
+target_compile_definitions(sdlapp PRIVATE
+    HELLOIMGUI_USE_SDL2
+    HELLOIMGUI_HAS_OPENGL3
+    _REENTRANT
+    SPDLOG_SHARED_LIB
+    SPDLOG_COMPILED_LIB
+    SPDLOG_FMT_EXTERNAL
+)
+target_compile_options(sdlapp PRIVATE
+    $<$<COMPILE_LANGUAGE:C>:-m64>
+    $<$<COMPILE_LANGUAGE:CXX>:-m64>
+    $<$<COMPILE_LANGUAGE:C>:-mshstk>
+    $<$<COMPILE_LANGUAGE:CXX>:-mshstk>
+)
+if(MSVC)
+    target_compile_options(sdlapp PRIVATE -W4)
+else()
+    target_compile_options(sdlapp PRIVATE -Wall -Wextra)
+endif()
+set_target_properties(sdlapp PROPERTIES CXX_EXTENSIONS OFF)
+target_compile_features(sdlapp PRIVATE cxx_std_17)
+if(MSVC)
+    target_compile_options(sdlapp PRIVATE nil)
+else()
+    target_compile_options(sdlapp PRIVATE -O1)
+endif()
+if(MSVC)
+    target_compile_options(sdlapp PRIVATE -Zi)
+else()
+    target_compile_options(sdlapp PRIVATE -g)
+endif()
+if(MSVC)
+    set_property(TARGET sdlapp PROPERTY
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+target_link_libraries(sdlapp PRIVATE
+    SDL2
+    spdlog
+    fmt
+    hello_imgui
+    stb_hello_imgui
+    imgui
+)
+target_link_directories(sdlapp PRIVATE
+    /usr/lib
+    /opt/vcpkg/installed/x64-linux/lib
+)
+target_link_options(sdlapp PRIVATE
+    -m64
+    -pthread
+)
+target_sources(sdlapp PRIVATE
+    example/sdl.cpp
 )
 

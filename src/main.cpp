@@ -8,12 +8,16 @@
 
 static std::condition_variable cv;
 
-extern "C" void sigHandler(int) {
+extern "C" void
+sigHandler(int)
+{
   static std::once_flag sigHandled;
   std::call_once(sigHandled, &std::condition_variable::notify_one, &cv);
 }
 
-int main() {
+int
+main()
+{
   spdlog::cfg::load_env_levels();
   std::signal(SIGINT, sigHandler);
   std::signal(SIGTERM, sigHandler);
