@@ -30,7 +30,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "0.5.1"
+            version = "v0.5.1"
         },
         ["expat#31fecfc4"] = {
             repo = {
@@ -39,6 +39,34 @@
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
             version = "2.6.2"
+        },
+        ["freetype#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "26.1.20"
+        },
+        ["glad#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "v0.1.36"
+        },
+        ["hello-imgui 1.4.x#b404d85a"] = {
+            repo = {
+                url = "pkgrepo"
+            },
+            version = "v1.4.2"
+        },
+        ["imgui-src 1.90.4-docking#f26e00a1"] = {
+            repo = {
+                url = "pkgrepo"
+            },
+            version = "v1.90.4-docking"
         },
         ["libassert 1.2.2#7a87dd8c"] = {
             repo = {
@@ -229,6 +257,14 @@
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
             version = "1.20.0"
+        },
+        ["vc 1.4.x#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "1.4.2"
         },
         ["wayland#f26e00a1"] = {
             repo = {

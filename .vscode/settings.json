@@ -90,5 +90,13 @@
     },
     "[cpp]": {
         "editor.formatOnSave": true
+    },
+    "[xmake]": {
+        "editor.defaultFormatter": "yinfei.luahelper",
+        "editor.formatOnSave": true
+    },
+    "[lua]": {
+        "editor.defaultFormatter": "yinfei.luahelper",
+        "editor.formatOnSave": true
     }
 }

@@ -20,14 +20,8 @@
 int
 main()
 {
-  auto guiFunction = []() {
-    ImGui::Text("Hello, ");                  // Display a simple label
-    HelloImGui::ImageFromAsset("world.jpg"); // Display a static image
-    if (ImGui::Button("Bye!"))               // Display a button
-      // and immediately handle its action if it is clicked!
-      HelloImGui::GetRunnerParams()->appShallExit = true;
-  };
-  HelloImGui::Run(guiFunction, "Hello, globe", true);
+  auto guiFunction = []() { ImGui::Text("Hello, world!"); };
+  HelloImGui::Run(guiFunction, "Hello", true);
   // if (SDL_Init(SDL_INIT_VIDEO) < 0) {
   //   return EXIT_FAILURE;
   // }
