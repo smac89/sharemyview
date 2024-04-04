@@ -3,6 +3,7 @@
 #include "smv/windowobject.hpp"
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <spdlog/spdlog.h>
 #include <thread>
 #include <tuple>
@@ -19,9 +20,11 @@ namespace smv::impl {
 
 namespace smv {
   using namespace impl;
+  static std::mutex connMutex;
 
   void init() noexcept
   {
+    std::lock_guard<std::mutex> lk(connMutex);
     if (connection) {
       spdlog::info("X11 connection already established");
       return;
@@ -57,6 +60,7 @@ namespace smv {
 
   void deinit() noexcept
   {
+    std::lock_guard<std::mutex> lk(connMutex);
     if (!connection) {
       return;
     }

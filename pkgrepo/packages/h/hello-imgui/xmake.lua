@@ -2,7 +2,7 @@ package("hello-imgui")
     set_homepage("https://github.com/pthom/hello_imgui")
     set_description("Hello, Dear ImGui: unleash your creativity in app development and prototyping")
     set_license("MIT")
-    set_policy("package.librarydeps.strict_compatibility", true)
+    set_policy("package.strict_compatibility", true)
 
     add_urls("https://github.com/pthom/hello_imgui/archive/refs/tags/$(version).tar.gz")
     add_versions("v1.4.2", "1de7df2400076e18bbb519759999ccc9e93381e1d25b382b5c503e41fce767eb")
@@ -25,7 +25,8 @@ package("hello-imgui")
     add_configs("imgui_version", {description = "Use the specfied version of imgui", default = "*", type = "string"})
 
     add_deps("cmake")
-    add_linkorders("hello_imgui", "stb_hello_imgui", "imgui")
+    -- set link order
+    add_links("hello_imgui", "stb_hello_imgui", "imgui", "lunasvg")
 
     on_load(function (package)
         if package:config("has_opengl3") then

@@ -1,5 +1,6 @@
 # https://clang-format-configurator.site/
 ---
 BasedOnStyle: Mozilla
+AlwaysBreakAfterReturnType: None
 NamespaceIndentation: All
 PointerAlignment: Right

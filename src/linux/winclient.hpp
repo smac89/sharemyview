@@ -96,7 +96,7 @@ namespace smv::impl {
       spdlog::info("Monitoring: {}", mWindowScreens);
 
       xcb_aux_sync(connection.get());
-      spdlog::info("polling for events...");
+      spdlog::info("Polling for events...");
       for (auto const &root : mRoots) {
         std::unique_ptr<xcb_query_pointer_reply_t> reply(
           xcb_query_pointer_reply(connection.get(),
@@ -114,7 +114,7 @@ namespace smv::impl {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
       xcb_aux_sync(connection.get());
-      spdlog::info("polling for events... done");
+      spdlog::info("Polling for events... done");
     }
 
     /**
@@ -233,13 +233,13 @@ namespace smv::impl {
   };
 } // namespace smv::impl
 
+/* https://github.com/gabime/spdlog?tab=readme-ov-file#user-defined-types */
 template<>
 struct [[maybe_unused]] fmt::formatter<ChildScreenMapType>
   : fmt::formatter<std::string>
 {
-  [[maybe_unused]] static auto format(const ChildScreenMapType &m,
-                                      format_context &ctx)
-    -> decltype(ctx.out())
+  [[maybe_unused]] auto format(const ChildScreenMapType &m,
+                               format_context &ctx) const -> decltype(ctx.out())
   {
     auto out = fmt::format_to(ctx.out(), "\n{{\n");
     for (const auto &[a, b] : m) {

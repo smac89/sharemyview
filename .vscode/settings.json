@@ -86,7 +86,15 @@
         "thread": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "qtwidgets": "cpp",
+        "qtwidgetsdepends": "cpp",
+        "qcoreapplication": "cpp",
+        "qguiapplication": "cpp",
+        "qquickview": "cpp",
+        "qquickstyle": "cpp",
+        "qqmlapplicationengine": "cpp",
+        "qobject": "cpp"
     },
     "[cpp]": {
         "editor.formatOnSave": true

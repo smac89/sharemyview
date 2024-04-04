@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/c++,cmake,linux,visualstudiocode,clion,xmake
-# Edit at https://www.toptal.com/developers/gitignore?templates=c++,cmake,linux,visualstudiocode,clion,xmake
+# Created by https://www.toptal.com/developers/gitignore/api/c++,clion,cmake,linux,xmake,visualstudiocode,qt
+# Edit at https://www.toptal.com/developers/gitignore?templates=c++,clion,cmake,linux,xmake,visualstudiocode,qt
 
 ### C++ ###
 # Prerequisites
@@ -180,6 +180,52 @@ _deps
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+### Qt ###
+# C++ objects and libs
+*.so.*
+
+# Qt-es
+object_script.*.Release
+object_script.*.Debug
+*_plugin_import.cpp
+/.qmake.cache
+/.qmake.stash
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+Makefile*
+*build-*
+*.qm
+*.prl
+
+# Qt unit tests
+target_wrapper.*
+
+# QtCreator
+*.autosave
+
+# QtCreator Qml
+*.qmlproject.user
+*.qmlproject.user.*
+
+# QtCreator CMake
+CMakeLists.txt.user*
+
+# QtCreator 4.8< compilation database
+
+# QtCreator local machine specific files for imported projects
+*creator.user*
+
+*_qmlcache.qrc
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
@@ -204,4 +250,7 @@ _deps
 .xmake/
 build/
 
-# End of https://www.toptal.com/developers/gitignore/api/c++,cmake,linux,visualstudiocode,clion,xmake
+# End of https://www.toptal.com/developers/gitignore/api/c++,clion,cmake,linux,xmake,visualstudiocode,qt
+
+# ignore generated CMakeLists.txt
+CMakeLists.txt
