@@ -1,20 +1,25 @@
 #pragma once
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <type_traits>
 
-namespace smv {
-  enum class EventType : uint32_t
+namespace smv
+{
+  struct Window;
+
+  enum class EventType : uint16_t
   {
-    None = 0x0,
-    Move = 0x2,
-    Resize = 0x4,
-    MouseEnter = 0x8,
-    MouseLeave = 0x10,
-    MouseMove = 0x20,
-    MouseDown = 0x40,
-    MouseUp = 0x80,
-    MouseWheel = 0x100,
+    None        = 0x0,
+    Move        = 0x2,
+    Resize      = 0x4,
+    MouseEnter  = 0x8,
+    MouseLeave  = 0x10,
+    MouseMove   = 0x20,
+    MouseDown   = 0x40,
+    MouseUp     = 0x80,
+    MouseWheel  = 0x100,
+    WindowClose = 0x200,
   };
 
   // generate bitwise operator implementation for EventType
@@ -73,9 +78,11 @@ namespace smv {
   public:
     [[nodiscard]] constexpr EventType get_type() const { return type; }
     virtual ~EventData() = default;
+
+    Window *window = nullptr;
   };
 
-  class EventDataMouseEnter final : public EventData
+  class EventDataMouseEnter final: public EventData
   {
     constexpr static EventType type = EventType::MouseEnter;
 
@@ -84,7 +91,7 @@ namespace smv {
     uint32_t x, y;
   };
 
-  class EventDataMouseLeave final : public EventData
+  class EventDataMouseLeave final: public EventData
   {
     constexpr static EventType type = EventType::MouseLeave;
 
@@ -93,7 +100,7 @@ namespace smv {
     uint32_t x, y;
   };
 
-  class EventDataMouseMove final : public EventData
+  class EventDataMouseMove final: public EventData
   {
     constexpr static EventType type = EventType::MouseMove;
 
@@ -106,7 +113,7 @@ namespace smv {
     int32_t delta_x, delta_y;
   };
 
-  class EventDataMouseDown final : public EventData
+  class EventDataMouseDown final: public EventData
   {
     constexpr static EventType type = EventType::MouseDown;
 
@@ -117,7 +124,7 @@ namespace smv {
     MouseButton button;
   };
 
-  class EventDataMouseUp final : public EventData
+  class EventDataMouseUp final: public EventData
   {
     constexpr static EventType type = EventType::MouseUp;
 
@@ -128,7 +135,7 @@ namespace smv {
     MouseButton button;
   };
 
-  class EventDataMouseWheel final : public EventData
+  class EventDataMouseWheel final: public EventData
   {
     constexpr static EventType type = EventType::MouseWheel;
 
@@ -138,7 +145,7 @@ namespace smv {
     ModifierState modifiers;
   };
 
-  class EventDataResize final : public EventData
+  class EventDataResize final: public EventData
   {
     constexpr static EventType type = EventType::Resize;
 
@@ -147,7 +154,7 @@ namespace smv {
     uint32_t w, h;
   };
 
-  class EventDataMove final : public EventData
+  class EventDataMove final: public EventData
   {
     constexpr static EventType type = EventType::Move;
 
@@ -157,5 +164,12 @@ namespace smv {
     // The change in position
     int32_t delta_x, delta_y;
   };
+
+  class EventDataWindowClose final: public EventData
+  {
+    constexpr static EventType type = EventType::WindowClose;
+  };
+
+  using EventCallback = std::function<void(const smv::EventData &)>;
 
 } // namespace smv

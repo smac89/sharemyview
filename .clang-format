@@ -1,6 +1,22 @@
 # https://clang-format-configurator.site/
 ---
 BasedOnStyle: Mozilla
+AlignConsecutiveAssignments:
+  Enabled: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+AlignConsecutiveMacros:
+  Enabled: true
+AlignEscapedNewlines: Left
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: WithoutElse
+# deprecated, but seems to be only way to get this working
+AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Allman
+CompactNamespaces: true
+FixNamespaceComments: true
 NamespaceIndentation: All
 PointerAlignment: Right
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeInheritanceColon: false

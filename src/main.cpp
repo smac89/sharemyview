@@ -28,24 +28,36 @@ main(int argc, char *argv[])
 
   QCoreApplication::setOrganizationName("Ubiquity");
   QCoreApplication::setApplicationName("Capture");
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+  QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+  QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGL);
 
   QGuiApplication app(argc, argv);
-  qmlRegisterType<ShareMyViewWidget>("org.ubiquity.view", 1, 0, "ShareMyView");
-  const QUrl url("qrc:/qml/capture.qml");
+  qmlRegisterType<ShareMyViewWindow>(
+    "org.ubiquity.view.ShareMyViewWindow", 1, 0, "ShareMyViewWindow");
+  const QUrl mainUrl("qrc:/qml/capture.qml");
   QQmlApplicationEngine engine;
 
-  QObject::connect(
+  const QMetaObject::Connection connection = QObject::connect(
     &engine,
     &QQmlApplicationEngine::objectCreated,
     &app,
-    [](auto obj, const auto &) {
-      if (obj == nullptr) {
+    [&](QObject *root, const QUrl &url) {
+      if (url != mainUrl) {
+        return;
+      }
+      if (root == nullptr) {
         spdlog::error("Failed to load qml");
+        // this does not quit the program entirely,
+        // so we need an else
         QCoreApplication::exit(EXIT_FAILURE);
+      } else {
+        QObject::disconnect(connection);
       }
     },
     Qt::QueuedConnection);
-  engine.load(url);
+
+  engine.load(mainUrl);
   return app.exec();
 }
 

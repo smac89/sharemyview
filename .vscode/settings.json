@@ -94,7 +94,18 @@
         "qquickview": "cpp",
         "qquickstyle": "cpp",
         "qqmlapplicationengine": "cpp",
-        "qobject": "cpp"
+        "qobject": "cpp",
+        "qwidget": "cpp",
+        "qquickwidget": "cpp",
+        "qapplication": "cpp",
+        "qstackedlayout": "cpp",
+        "qquickpainteditem": "cpp",
+        "qwindow": "cpp",
+        "qpainterpath": "cpp",
+        "qpalette": "cpp",
+        "qopenglcontext": "cpp",
+        "qopenglframebufferobject": "cpp",
+        "cassert": "cpp"
     },
     "[cpp]": {
         "editor.formatOnSave": true

@@ -16,6 +16,9 @@
 - https://www.x.org/wiki/guide/
 - https://www.x.org/releases/current/doc/xproto/x11protocol.html
 
+### Qt
+- https://stackoverflow.com/a/52624533/2089675
+
 ### Some questions that could be answered
 - https://stackoverflow.com/questions/71131688/how-can-i-get-all-events-on-the-root-window-with-xcb
 - https://stackoverflow.com/questions/37359063/x11-list-top-level-windows

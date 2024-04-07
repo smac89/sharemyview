@@ -40,6 +40,14 @@
             },
             version = "2.6.2"
         },
+        ["fmt#0410d5ba"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "10.2.0"
+        },
         ["freetype#31fecfc4"] = {
             repo = {
                 branch = "master",
@@ -128,7 +136,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "1.8.8"
+            version = "1.8.9"
         },
         ["libxau#31fecfc4"] = {
             repo = {
@@ -266,6 +274,14 @@
             },
             version = "4.5"
         },
+        ["opengl#7e73ba8e"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "4.5"
+        },
         ["openssl >=1.1.1-a#31fecfc4"] = {
             repo = {
                 branch = "master",
@@ -290,13 +306,13 @@
             },
             version = "3.11.8"
         },
-        ["spdlog 1.13.x#6f043d79"] = {
+        ["spdlog 1.13.x#bab82778"] = {
             repo = {
                 branch = "master",
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "1.13.0"
+            version = "v1.13.0"
         },
         ["util-macros#31fecfc4"] = {
             repo = {

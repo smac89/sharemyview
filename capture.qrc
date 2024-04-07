@@ -1,6 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
 <qresource prefix="/">
-    <file alias="qml/capture.qml">assets/qml/capture.qml</file>
+    <file alias="components/ShareMyView.qml">assets/qt/components/ShareMyView.qml</file>
+    <file alias="qml/capture.qml">assets/qt/capture.qml</file>
 </qresource>
 </RCC>
