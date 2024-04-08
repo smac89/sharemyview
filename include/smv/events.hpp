@@ -47,40 +47,33 @@ namespace smv
     bool meta = false;
   };
 
-  class EventData
+  struct EventData
   {
     constexpr static EventType type = EventType::None;
 
-  public:
-    [[nodiscard]] constexpr EventType get_type() const { return type; }
-    virtual ~EventData() = default;
-
-    Window *window = nullptr;
+    const std::weak_ptr<Window> window;
   };
 
-  class EventDataMouseEnter final: public EventData
+  struct EventDataMouseEnter final: public EventData
   {
     constexpr static EventType type = EventType::MouseEnter;
 
-  public:
     // the mouse position in window coordinate
     uint32_t x, y;
   };
 
-  class EventDataMouseLeave final: public EventData
+  struct EventDataMouseLeave final: public EventData
   {
     constexpr static EventType type = EventType::MouseLeave;
 
-  public:
     // the last mouse position in window coordinate
     uint32_t x, y;
   };
 
-  class EventDataMouseMove final: public EventData
+  struct EventDataMouseMove final: public EventData
   {
     constexpr static EventType type = EventType::MouseMove;
 
-  public:
     // the mouse position in window coordinate
     uint32_t x, y;
 
@@ -89,63 +82,56 @@ namespace smv
     int32_t delta_x, delta_y;
   };
 
-  class EventDataMouseDown final: public EventData
+  struct EventDataMouseDown final: public EventData
   {
     constexpr static EventType type = EventType::MouseDown;
 
-  public:
     // the mouse position in window coordinate
     uint32_t x, y;
 
     MouseButton button;
   };
 
-  class EventDataMouseUp final: public EventData
+  struct EventDataMouseUp final: public EventData
   {
     constexpr static EventType type = EventType::MouseUp;
 
-  public:
     // the mouse position in window coordinate
     uint32_t x, y;
 
     MouseButton button;
   };
 
-  class EventDataMouseWheel final: public EventData
+  struct EventDataMouseWheel final: public EventData
   {
     constexpr static EventType type = EventType::MouseWheel;
 
-  public:
     int32_t delta_x, delta_y;
 
     ModifierState modifiers;
   };
 
-  class EventDataResize final: public EventData
+  struct EventDataResize final: public EventData
   {
     constexpr static EventType type = EventType::Resize;
 
-  public:
     // The new width and height
     uint32_t w, h;
   };
 
-  class EventDataMove final: public EventData
+  struct EventDataMove final: public EventData
   {
     constexpr static EventType type = EventType::Move;
 
-  public:
     // The new position
     uint32_t x, y;
     // The change in position
-    int32_t delta_x, delta_y;
+    int16_t delta_x, delta_y;
   };
 
-  class EventDataWindowClose final: public EventData
+  struct EventDataWindowClose final: public EventData
   {
     constexpr static EventType type = EventType::WindowClose;
   };
-
-  using EventCallback = std::function<void(const smv::EventData &)>;
 
 } // namespace smv

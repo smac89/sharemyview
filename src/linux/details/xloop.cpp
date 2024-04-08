@@ -54,7 +54,8 @@ namespace smv::details
               std::reinterpret_pointer_cast<xcb_enter_notify_event_t>(event);
             if (enter->detail != XCB_NOTIFY_DETAIL_INFERIOR)
             {
-              xevents.onWindowEntered(enter->event);
+              xevents.onWindowEntered(
+                enter->event, enter->event_x, enter->event_y);
             }
             break;
           }
@@ -130,8 +131,8 @@ namespace smv::details
     }
     else
     {
-      resp = XGeom { .pos  = { reply->x, reply->y },
-                     .size = { reply->width, reply->height } };
+      resp = XGeom { .pos  = { .x = reply->x, .y = reply->y },
+                     .size = { .w = reply->width, .h = reply->height } };
     }
     return resp;
   }

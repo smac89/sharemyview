@@ -6,6 +6,7 @@
 #include "xutils.hpp"
 #include "xwindow.hpp"
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
@@ -19,8 +20,8 @@ using smv::utils::res;
 
 namespace smv
 {
-  static std::mutex                                               connMutex;
-  std::unordered_map<EventType, std::vector<const EventCallback>> subscribers;
+  static std::mutex              connMutex, listenGuard;
+  static std::condition_variable waitListenCond;
 
   static bool initConnection();
   static void deinitConnection();
@@ -49,6 +50,7 @@ namespace smv
       return;
     }
     res::logger->info("X11 connection established");
+    waitListenCond.notify_all();
   }
 
   void deinit() noexcept
@@ -83,9 +85,34 @@ namespace smv
     std::ignore = res::connection.release();
   }
 
-  void listen(EventType type, const EventCallback cb)
+  void waitConnection()
   {
-    subscribers[type].push_back(std::move(cb));
+    if (!res::connection)
+    {
+      std::unique_lock<std::mutex> lk(listenGuard);
+      waitListenCond.wait(lk, [] { return res::connection != nullptr; });
+    }
   }
-  void listen(EventType type, const std::uint32_t wid, EventCallback cb) {}
+
+  Cancel listen(EventType type, const EventCB cb)
+  {
+    waitConnection();
+    std::unique_lock<std::mutex> lk(listenGuard);
+    return smv::details::registerEvent(type, cb);
+  }
+
+  Cancel listen(EventType type, const std::uint32_t wid, EventCB cb)
+  {
+    waitConnection();
+    std::unique_lock<std::mutex> lk(listenGuard);
+    return smv::details::registerEvent(type,
+                                       [cb, wid](const smv::EventData &data)
+                                       {
+                                         if (auto window = data.window.lock();
+                                             window && window->id() == wid)
+                                         {
+                                           cb(data);
+                                         }
+                                       });
+  }
 } // namespace smv

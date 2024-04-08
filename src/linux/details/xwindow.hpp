@@ -6,6 +6,8 @@ namespace smv::details
 {
   class XWindow final: public smv::Window
   {
+    friend class XEvents;
+
   public:
     explicit XWindow(std::uint32_t id,
                      std::int32_t  x,

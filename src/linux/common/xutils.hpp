@@ -21,13 +21,4 @@ namespace smv::utils
                                   decltype(&xcb_ewmh_connection_wipe)>
       ewm_connection { nullptr, &xcb_ewmh_connection_wipe };
   };
-
-  // extern std::shared_ptr<spdlog::logger> logger;
-  // extern std::unique_ptr<xcb_connection_t, decltype(&xcb_disconnect)>
-  //                                     connection;
-  extern std::shared_ptr<smv::Window> createWindow(const uint32_t id,
-                                                   int32_t        x,
-                                                   int32_t        y,
-                                                   uint32_t       w,
-                                                   uint32_t       h);
 } // namespace smv::utils

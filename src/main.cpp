@@ -12,8 +12,7 @@
 
 static void setupSignals();
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   spdlog::cfg::load_env_levels();
   setupSignals();
@@ -21,10 +20,12 @@ main(int argc, char *argv[])
   spdlog::info("Starting...");
   smv::init();
 
-  std::atexit([]() {
-    smv::deinit();
-    spdlog::info("Finished");
-  });
+  std::atexit(
+    []()
+    {
+      smv::deinit();
+      spdlog::info("Finished");
+    });
 
   QCoreApplication::setOrganizationName("Ubiquity");
   QCoreApplication::setApplicationName("Capture");
@@ -35,23 +36,28 @@ main(int argc, char *argv[])
   QGuiApplication app(argc, argv);
   qmlRegisterType<ShareMyViewWindow>(
     "org.ubiquity.view.ShareMyViewWindow", 1, 0, "ShareMyViewWindow");
-  const QUrl mainUrl("qrc:/qml/capture.qml");
+  const QUrl            mainUrl("qrc:/qml/capture.qml");
   QQmlApplicationEngine engine;
 
   const QMetaObject::Connection connection = QObject::connect(
     &engine,
     &QQmlApplicationEngine::objectCreated,
     &app,
-    [&](QObject *root, const QUrl &url) {
-      if (url != mainUrl) {
+    [&](QObject *root, const QUrl &url)
+    {
+      if (url != mainUrl)
+      {
         return;
       }
-      if (root == nullptr) {
+      if (root == nullptr)
+      {
         spdlog::error("Failed to load qml");
         // this does not quit the program entirely,
         // so we need an else
         QCoreApplication::exit(EXIT_FAILURE);
-      } else {
+      }
+      else
+      {
         QObject::disconnect(connection);
       }
     },
@@ -61,15 +67,13 @@ main(int argc, char *argv[])
   return app.exec();
 }
 
-void
-sigHandler(int)
+void sigHandler(int)
 {
   static std::once_flag flag;
   std::call_once(flag, &QCoreApplication::quit);
 }
 
-void
-setupSignals()
+void setupSignals()
 {
   std::signal(SIGINT, sigHandler);
   std::signal(SIGTERM, sigHandler);
