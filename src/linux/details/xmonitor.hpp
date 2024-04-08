@@ -47,16 +47,4 @@ namespace smv::details
    * @param children
    */
   void monitorChildren(const std::vector<xcb_window_t> &children);
-
-  /**
-   * determines if the given window is a normal window
-   * @param w The window
-   * @return true if the window is a normal window
-   */
-  bool windowIsNormalType(xcb_window_t w);
-
-  /**
-   * @brief broadcast events from the X server and send to the XEventsMonitor
-   */
-  void pollEvents();
 } // namespace smv::details

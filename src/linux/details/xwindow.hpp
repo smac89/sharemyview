@@ -1,18 +1,15 @@
 #include "smv/events.hpp"
 #include "smv/window.hpp"
-#include <list>
-#include <unordered_map>
-#include <utility>
+#include <string_view>
 
-namespace smv::impl {
-  class XWindow final : public smv::Window
+namespace smv::details
+{
+  class XWindow final: public smv::Window
   {
-    friend class XWindowsClient;
-
   public:
     explicit XWindow(std::uint32_t id,
-                     std::int32_t x,
-                     std::int32_t y,
+                     std::int32_t  x,
+                     std::int32_t  y,
                      std::uint32_t w,
                      std::uint32_t h)
       : mId(id)
@@ -24,9 +21,9 @@ namespace smv::impl {
     }
 
     std::uint32_t id() const override { return mId; }
-    std::string name() const override { return mName; }
+    std::string   name() const override { return mName; }
     Position position() const override { return { .x = mPosX, .y = mPosY }; }
-    Size size() const override { return { .w = mWidth, .h = mHeight }; }
+    Size     size() const override { return { .w = mWidth, .h = mHeight }; }
 
   protected:
     void move(std::int32_t x, std::int32_t y)
@@ -37,17 +34,16 @@ namespace smv::impl {
 
     void resize(std::uint32_t w, std::uint32_t h)
     {
-      mWidth = w;
+      mWidth  = w;
       mHeight = h;
     }
 
-    void setName(const std::string &name) { this->mName = name; }
+    void setName(const std::string_view &name) { this->mName = name; }
 
   private:
     const std::uint32_t mId;
-    std::int32_t mPosX, mPosY;
-    std::uint32_t mWidth, mHeight;
-    std::string mName;
+    std::int32_t        mPosX, mPosY;
+    std::uint32_t       mWidth, mHeight;
+    std::string         mName;
   };
-
-} // namespace smv::impl
+} // namespace smv::details

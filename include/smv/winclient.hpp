@@ -7,9 +7,10 @@
 
 constexpr auto LOGGER_NAME = "smv::winclient";
 
-namespace smv {
+namespace smv
+{
   void init() noexcept;
   void deinit() noexcept;
-  void listen(EventType, const EventCallback &cb);
-  void listen(EventType, const std::uint32_t wid, const EventCallback &cb);
+  void listen(EventType, const EventCallback cb);
+  void listen(EventType, const std::uint32_t wid, const EventCallback cb);
 } // namespace smv

@@ -1,6 +1,7 @@
 #include "xevents.hpp"
+#include "xloop.hpp"
 #include "xmonitor.hpp"
-#include "xvars.hpp"
+#include "xutils.hpp"
 
 #include <chrono>
 #include <mutex>
@@ -12,42 +13,44 @@
 
 namespace smv::details
 {
-  using smv::common::connection;
-  using smv::common::logger;
+  using smv::utils::res;
 
-  XEventsMonitor::XEventsMonitor()
+  XEvents::XEvents()
   {
-    VERIFY((connection), "X connection is invalid");
+    VERIFY((res::connection), "X connection is invalid");
     auto new_screens = findNewScreens(mRoots);
     if (!new_screens.empty())
     {
-      logger->info("Found {} new screens", mRoots.size());
+      res::logger->info("Found {} new screens", mRoots.size());
       prepareScreens(new_screens);
       mRoots.insert(mRoots.end(), new_screens.begin(), new_screens.end());
       monitorRoots(new_screens);
     }
   }
 
-  xcb_window_t XEventsMonitor::getCurrentWindow() const
+  xcb_window_t XEvents::getCurrentWindow() const
   {
     return mCurrentWindow.value_or(XCB_NONE);
   }
 
-  void XEventsMonitor::start()
+  void XEvents::start()
   {
     std::lock_guard<std::mutex> lk(eventLoopMut);
     mRunning = true;
+    // xcb_get_geometry_reply_t r;
 
-    xcb_aux_sync(connection.get());
-    logger->info("Polling for events...");
+    xcb_aux_sync(res::connection.get());
+    res::logger->info("Polling for events...");
     for (auto const &root : mRoots)
     {
-      std::unique_ptr<xcb_query_pointer_reply_t> reply(xcb_query_pointer_reply(
-        connection.get(), xcb_query_pointer(connection.get(), root), nullptr));
+      std::unique_ptr<xcb_query_pointer_reply_t> reply(
+        xcb_query_pointer_reply(res::connection.get(),
+                                xcb_query_pointer(res::connection.get(), root),
+                                nullptr));
 
       if (reply)
       {
-        XEventsMonitor::getInstance().onWindowEntered(reply->child);
+        XEvents::getInstance().onWindowEntered(reply->child);
         break;
       }
       std::this_thread::yield();
@@ -57,31 +60,33 @@ namespace smv::details
       pollEvents();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    xcb_aux_sync(connection.get());
-    logger->info("Polling for events... done");
+    xcb_aux_sync(res::connection.get());
+    res::logger->info("Polling for events... done");
   }
 
-  void XEventsMonitor::stop()
+  void XEvents::stop()
   {
     if (!mRunning.exchange(false))
     {
-      logger->info("already stopped");
+      res::logger->info("already stopped");
       return;
     }
     std::lock_guard<std::mutex> lk(eventLoopMut);
   }
 
-  void XEventsMonitor::onWindowEntered(xcb_window_t window)
+  void XEvents::onWindowEntered(xcb_window_t window)
   {
     std::lock_guard _(mSyncMut);
     if (mCurrentWindow == std::nullopt)
     {
-      logger->info("Pointer entered window: {}", window);
+      res::logger->info("Pointer entered window: {}", window);
       mCurrentWindow = window;
+      // TODO: track this window
+      mTracked[window] = smv::utils::createWindow(window, 0, 0, 0, 0);
     }
   }
 
-  void XEventsMonitor::onWindowLeave(xcb_window_t window)
+  void XEvents::onWindowLeave(xcb_window_t window)
   {
     std::lock_guard _(mSyncMut);
     if (window == XCB_NONE)
@@ -90,12 +95,12 @@ namespace smv::details
     }
     if (getCurrentWindow() == window)
     {
-      logger->info("Pointer leave window: {}", window);
+      res::logger->info("Pointer leave window: {}", window);
       mCurrentWindow = std::nullopt;
     }
   }
 
-  void XEventsMonitor::onWindowCreated(xcb_window_t window, xcb_window_t parent)
+  void XEvents::onWindowCreated(xcb_window_t window, xcb_window_t parent)
   {
     std::lock_guard _(mSyncMut);
     if (std::find(mRoots.begin(), mRoots.end(), parent) == mRoots.end())
@@ -105,19 +110,19 @@ namespace smv::details
     if (windowIsNormalType(window))
     {
       monitorChildren({ window });
-      logger->info("Window created: {}", window);
+      res::logger->info("Window created: {}", window);
     }
   }
 
-  void XEventsMonitor::onWindowDestroyed(xcb_window_t window)
+  void XEvents::onWindowDestroyed(xcb_window_t window)
   {
     std::lock_guard _(mSyncMut);
-    logger->info("Window removed: {}", window);
+    res::logger->info("Window removed: {}", window);
   }
 
-  XEventsMonitor &XEventsMonitor::getInstance()
+  XEvents &XEvents::getInstance()
   {
-    static XEventsMonitor instance;
+    static XEvents instance;
     return instance;
   }
 } // namespace smv::details

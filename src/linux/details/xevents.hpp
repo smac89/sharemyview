@@ -12,14 +12,15 @@
 #include <fmt/ranges.h>
 #include <xcb/xcb.h>
 
-using TrackedWindows = std::unordered_map<xcb_window_t, smv::Window *>;
+using TrackedWindows =
+  std::unordered_map<xcb_window_t, std::shared_ptr<smv::Window>>;
 
 namespace smv::details
 {
   /**
    * @brief an abstraction of the X Client to handle only certain events
    */
-  class XEventsMonitor
+  class XEvents
   {
     /**
      * @brief returns the current window
@@ -30,10 +31,10 @@ namespace smv::details
     xcb_window_t getCurrentWindow() const;
 
   public:
-    explicit XEventsMonitor();
+    explicit XEvents();
     //  force singleton
-    XEventsMonitor(const XEventsMonitor &)            = delete;
-    XEventsMonitor &operator=(const XEventsMonitor &) = delete;
+    XEvents(const XEvents &)            = delete;
+    XEvents &operator=(const XEvents &) = delete;
 
     /**
      * @brief starts the event loop
@@ -95,7 +96,7 @@ namespace smv::details
      * @details Creates a single instance of WindowsManager and returns it
      * @return XEventsMonitor&
      */
-    static XEventsMonitor &getInstance();
+    static XEvents &getInstance();
 
   private:
     std::atomic_bool            mRunning = false;

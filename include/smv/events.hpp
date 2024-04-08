@@ -22,30 +22,6 @@ namespace smv
     WindowClose = 0x200,
   };
 
-  // generate bitwise operator implementation for EventType
-  inline constexpr EventType operator|(EventType a, EventType b)
-  {
-    return static_cast<EventType>(static_cast<uint32_t>(a) |
-                                  static_cast<uint32_t>(b));
-  }
-
-  inline constexpr EventType operator&(EventType a, EventType b)
-  {
-    return static_cast<EventType>(static_cast<uint32_t>(a) &
-                                  static_cast<uint32_t>(b));
-  }
-
-  inline constexpr EventType operator^(EventType a, EventType b)
-  {
-    return static_cast<EventType>(static_cast<uint32_t>(a) ^
-                                  static_cast<uint32_t>(b));
-  }
-
-  inline constexpr EventType operator~(EventType a)
-  {
-    return static_cast<EventType>(~static_cast<uint32_t>(a));
-  }
-
   enum class MouseButton
   {
     Left,
