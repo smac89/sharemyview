@@ -1,6 +1,5 @@
 #include "smv/events.hpp"
 #include "smv/window.hpp"
-#include <string_view>
 
 namespace smv::details
 {
@@ -40,7 +39,7 @@ namespace smv::details
       mHeight = h;
     }
 
-    void setName(const std::string_view &name) { this->mName = name; }
+    void setName(const std::string &name) { this->mName = name; }
 
   private:
     const std::uint32_t mId;

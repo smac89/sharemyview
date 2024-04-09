@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 #include <xcb/xcb.h>
 #include <xcb/xcb_ewmh.h>
@@ -12,7 +13,7 @@ namespace smv::utils
   struct res
   {
     inline static const std::shared_ptr<spdlog::logger> logger =
-      spdlog::stdout_color_mt(LOGGER_NAME);
+      spdlog::stderr_color_mt(LOGGER_NAME);
 
     inline static std::unique_ptr<xcb_connection_t, decltype(&xcb_disconnect)>
       connection { nullptr, &xcb_disconnect };

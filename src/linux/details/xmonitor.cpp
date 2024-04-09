@@ -10,17 +10,13 @@
 #include <xcb/xcb_errors.h>
 #include <xcb/xcb_ewmh.h>
 
-static std::unique_ptr<xcb_ewmh_connection_t,
-                       decltype(&xcb_ewmh_connection_wipe)>
-  ewm_connection(nullptr, &xcb_ewmh_connection_wipe);
-
 namespace smv::details
 {
   using smv::utils::res;
 
   bool initMonitor()
   {
-    if (ewm_connection)
+    if (res::ewm_connection)
     {
       return true;
     }
@@ -28,7 +24,7 @@ namespace smv::details
     if (xcb_ewmh_init_atoms_replies(
           ewm, xcb_ewmh_init_atoms(res::connection.get(), ewm), nullptr))
     {
-      ewm_connection.reset(ewm);
+      res::ewm_connection.reset(ewm);
       res::logger->info("Connected to compatible window manager!");
 
       std::thread(&XEvents::start, &XEvents::getInstance()).detach();
@@ -37,13 +33,13 @@ namespace smv::details
     {
       res::logger->info("Not connected to compatible window manager!");
     }
-    return ewm_connection != nullptr;
+    return res::ewm_connection != nullptr;
   }
 
   void deinitMonitor()
   {
     XEvents::getInstance().stop();
-    ewm_connection.reset();
+    res::ewm_connection.reset();
   }
 
   std::vector<xcb_window_t> findNewScreens(
@@ -80,8 +76,8 @@ namespace smv::details
     {
       xcb_ewmh_get_windows_reply_t reply {};
       if (xcb_ewmh_get_virtual_roots_reply(
-            ewm_connection.get(),
-            xcb_ewmh_get_virtual_roots_unchecked(ewm_connection.get(), i),
+            res::ewm_connection.get(),
+            xcb_ewmh_get_virtual_roots_unchecked(res::ewm_connection.get(), i),
             &reply,
             nullptr))
       {
@@ -179,7 +175,7 @@ namespace smv::details
 
     static constexpr xcb_change_window_attributes_value_list_t root_mask {
       .event_mask = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW |
-                    XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY,
+                    XCB_EVENT_MASK_PROPERTY_CHANGE,
     };
 
     for (auto w : children)

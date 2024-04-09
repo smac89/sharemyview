@@ -18,13 +18,19 @@ namespace smv::details
 {
   using smv::utils::res;
   static std::mutex listenerMutx;
-  static std::unordered_map<
-    EventType,
-    std::vector<std::tuple<const uint32_t, const EventCB>>>
+  static std::unordered_map<EventType,
+                            std::vector<std::tuple<uint32_t, EventCB>>>
     subscribers;
 
   static void publishEvent(EventType type, const EventData &data);
-  static void trackWindow(xcb_window_t);
+
+  /**
+   * @brief Checks if there are any subscribers to an event
+   *
+   * @param type the event
+   * @return true if there are any subscribers to this event
+   */
+  static bool isEventInteresting(EventType type);
 
   XEvents::XEvents()
   {
@@ -60,7 +66,7 @@ namespace smv::details
 
       if (reply)
       {
-        XEvents::getInstance().onWindowEntered(
+        XEvents::getInstance().onMouseEnter(
           reply->child, reply->win_x, reply->win_y);
         break;
       }
@@ -85,21 +91,27 @@ namespace smv::details
     std::lock_guard<std::mutex> lk(eventLoopMut);
   }
 
-  void XEvents::onWindowEntered(xcb_window_t window, uint32_t x, uint32_t y)
+  void XEvents::onMouseEnter(xcb_window_t window, uint32_t x, uint32_t y)
   {
     std::lock_guard _(mSyncMut);
     if (mCurrentWindow == std::nullopt)
     {
-      res::logger->info("Pointer entered window: {}", window);
       mCurrentWindow = window;
-      watchWindow(window);
-      auto evt =
-        EventDataMouseEnter { .x = x, .y = y, { .window = mTracked[window] } };
-      publishEvent(EventType::MouseEnter, std::move(evt));
+      if (isEventInteresting(EventType::MouseEnter))
+      {
+        res::logger->info("Pointer entered window: {}", window);
+        watchWindow(window);
+        auto evt = EventDataMouseEnter {
+          { .window = mTracked[window] },
+          .x = x,
+          .y = y,
+        };
+        publishEvent(EventType::MouseEnter, std::move(evt));
+      }
     }
   }
 
-  void XEvents::onWindowLeave(xcb_window_t window)
+  void XEvents::onMouseLeave(xcb_window_t window, uint32_t x, uint32_t y)
   {
     std::lock_guard _(mSyncMut);
     if (window == XCB_NONE)
@@ -108,11 +120,18 @@ namespace smv::details
     }
     if (getCurrentWindow() == window)
     {
-      res::logger->info("Pointer leave window: {}", window);
       mCurrentWindow = std::nullopt;
-      watchWindow(window);
-      auto evt = EventDataMouseLeave { { .window = mTracked[window] } };
-      publishEvent(EventType::MouseLeave, std::move(evt));
+      if (isEventInteresting(EventType::MouseLeave))
+      {
+        res::logger->info("Pointer leave window: {}", window);
+        watchWindow(window);
+        auto evt = EventDataMouseLeave {
+          { .window = mTracked[window] },
+          .x = x,
+          .y = y,
+        };
+        publishEvent(EventType::MouseLeave, std::move(evt));
+      }
     }
   }
 
@@ -134,67 +153,157 @@ namespace smv::details
   void XEvents::onWindowDestroyed(xcb_window_t window)
   {
     std::lock_guard _(mSyncMut);
-    res::logger->info("Window removed: {}", window);
-    if (mTracked.find(window) != mTracked.end())
+    if (isEventInteresting(EventType::WindowClose))
     {
-      const auto trackedWindow = mTracked[window];
-      auto       evt = EventDataWindowClose { { .window = trackedWindow } };
-      publishEvent(EventType::WindowClose, std::move(evt));
+      res::logger->info("Window removed: {}", window);
+      if (isWindowWatched(window))
+      {
+        const auto trackedWindow = mTracked[window];
+        auto       evt = EventDataWindowClose { { .window = trackedWindow } };
+        publishEvent(EventType::WindowClose, std::move(evt));
+      }
+      unwatchWindow(window);
     }
-    mTracked.erase(window);
   }
 
   void XEvents::onWindowMoved(xcb_window_t window, uint32_t x, uint32_t y)
   {
     std::lock_guard _(mSyncMut);
-    if (mTracked.find(window) != mTracked.end())
+    if (isEventInteresting(EventType::Move))
     {
-      auto const &trackedWindow =
-        std::static_pointer_cast<XWindow>(mTracked[window]);
-      int16_t deltaX = trackedWindow->position().x - x,
-              deltaY = trackedWindow->position().y - y;
-      trackedWindow->move(x, y);
+      res::logger->info("Window moved: {}, {}, {}", window, x, y);
+      watchWindow(window);
+      int16_t deltaX = 0, deltaY = 0;
 
-      auto evt = EventDataMove { .x       = x,
-                                 .y       = y,
-                                 .delta_x = deltaX,
-                                 .delta_y = deltaY,
-                                 { .window = mTracked[window] } };
-      publishEvent(EventType::Move, std::move(evt));
+      if (auto const &trackedWindow =
+            std::dynamic_pointer_cast<XWindow>(mTracked[window]))
+      {
+        deltaX = trackedWindow->position().x - x;
+        deltaY = trackedWindow->position().y - y;
+        trackedWindow->move(x, y);
+        auto evt = EventDataMove {
+          { .window = mTracked[window] },
+          .x       = x,
+          .y       = y,
+          .delta_x = deltaX,
+          .delta_y = deltaY,
+        };
+        publishEvent(EventType::Move, std::move(evt));
+      }
+      else
+      {
+        res::logger->error("Window {} is not an XWindow", window);
+      }
     }
   }
 
   void XEvents::onWindowResized(xcb_window_t window, uint32_t w, uint32_t h)
   {
     std::lock_guard _(mSyncMut);
-    if (mTracked.find(window) != mTracked.end())
+    if (isEventInteresting(EventType::Resize))
     {
-      auto const &trackedWindow =
-        std::static_pointer_cast<XWindow>(mTracked[window]);
-      trackedWindow->resize(w, h);
-      auto evt =
-        EventDataResize { .w = w, .h = h, { .window = mTracked[window] } };
-      publishEvent(EventType::Resize, std::move(evt));
-    }
-  }
-
-  void XEvents::watchWindow(xcb_window_t window)
-  {
-    if (mTracked.find(window) == mTracked.end())
-    {
-      auto windowGeom = getWindowGeometry(window);
-      if (std::holds_alternative<std::string_view>(windowGeom))
+      res::logger->info("Window resized: {}, {}, {}", window, w, h);
+      watchWindow(window);
+      if (auto const &trackedWindow =
+            std::dynamic_pointer_cast<XWindow>(mTracked[window]))
       {
-        res::logger->warn("Window geometry error: {}",
-                          std::get<std::string_view>(windowGeom));
+        trackedWindow->resize(w, h);
+        auto evt = EventDataResize {
+          { .window = mTracked[window] },
+          .w = w,
+          .h = h,
+        };
+        publishEvent(EventType::Resize, std::move(evt));
       }
       else
       {
-        auto const geom  = std::move(std::get<XGeom>(windowGeom));
-        mTracked[window] = std::make_shared<details::XWindow>(
-          window, geom.pos.x, geom.pos.y, geom.size.w, geom.size.h);
+        res::logger->error("Window {} is not an XWindow", window);
       }
     }
+  }
+
+  void XEvents::onWindowRenamed(xcb_window_t               window,
+                                std::optional<std::string> name)
+  {
+    std::lock_guard _(mSyncMut);
+    if (isEventInteresting(EventType::WindowRenamed))
+    {
+      watchWindow(window);
+      if (name == std::nullopt)
+      {
+        name = getWindowName(window);
+      }
+      res::logger->info("Window renamed: {}, '{}'", window, name.value());
+      if (auto const &trackedWindow =
+            std::dynamic_pointer_cast<XWindow>(mTracked[window]))
+      {
+        trackedWindow->setName(name.value());
+        auto evt = EventDataWindowRenamed {
+          { .window = mTracked[window] },
+        };
+        publishEvent(EventType::WindowRenamed, std::move(evt));
+      }
+      else
+      {
+        res::logger->error("Window {} is not an XWindow", window);
+      }
+    }
+  }
+
+  bool XEvents::isWindowWatched(xcb_window_t window) const
+  {
+    return mTracked.find(window) != mTracked.end();
+  }
+
+  std::weak_ptr<const Window> XEvents::getWatchedWindow(
+    xcb_window_t window) const
+  {
+    if (isWindowWatched(window))
+    {
+      return mTracked.at(window);
+    }
+    return std::weak_ptr<Window>();
+  }
+
+  void XEvents::watchWindow(xcb_window_t window, bool only)
+  {
+    if (isWindowWatched(window))
+    {
+      return;
+    }
+    auto windowInfo = getWindowInfo(window);
+    if (std::holds_alternative<std::string>(windowInfo))
+    {
+      res::logger->warn("Window geometry error: {}",
+                        std::get<std::string>(windowInfo));
+    }
+    else
+    {
+      auto info          = std::get<XWindowInfo>(std::move(windowInfo));
+      auto trackedWindow = std::make_shared<details::XWindow>(
+        window, info.pos.x, info.pos.y, info.size.w, info.size.h);
+
+      if (!info.name.empty())
+      {
+        trackedWindow->setName(info.name);
+      }
+      if (only)
+      {
+        // TODO: Do we need this?
+        mTracked.clear();
+      }
+      mTracked[window] = trackedWindow;
+    }
+  }
+
+  bool XEvents::unwatchWindow(xcb_window_t window)
+  {
+    if (isWindowWatched(window))
+    {
+      mTracked.erase(window);
+      return true;
+    }
+    return false;
   }
 
   XEvents &XEvents::getInstance()
@@ -205,20 +314,39 @@ namespace smv::details
 
   Cancel registerEvent(EventType type, EventCB cb)
   {
+    /// Registering an event returns a function which can be
+    /// called to unsubscribe from the event.
+    /// TODO: How to manually unsubscribe?
     static std::atomic_uint32_t idPool { 0 };
     std::lock_guard             _ { listenerMutx };
 
     auto id       = ++idPool;
     auto cancelCb = [type, id]()
     {
-      auto &eventSubs = subscribers[type];
-      std::remove_if(eventSubs.begin(),
-                     eventSubs.end(),
-                     [id](auto &cancel) { return std::get<0>(cancel) == id; });
+      std::lock_guard _ { listenerMutx };
+      // if the below call throws an exception, it means that
+      // there is a problem with the callback itself. i.e. the
+      // callback has been called more than once.
+      auto &eventSubs = subscribers.at(type);
+      eventSubs.erase(std::remove_if(eventSubs.begin(),
+                                     eventSubs.end(),
+                                     [id](auto const &cancel) -> bool
+                                     { return std::get<0>(cancel) == id; }));
+
+      if (eventSubs.empty())
+      {
+        res::logger->info("Unsubscribing from event: {}", type);
+        subscribers.erase(type);
+      }
     };
     auto &eventSubs = subscribers[type];
     eventSubs.emplace_back(id, std::move(cb));
-    return cancelCb;
+    return [cancelCb = std::move(cancelCb)]
+    {
+      static std::once_flag flag;
+      // ensure that the callback is only called once
+      std::call_once(flag, cancelCb);
+    };
   }
 
   void publishEvent(EventType type, const EventData &data)
@@ -226,10 +354,15 @@ namespace smv::details
     std::lock_guard _ { listenerMutx };
     if (subscribers.find(type) != subscribers.end())
     {
-      for (const auto &[_, cb] : subscribers[type])
+      for (auto const &[_, cb] : subscribers[type])
       {
         cb(data);
       }
     }
+  }
+
+  bool isEventInteresting(EventType type)
+  {
+    return subscribers.count(type) > 0;
   }
 } // namespace smv::details

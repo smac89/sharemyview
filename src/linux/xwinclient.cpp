@@ -40,12 +40,12 @@ namespace smv
       return;
     }
 
-    if (!smv::details::initTools())
+    if (!details::initTools())
     {
       return;
     }
 
-    if (!smv::details::initMonitor())
+    if (!details::initMonitor())
     {
       return;
     }
@@ -60,8 +60,8 @@ namespace smv
     {
       return;
     }
-    smv::details::deinitMonitor();
-    smv::details::deinitTools();
+    details::deinitMonitor();
+    details::deinitTools();
     deinitConnection();
     res::logger->info("X11 connection closed");
   }

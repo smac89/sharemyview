@@ -59,7 +59,7 @@ namespace smv::details
      * @param y The mouse y position (relative to the window)
      * @return void
      */
-    void onWindowEntered(xcb_window_t window, uint32_t x, uint32_t y);
+    void onMouseEnter(xcb_window_t window, uint32_t x, uint32_t y);
 
     /**
      * @brief a window has been exited by the user
@@ -67,9 +67,11 @@ namespace smv::details
      * @details when the mouse leaves a window, we are notified, and we unset
      * the current window
      * @param window The window that has been exited
+     * @param x The mouse x position (relative to the window)
+     * @param y The mouse y position (relative to the window)
      * @return void
      */
-    void onWindowLeave(xcb_window_t window);
+    void onMouseLeave(xcb_window_t window, uint32_t x, uint32_t y);
 
     /**
      * @brief new window created event
@@ -109,13 +111,49 @@ namespace smv::details
     void onWindowMoved(xcb_window_t window, uint32_t x, uint32_t y);
 
     /**
+     * @brief a window has been renamed
+     *
+     * @param window The window that has been renamed
+     * @param name The new name (if any)
+     */
+    void onWindowRenamed(xcb_window_t               window,
+                         std::optional<std::string> name = std::nullopt);
+
+    /**
+     * @brief returns if the given window is watched
+     *
+     * @param window The window to check
+     * @return bool
+     */
+    bool isWindowWatched(xcb_window_t window) const;
+
+    /**
+     * @brief returns the watched window
+     *
+     * @param window The window to check
+     * @return std::weak_ptr<const smv::Window>
+     */
+    std::weak_ptr<const smv::Window> getWatchedWindow(
+      xcb_window_t window) const;
+
+    /**
      * @brief watches the given window for changes
      *
-     * @details adds the given window to the list of monitored windows.
+     * @details adds the given window to the list of monitored windows
+     * (if not already watched).
      * The changes can be subscribed to by the user
      * @param window The window to track
+     * @param only If true, only the window will be watched
      */
-    void watchWindow(xcb_window_t window);
+    void watchWindow(xcb_window_t window, bool only = false);
+
+    /**
+     * @brief unwatch the given window
+     *
+     * @param window The window to unwatch
+     * @return true if the window was being watched and now isn't
+     */
+    bool unwatchWindow(xcb_window_t window);
 
     /**
      * @brief returns the instance
@@ -151,14 +189,13 @@ namespace smv::details
 
 /* https://github.com/gabime/spdlog?tab=readme-ov-file#user-defined-types */
 template<>
-struct [[maybe_unused]] fmt::formatter<TrackedWindows>
-  : fmt::formatter<std::string>
+struct fmt::formatter<TrackedWindows>: fmt::formatter<std::string>
 {
-  [[maybe_unused]] auto format(const TrackedWindows &m,
-                               format_context &ctx) const -> decltype(ctx.out())
+  auto format(const TrackedWindows &m, format_context &ctx) const
+    -> decltype(ctx.out())
   {
     auto out = fmt::format_to(ctx.out(), "\n{{\n");
-    for (const auto &[a, b] : m)
+    for (auto &[a, b] : m)
     {
       fmt::format_to(
         out, "  {},\n", fmt::join({ fmt::to_string(a), b->name() }, " : "));
