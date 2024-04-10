@@ -1,8 +1,8 @@
+#pragma once
 #include "smv/events.hpp"
 #include "smv/window.hpp"
 
-namespace smv::details
-{
+namespace smv::details {
   class XWindow final: public smv::Window
   {
     friend class XEvents;

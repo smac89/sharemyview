@@ -1,0 +1,30 @@
+add_requires("spdlog 1.13.x", {system = false})
+
+target("sdl_example")
+    set_default(false)
+    set_group("example")
+    set_kind("binary")
+    set_languages("c17", "c++17")
+    add_files("./sdl.cpp")
+    add_packages("libsdl", "spdlog", "hello-imgui")
+
+target("him_example")
+    set_default(false)
+    set_group("example")
+    set_kind("binary")
+    set_languages("c17", "c++17")
+    add_files("./imgui.cpp")
+    add_includedirs("$(projectdir)/include")
+    if is_mode("debug") then
+        add_defines("SMV_DEBUG")
+    end
+    add_packages("spdlog", "hello-imgui")
+
+target("tracking")
+    set_default(false)
+    set_group("example")
+    set_kind("binary")
+    set_languages("c17", "c++17")
+    add_files("./tracking.cpp")
+    add_includedirs("$(projectdir)/include")
+    add_packages("spdlog")

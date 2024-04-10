@@ -64,7 +64,12 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    console.log(parent.grabToImage)
+                    // parent.grabToImage((result) => {
+                    //     result.saveToFile("/tmp/image.png")
+                    // })
+                }
+                onReleased: {
+                    console.log("Mouse button released")
                 }
             }
 
@@ -130,16 +135,5 @@ Item {
                 }
             }
         }
-    }
-
-    Window {
-        title: "Foobar"
-        minimumWidth: 600
-        minimumHeight: 300
-        visible: true
-        transientParent: rootWindow
-        flags: Qt.Dialog
-        maximumWidth: minimumWidth
-        maximumHeight: minimumHeight
     }
 }

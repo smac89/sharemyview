@@ -1,3 +1,4 @@
+#include "smv/events.hpp"
 #include "smv/utils.hpp"
 #include "smv/winclient.hpp"
 #include "xevents.hpp"
@@ -5,6 +6,9 @@
 #include "xtools.hpp"
 #include "xutils.hpp"
 #include "xwindow.hpp"
+#ifdef SMV_TRACK_SUBSCRIPTIONS
+#include "smv/autocancel.hpp"
+#endif
 
 #include <condition_variable>
 #include <memory>
@@ -18,8 +22,7 @@
 
 using smv::utils::res;
 
-namespace smv
-{
+namespace smv {
   static std::mutex              connMutex, listenGuard;
   static std::condition_variable waitListenCond;
 
@@ -28,25 +31,21 @@ namespace smv
 
   void init() noexcept
   {
-    std::lock_guard<std::mutex> lk(connMutex);
-    if (res::connection)
-    {
+    std::lock_guard lk(connMutex);
+    if (res::connection) {
       res::logger->info("X11 connection already established");
       return;
     }
 
-    if (!initConnection())
-    {
+    if (!initConnection()) {
       return;
     }
 
-    if (!details::initTools())
-    {
+    if (!details::initTools()) {
       return;
     }
 
-    if (!details::initMonitor())
-    {
+    if (!details::initMonitor()) {
       return;
     }
     res::logger->info("X11 connection established");
@@ -55,14 +54,14 @@ namespace smv
 
   void deinit() noexcept
   {
-    std::lock_guard<std::mutex> lk(connMutex);
-    if (!res::connection)
-    {
+    std::lock_guard lk(connMutex);
+    if (!res::connection) {
       return;
     }
     details::deinitMonitor();
     details::deinitTools();
     deinitConnection();
+    // TODO: clear all subscriptions
     res::logger->info("X11 connection closed");
   }
 
@@ -72,8 +71,7 @@ namespace smv
     res::connection.reset(xcb_connect(nullptr, nullptr));
 
     auto error = xcb_connection_has_error(res::connection.get());
-    if (error)
-    {
+    if (error) {
       res::logger->error("xcb_connect failed. Error code: {}", error);
       std::ignore = res::connection.release();
     }
@@ -87,32 +85,22 @@ namespace smv
 
   void waitConnection()
   {
-    if (!res::connection)
-    {
-      std::unique_lock<std::mutex> lk(listenGuard);
-      waitListenCond.wait(lk, [] { return res::connection != nullptr; });
+    std::unique_lock<std::mutex> lk(listenGuard);
+    if (!res::connection) {
+      waitListenCond.wait(lk, [] {
+        return res::connection != nullptr;
+      });
     }
   }
 
-  Cancel listen(EventType type, const EventCB cb)
+  Cancel listen(EventType type, EventCB cb)
   {
     waitConnection();
-    std::unique_lock<std::mutex> lk(listenGuard);
-    return smv::details::registerEvent(type, cb);
-  }
-
-  Cancel listen(EventType type, const std::uint32_t wid, EventCB cb)
-  {
-    waitConnection();
-    std::unique_lock<std::mutex> lk(listenGuard);
-    return smv::details::registerEvent(type,
-                                       [cb, wid](const smv::EventData &data)
-                                       {
-                                         if (auto window = data.window.lock();
-                                             window && window->id() == wid)
-                                         {
-                                           cb(data);
-                                         }
-                                       });
+    std::lock_guard lk(listenGuard);
+#ifdef SMV_TRACK_SUBSCRIPTIONS
+    return autoCancel(details::registerEvent(type, std::move(cb)));
+#else
+    return details::registerEvent(type, std::move(cb));
+#endif
   }
 } // namespace smv

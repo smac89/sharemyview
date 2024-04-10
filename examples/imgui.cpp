@@ -17,8 +17,7 @@
 
 static void sigHandler(int);
 
-int
-main()
+int main()
 {
   spdlog::cfg::load_env_levels();
   std::signal(SIGINT, sigHandler);
@@ -27,14 +26,14 @@ main()
   spdlog::info("Starting...");
   smv::init();
 
-  AppState state;
+  AppState                 state;
   HelloImGui::RunnerParams params;
-  params.appWindowParams.windowTitle = "Share My View";
+  params.appWindowParams.windowTitle        = "Share My View";
   params.appWindowParams.borderlessClosable = true;
-  params.imGuiWindowParams.enableViewports = true;
-  params.imGuiWindowParams.backgroundColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-  params.imGuiWindowParams.showStatusBar = true;
-  params.imGuiWindowParams.showStatus_Fps = true;
+  params.imGuiWindowParams.enableViewports  = true;
+  params.imGuiWindowParams.backgroundColor  = { 0.0f, 0.0f, 0.0f, 0.0f };
+  params.imGuiWindowParams.showStatusBar    = true;
+  params.imGuiWindowParams.showStatus_Fps   = true;
   params.imGuiWindowParams.defaultImGuiWindowType =
     HelloImGui::DefaultImGuiWindowType::NoDefaultWindow;
   params.appWindowParams.windowGeometry.size = { 480, 640 };
@@ -59,11 +58,13 @@ main()
     // this sets the style of the imgui windows inside the app
     auto &style = ImGui::GetStyle();
     // ImVec4 clear_color = ImVec4(0.95f, 0.60f, 0.73f, 1.0f);
-    ImVec4 clear_color = { 1.0f, 1.0f, 1.0f, 0.05f };
+    ImVec4 clear_color              = { 1.0f, 1.0f, 1.0f, 0.05f };
     style.Colors[ImGuiCol_WindowBg] = clear_color;
-    style.Colors[ImGuiCol_ChildBg] = clear_color;
+    style.Colors[ImGuiCol_ChildBg]  = clear_color;
   };
-  params.callbacks.ShowGui = [&state]() { showGui(state); };
+  params.callbacks.ShowGui = [&state]() {
+    showGui(state);
+  };
   params.callbacks.PostInit = [&state]() {
     // glEnable(GL_BLEND);
     // glBlendEquation(GL_FUNC_ADD);
@@ -72,7 +73,9 @@ main()
     // GL_ONE);
     startApp(state);
   };
-  params.callbacks.BeforeExit = [&state]() { stopApp(state); };
+  params.callbacks.BeforeExit = [&state]() {
+    stopApp(state);
+  };
 #ifdef SMV_DEBUG
   params.iniFolderType = HelloImGui::IniFolderType::CurrentFolder;
 #else
@@ -91,12 +94,12 @@ main()
   return 0;
 }
 
-void
-sigHandler(int)
+void sigHandler(int)
 {
   static std::once_flag flag;
-  std::call_once(flag,
-                 []() { HelloImGui::GetRunnerParams()->appShallExit = true; });
+  std::call_once(flag, []() {
+    HelloImGui::GetRunnerParams()->appShallExit = true;
+  });
 }
 
 // bool

@@ -1,4 +1,6 @@
 #pragma once
+#include "smv/events.hpp"
+
 #include <QObject>
 #include <QOpenGLFramebufferObject>
 #include <QQuickPaintedItem>
@@ -7,7 +9,7 @@
 #include <QWindow>
 #include <memory>
 
-class ShareMyViewWindow : public QQuickWindow
+class ShareMyViewWindow: public QQuickWindow
 {
   // https://doc.qt.io/qt-5/qtqml-cppintegration-exposecppattributes.html
   Q_OBJECT
@@ -25,6 +27,7 @@ public:
 
   void setMode(const Mode);
   Mode mode() const;
+  ~ShareMyViewWindow();
 
 signals:
   void modeChanged(const Mode);
@@ -38,6 +41,7 @@ private slots:
   void streamRecording();
 
 private:
-  QPoint currentPos;
-  Mode mMode = Mode::None;
+  QPoint      currentPos;
+  Mode        mMode = Mode::None;
+  smv::Cancel mCancel;
 };

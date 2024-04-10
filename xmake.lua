@@ -4,14 +4,15 @@ set_defaultmode("debug")
 set_config("cc", "gcc")
 set_config("cxx", "g++")
 set_config("qt_sdkver", "5")
+set_config("linkjobs", math.max(os.cpuinfo("ncpu") // 2, 2))
 set_encodings("utf-8")
 set_policy("package.requires_lock", true)
 
-add_repositories("myrepo pkgrepo")
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "$(projectdir)/.vscode"})
+add_repositories("myrepo pkgrepo")
 add_rules("mode.debug", "mode.release")
 add_requires("libsdl 2.30.x")
-add_requires("spdlog 1.13.x", {system = false, configs = {fmt_external_ho = true }})
+add_requires("spdlog 1.13.x", {system = false})
 add_requires("hello-imgui 1.4.x", {
     configs = {use_glfw3 = true, has_opengl3 = true, imgui_version = "1.90.4-docking"},
     debug = is_mode("debug")
@@ -46,22 +47,4 @@ target("capture")
         add_deps("libcapture")
     end
 
-target("sdl_example")
-    set_default(false)
-    set_group("example")
-    set_kind("binary")
-    set_languages("c17", "c++17")
-    add_files("example/sdl.cpp")
-    add_packages("libsdl", "spdlog", "hello-imgui")
-
-target("him_example")
-    set_default(false)
-    set_group("example")
-    set_kind("binary")
-    set_languages("c17", "c++17")
-    add_files("example/imgui.cpp")
-    add_includedirs("include")
-    if is_mode("debug") then
-        add_defines("SMV_DEBUG")
-    end
-    add_packages("spdlog", "hello-imgui")
+includes("examples/xmake.lua")

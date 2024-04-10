@@ -105,7 +105,8 @@
         "qpalette": "cpp",
         "qopenglcontext": "cpp",
         "qopenglframebufferobject": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "*.inc": "cpp"
     },
     "[cpp]": {
         "editor.formatOnSave": true

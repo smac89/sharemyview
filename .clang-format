@@ -10,12 +10,15 @@ AlignConsecutiveMacros:
 AlignEscapedNewlines: Left
 AllowShortBlocksOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLambdasOnASingleLine: Empty
 # deprecated, but seems to be only way to get this working
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Mozilla
 CompactNamespaces: true
 FixNamespaceComments: true
+InsertTrailingCommas: Wrapped
+LambdaBodyIndentation: OuterScope
 NamespaceIndentation: All
 PointerAlignment: Right
 SpaceBeforeCpp11BracedList: true

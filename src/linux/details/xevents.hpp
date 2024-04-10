@@ -3,20 +3,23 @@
 #include "smv/winclient.hpp"
 
 #include <atomic>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <unordered_map>
 #include <vector>
 
-#include <fmt/ranges.h>
+// clang-format off
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/bundled/color.h>
+// clang-format on
 #include <xcb/xcb.h>
 
 using TrackedWindows =
   std::unordered_map<xcb_window_t, std::shared_ptr<smv::Window>>;
 
-namespace smv::details
-{
+namespace smv::details {
   /**
    * @brief an abstraction of the X Client to handle only certain events
    */
@@ -164,11 +167,18 @@ namespace smv::details
     static XEvents &getInstance();
 
   private:
-    std::atomic_bool            mRunning = false;
-    std::recursive_mutex        mSyncMut {};
-    std::vector<xcb_window_t>   mRoots {};
-    std::optional<xcb_window_t> mCurrentWindow {};
-    TrackedWindows              mTracked {};
+    /**
+     * @brief unwatch all windows
+     *
+     * @return void
+     */
+    void unwatchAllWindows();
+
+    std::atomic_bool             mRunning = false;
+    mutable std::recursive_mutex mSyncMut {};
+    std::vector<xcb_window_t>    mRoots {};
+    std::optional<xcb_window_t>  mCurrentWindow {};
+    TrackedWindows               mTracked {};
     /**
      * @details inline static means that this declaration of the member will
      * serve as initialization as well
@@ -187,19 +197,31 @@ namespace smv::details
   Cancel registerEvent(EventType type, EventCB cb);
 } // namespace smv::details
 
-/* https://github.com/gabime/spdlog?tab=readme-ov-file#user-defined-types */
-template<>
-struct fmt::formatter<TrackedWindows>: fmt::formatter<std::string>
-{
-  auto format(const TrackedWindows &m, format_context &ctx) const
-    -> decltype(ctx.out())
+namespace fmt {
+  /* https://fmt.dev/9.0.0/api.html#formatting-user-defined-types */
+
+  template<>
+  struct formatter<TrackedWindows::value_type>: formatter<std::string>
   {
-    auto out = fmt::format_to(ctx.out(), "\n{{\n");
-    for (auto &[a, b] : m)
+    template<typename FormatContext>
+    auto format(const TrackedWindows::value_type &m, FormatContext &ctx) const
+      -> decltype(ctx.out())
     {
-      fmt::format_to(
-        out, "  {},\n", fmt::join({ fmt::to_string(a), b->name() }, " : "));
+      return format_to(ctx.out(),
+                       R"({}: "{}")",
+                       m.first,
+                       styled(m.second->name(), fg(color::yellow_green)));
     }
-    return fmt::format_to(out, "}}\n");
-  }
-};
+  };
+
+  template<>
+  struct formatter<TrackedWindows>: formatter<std::string>
+  {
+    template<typename FormatContext>
+    auto format(const TrackedWindows &m, FormatContext &ctx) const
+      -> decltype(ctx.out())
+    {
+      return format_to(ctx.out(), "\n{{ {} }}", join(m.begin(), m.end(), ", "));
+    }
+  };
+} // namespace fmt
