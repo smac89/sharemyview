@@ -16,7 +16,7 @@
 
 App::App(QObject *parent)
   : QObject(parent)
-  , mCancel(smv::listen<smv::EventDataMouseEnter>(
+  , mCancel(smv::listen<smv::EventType::MouseEnter, smv::EventDataMouseEnter>(
       std::bind(&App::operator(), this, std::placeholders::_1)))
 {
   QObject::connect(this,
@@ -112,28 +112,20 @@ void App::setTargetWindow(const std::shared_ptr<smv::Window> window)
       this->mTargetWindow = window;
     }
 
-    spdlog::info("Before cancelWindowMove...");
-    cancelWindowMove = smv::listen<smv::EventDataWindowMove>(
+    cancelWindowMove = AutoCancel::wrap(smv::listen<smv::EventType::WindowMove>(
       window->id(), [this](const smv::EventDataWindowMove &data) {
       emit targetWindowMoved(QPoint(data.x, data.y));
-    });
-    spdlog::info("After cancelWindowMove...");
+    }));
 
-    spdlog::info("Before cancelWindowResize...");
     cancelWindowResize =
-      AutoCancel::wrap(smv::listen<smv::EventDataWindowResize>(
+      AutoCancel::wrap(smv::listen<smv::EventType::WindowResize>(
         window->id(), [this](const smv::EventDataWindowResize &data) {
       emit targetWindowResized(QSize(data.w, data.h));
     }));
-    spdlog::info("After cancelWindowResize...");
 
-    spdlog::info("Before emitting...");
-    QMetaObject::invokeMethod(this, [window, this]() {
-      emit targetWindowChanged(
-        QSize(window->size().w, window->size().h),
-        QPoint(window->position().x, window->position().y));
-    });
-    spdlog::info("After emitting...");
+    emit targetWindowChanged(
+      QSize(window->size().w, window->size().h),
+      QPoint(window->position().x, window->position().y));
 
   } else {
     cancelWindowMove   = nullptr;

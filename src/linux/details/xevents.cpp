@@ -11,12 +11,15 @@
 #include <shared_mutex>
 #include <thread>
 #include <tuple>
+#include <type_traits>
 
 #include <assert.hpp>
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 
 namespace smv::details {
+  using smv::log::logger;
+
   using smv::utils::res;
   static std::shared_mutex listenerMutx;
   static std::unordered_map<EventType,
@@ -26,10 +29,10 @@ namespace smv::details {
   /**
    * @brief Publishes an event
    *
-   * @param type the event
    * @param data the data to send
    */
-  static void publishEvent(EventType type, const EventData &data);
+  template<EventType E, typename D>
+  constexpr static void publishEvent(D &&data);
 
   /**
    * @brief Checks if there are any subscribers to an event
@@ -44,7 +47,7 @@ namespace smv::details {
     VERIFY((res::connection), "X connection is invalid");
     auto new_screens = findNewScreens(mRoots);
     if (!new_screens.empty()) {
-      res::logger->info("Found {} new screens", mRoots.size());
+      logger->info("Found {} new screens", mRoots.size());
       prepareScreens(new_screens);
       mRoots.insert(mRoots.end(), new_screens.begin(), new_screens.end());
       std::vector<xcb_window_t> children = queryChildren(new_screens);
@@ -64,7 +67,7 @@ namespace smv::details {
     mRunning = true;
 
     xcb_aux_sync(res::connection.get());
-    res::logger->info("Polling for events...");
+    logger->info("Polling for events...");
     for (auto const &root : mRoots) {
       std::unique_ptr<xcb_query_pointer_reply_t> reply(
         xcb_query_pointer_reply(res::connection.get(),
@@ -83,13 +86,13 @@ namespace smv::details {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     xcb_aux_sync(res::connection.get());
-    res::logger->info("Polling for events... done");
+    logger->info("Polling for events... done");
   }
 
   void XEvents::stop()
   {
     if (!mRunning.exchange(false)) {
-      res::logger->info("already stopped");
+      logger->info("already stopped");
       return;
     }
     // attempting to grab the lock awaits the event loop
@@ -106,7 +109,7 @@ namespace smv::details {
     if (std::unique_lock lk(mSyncMut); mCurrentWindow == std::nullopt) {
       mCurrentWindow = window;
       if (isEventInteresting(EventType::MouseEnter)) {
-        res::logger->info("Pointer entered window: {:#x}", window);
+        logger->info("Pointer entered window: {:#x}", window);
         watchWindow(window);
         auto evt = EventDataMouseEnter {
           mTracked[window],
@@ -114,7 +117,7 @@ namespace smv::details {
           y,
         };
         lk.unlock();
-        publishEvent(EventType::MouseEnter, std::move(evt));
+        publishEvent<EventType::MouseEnter>(std::move(evt));
       }
     }
   }
@@ -128,14 +131,14 @@ namespace smv::details {
     if (getCurrentWindow() == window) {
       mCurrentWindow = std::nullopt;
       if (isEventInteresting(EventType::MouseLeave)) {
-        res::logger->info("Pointer leave window: {:#x}", window);
+        logger->info("Pointer leave window: {:#x}", window);
         watchWindow(window);
         auto evt = EventDataMouseLeave {
           mTracked[window],
           x,
           y,
         };
-        publishEvent(EventType::MouseLeave, std::move(evt));
+        publishEvent<EventType::MouseLeave>(std::move(evt));
       }
     }
   }
@@ -148,7 +151,7 @@ namespace smv::details {
     }
     if (windowIsNormalType(window)) {
       monitorChildren({ window });
-      res::logger->info("Window created: {:#x}", window);
+      logger->info("Window created: {:#x}", window);
       // Window is not tracked until user interacts with it
     }
   }
@@ -157,15 +160,15 @@ namespace smv::details {
   {
     std::lock_guard _(mSyncMut);
     if (isEventInteresting(EventType::WindowClose)) {
-      res::logger->info("Window removed: {:#x}", window);
+      logger->info("Window removed: {:#x}", window);
       if (isWindowWatched(window)) {
         const auto trackedWindow = mTracked[window];
         auto       evt           = EventDataWindowClose { trackedWindow };
-        publishEvent(EventType::WindowClose, std::move(evt));
+        publishEvent<EventType::WindowClose>(std::move(evt));
       }
     }
     if (unwatchWindow(window)) {
-      res::logger->info("Tracked windows: {}", mTracked);
+      logger->info("Tracked windows: {}", mTracked);
     }
   }
 
@@ -173,7 +176,7 @@ namespace smv::details {
   {
     std::lock_guard _(mSyncMut);
     if (isEventInteresting(EventType::WindowMove)) {
-      res::logger->info("Window moved: {:#x}, {}, {}", window, x, y);
+      logger->info("Window moved: {:#x}, {}, {}", window, x, y);
       watchWindow(window);
       int16_t deltaX = 0, deltaY = 0;
 
@@ -185,9 +188,9 @@ namespace smv::details {
         auto evt = EventDataWindowMove {
           mTracked[window], x, y, deltaX, deltaY,
         };
-        publishEvent(EventType::WindowMove, std::move(evt));
+        publishEvent<EventType::WindowMove>(std::move(evt));
       } else {
-        res::logger->error("Window {:#x} is not an XWindow", window);
+        logger->error("Window {:#x} is not an XWindow", window);
       }
     }
   }
@@ -196,7 +199,7 @@ namespace smv::details {
   {
     std::lock_guard _(mSyncMut);
     if (isEventInteresting(EventType::WindowResize)) {
-      res::logger->info("Window resized: {:#x}, {}, {}", window, w, h);
+      logger->info("Window resized: {:#x}, {}, {}", window, w, h);
       watchWindow(window);
       if (auto const &trackedWindow =
             std::dynamic_pointer_cast<XWindow>(mTracked[window])) {
@@ -206,9 +209,9 @@ namespace smv::details {
           w,
           h,
         };
-        publishEvent(EventType::WindowResize, std::move(evt));
+        publishEvent<EventType::WindowResize>(std::move(evt));
       } else {
-        res::logger->error("Window {:#x} is not an XWindow", window);
+        logger->error("Window {:#x} is not an XWindow", window);
       }
     }
   }
@@ -222,7 +225,7 @@ namespace smv::details {
       if (name == std::nullopt) {
         name = getWindowName(window);
       }
-      res::logger->info("Window renamed: {:#x}, '{}'", window, name.value());
+      logger->info("Window renamed: {:#x}, '{}'", window, name.value());
       if (auto const &trackedWindow =
             std::dynamic_pointer_cast<XWindow>(mTracked[window])) {
         trackedWindow->setName(name.value());
@@ -230,9 +233,9 @@ namespace smv::details {
           mTracked[window],
           name.value(),
         };
-        publishEvent(EventType::WindowRenamed, std::move(evt));
+        publishEvent<EventType::WindowRenamed>(std::move(evt));
       } else {
-        res::logger->error("Window {:#x} is not an XWindow", window);
+        logger->error("Window {:#x} is not an XWindow", window);
       }
     }
   }
@@ -261,8 +264,8 @@ namespace smv::details {
     }
     auto windowInfo = getWindowInfo(window);
     if (std::holds_alternative<std::string>(windowInfo)) {
-      res::logger->warn("Window geometry error: {}",
-                        std::get<std::string>(windowInfo));
+      logger->warn("Window geometry error: {}",
+                   std::get<std::string>(windowInfo));
     } else {
       auto info          = std::get<XWindowInfo>(std::move(windowInfo));
       auto trackedWindow = std::make_shared<details::XWindow>(
@@ -293,7 +296,7 @@ namespace smv::details {
       }
       mTracked[window] = trackedWindow;
     }
-    res::logger->info("Tracked windows: {}", mTracked);
+    logger->info("Tracked windows: {}", mTracked);
   }
 
   bool XEvents::unwatchWindow(xcb_window_t window)
@@ -322,12 +325,12 @@ namespace smv::details {
     static std::atomic_uint32_t idPool { 0 };
     std::lock_guard             _ { listenerMutx };
 
-    res::logger->info("Subscribing to event: {}", type);
+    logger->info("Subscribing to event: {}", type);
 
     auto id       = ++idPool;
     auto cancelCb = [type, id]() {
       std::lock_guard _ { listenerMutx };
-      res::logger->info("Callback cancelled: {}", type);
+      logger->info("Callback cancelled: {}", type);
       // if the below call throws an exception, it means that
       // there is a problem with the callback itself. i.e. the
       // callback has been called more than once.
@@ -338,13 +341,13 @@ namespace smv::details {
       }));
 
       if (eventSubs.empty()) {
-        res::logger->info("Unsubscribing from event: {}", type);
+        logger->info("Unsubscribing from event: {}", type);
         subscribers.erase(type);
       }
     };
     auto &eventSubs = subscribers[type];
     eventSubs.emplace_back(id, std::move(cb));
-    res::logger->info("Subscribed to event: {}", type);
+    logger->info("Subscribed to event: {}", type);
     return [cancelCb = std::move(cancelCb)] {
       static std::once_flag flag;
       // ensure that the callback is only called once
@@ -352,16 +355,31 @@ namespace smv::details {
     };
   }
 
-  void publishEvent(EventType type, const EventData &data)
+  template<EventType E, typename D>
+  constexpr void publishEvent(D &&data)
   {
-    std::thread([&data, type] {
-      std::shared_lock _ { listenerMutx };
-      if (subscribers.find(type) != subscribers.end()) {
-        for (auto const &[_, cb] : subscribers[type]) {
-          cb(data);
-        }
+    static_assert(std::is_base_of_v<EventData, D> && D::type == E);
+
+    auto cbs = std::vector<EventCB> {};
+    if (std::shared_lock lk { listenerMutx };
+        subscribers.find(E) != subscribers.end()) {
+      const auto &notifications = subscribers.at(E);
+      cbs.reserve(notifications.size());
+      std::transform(notifications.begin(),
+                     notifications.end(),
+                     std::back_inserter(cbs),
+                     [](auto const &cb) {
+        return std::get<1>(cb);
+      });
+    }
+    logger->info(
+      "Before publishing {} event: {}", E, dynamic_cast<EventData &>(data));
+    std::thread([cbs = std::move(cbs), data = std::move(data)]() {
+      for (auto const &cb : cbs) {
+        cb(data);
       }
-    });
+    }).detach();
+
     std::this_thread::yield();
   }
 

@@ -9,7 +9,7 @@
 static std::shared_ptr<xcb_errors_context_t> err_ctx;
 
 namespace smv::details {
-  using smv::utils::res;
+  using smv::utils::res, smv::log::logger;
 
   bool initTools()
   {
@@ -18,7 +18,7 @@ namespace smv::details {
     }
     xcb_errors_context_t *ctx = nullptr;
     if (xcb_errors_context_new(res::connection.get(), &ctx) < 0) {
-      res::logger->error("error creating xcb_errors_context");
+      logger->error("error creating xcb_errors_context");
       return false;
     }
     err_ctx.reset(ctx, &xcb_errors_context_free);

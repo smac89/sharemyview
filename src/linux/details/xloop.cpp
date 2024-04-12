@@ -9,7 +9,7 @@
 #include <xcb/xcb_ewmh.h>
 
 namespace smv::details {
-  using smv::utils::res;
+  using smv::utils::res, smv::log::logger;
 
   void pollEvents()
   {
@@ -23,16 +23,15 @@ namespace smv::details {
         auto err = std::reinterpret_pointer_cast<xcb_generic_error_t>(event);
         if (err->error_code != XCB_WINDOW) {
           // XCB_WINDOW is the error code for an invalid window
-          res::logger->error("Received error: {}",
-                             getErrorCodeName(err->error_code));
+          logger->error("Received error: {}",
+                        getErrorCodeName(err->error_code));
         }
       }
       // See https://www.x.org/wiki/Development/Documentation/XGE/
       else if (event->response_type == XCB_GE_GENERIC) {
         auto gevent =
           std::reinterpret_pointer_cast<xcb_ge_generic_event_t>(event);
-        res::logger->info("Received generic event {}",
-                          getEventName(event.get()));
+        logger->info("Received generic event {}", getEventName(event.get()));
       } else {
         switch (event->response_type & ~0x80) {
             /*
@@ -101,8 +100,8 @@ namespace smv::details {
             break;
           }
           default: {
-            res::logger->info("Received default event: {}",
-                              getEventName(event.get()));
+            logger->info("Received default event: {}",
+                         getEventName(event.get()));
             break;
           }
         }

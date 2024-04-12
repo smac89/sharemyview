@@ -11,7 +11,7 @@
 #include <xcb/xcb_ewmh.h>
 
 namespace smv::details {
-  using smv::utils::res;
+  using smv::utils::res, smv::log::logger;
 
   bool initMonitor()
   {
@@ -22,11 +22,11 @@ namespace smv::details {
     if (xcb_ewmh_init_atoms_replies(
           ewm, xcb_ewmh_init_atoms(res::connection.get(), ewm), nullptr)) {
       res::ewm_connection.reset(ewm);
-      res::logger->info("Connected to compatible window manager!");
+      logger->info("Connected to compatible window manager!");
 
       std::thread(&XEvents::start, &XEvents::getInstance()).detach();
     } else {
-      res::logger->info("Not connected to compatible window manager!");
+      logger->info("Not connected to compatible window manager!");
     }
     return res::ewm_connection != nullptr;
   }
@@ -49,13 +49,13 @@ namespace smv::details {
     auto screens = xcb_setup_roots_iterator(setup);
     new_screens.reserve(setup->roots_len);
     //  most x11 servers will have only one screen/root window
-    res::logger->info("Found {} screens", setup->roots_len);
+    logger->info("Found {} screens", setup->roots_len);
 
     for (; screens.rem > 0; xcb_screen_next(&screens)) {
       auto root = screens.data->root;
-      res::logger->debug("Screen {} with root {}",
-                         screens.index / xcb_screen_sizeof(screens.data),
-                         root);
+      logger->debug("Screen {} with root {}",
+                    screens.index / xcb_screen_sizeof(screens.data),
+                    root);
       if (std::find(existing_screens.begin(), existing_screens.end(), root) ==
           existing_screens.end()) {
         new_screens.push_back(root);
@@ -76,8 +76,7 @@ namespace smv::details {
                         decltype(&xcb_ewmh_get_windows_reply_wipe)>
           _defer(&reply, &xcb_ewmh_get_windows_reply_wipe);
 
-        res::logger->debug(
-          "Screen {} with {} virtual roots", i, reply.windows_len);
+        logger->debug("Screen {} with {} virtual roots", i, reply.windows_len);
         std::copy_if(reply.windows,
                      reply.windows + reply.windows_len,
                      std::back_inserter(new_screens),
@@ -123,7 +122,7 @@ namespace smv::details {
     std::vector<std::pair<xcb_window_t, xcb_query_tree_cookie_t>> ch_query;
 
     for (auto w : roots) {
-      res::logger->debug("Querying children of {}", w);
+      logger->debug("Querying children of {}", w);
       ch_query.emplace_back(w,
                             xcb_query_tree_unchecked(res::connection.get(), w));
     }
@@ -134,19 +133,19 @@ namespace smv::details {
       auto query_tree_rep = std::unique_ptr<xcb_query_tree_reply_t>(
         xcb_query_tree_reply(res::connection.get(), cookie, nullptr));
 
-      res::logger->debug(
+      logger->debug(
         "{:#x} has {} children", parent, query_tree_rep->children_len);
       auto children = xcb_query_tree_children(query_tree_rep.get());
       if (children == nullptr || query_tree_rep->children_len == 0) {
-        res::logger->warn("no children for {:#x}", parent);
+        logger->warn("no children for {:#x}", parent);
         continue;
       }
 
-      res::logger->debug("Children of {:#x}: [{:#x}]",
-                         parent,
-                         fmt::join(smv::utils::CPtrIterator(
-                                     children, query_tree_rep->children_len),
-                                   ", "));
+      logger->debug("Children of {:#x}: [{:#x}]",
+                    parent,
+                    fmt::join(smv::utils::CPtrIterator(
+                                children, query_tree_rep->children_len),
+                              ", "));
 
       all_children.reserve(all_children.size() + query_tree_rep->children_len);
       for (auto &c :

@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <spdlog/cfg/env.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 static void setupSignals();
@@ -68,6 +69,11 @@ void setupSignals()
   std::signal(SIGINT, sigHandler);
   std::signal(SIGTERM, sigHandler);
   std::signal(SIGQUIT, sigHandler);
+}
+
+namespace smv::log {
+  extern std::shared_ptr<spdlog::logger> const logger =
+    spdlog::stderr_color_mt(LOGGER_NAME_WINCLIENT);
 }
 
 // bool

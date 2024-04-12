@@ -16,9 +16,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <xcb/xcb.h>
 
-using smv::utils::res;
-
 namespace smv {
+  using smv::utils::res;
   static std::mutex              connMutex, listenGuard;
   static std::condition_variable waitListenCond;
 
@@ -29,8 +28,8 @@ namespace smv {
   {
     std::lock_guard lk(connMutex);
     if (res::connection) {
-      spdlog::apply_logger_env_levels(res::logger);
-      res::logger->info("X11 connection already established");
+      spdlog::apply_logger_env_levels(logger);
+      logger->info("X11 connection already established");
       return;
     }
 
@@ -45,7 +44,7 @@ namespace smv {
     if (!details::initMonitor()) {
       return;
     }
-    res::logger->info("X11 connection established");
+    logger->info("X11 connection established");
     waitListenCond.notify_all();
   }
 
@@ -59,7 +58,7 @@ namespace smv {
     details::deinitTools();
     deinitConnection();
     // TODO: clear all subscriptions
-    res::logger->info("X11 connection closed");
+    logger->info("X11 connection closed");
   }
 
   bool initConnection()
@@ -69,7 +68,7 @@ namespace smv {
 
     auto error = xcb_connection_has_error(res::connection.get());
     if (error) {
-      res::logger->error("xcb_connect failed. Error code: {}", error);
+      logger->error("xcb_connect failed. Error code: {}", error);
       std::ignore = res::connection.release();
     }
     return res::connection != nullptr;

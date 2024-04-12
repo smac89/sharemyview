@@ -3,15 +3,14 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <type_traits>
 
 namespace smv {
   struct Window;
   struct EventData;
+  enum class EventType : uint16_t;
 
   using Cancel = std::function<void()>;
-  template<typename D                                             = EventData,
-           std::enable_if_t<std::is_base_of_v<EventData, D>, int> = 0>
+  template<typename D>
   using TEventCB = std::function<void(const D &)>;
   using EventCB  = TEventCB<EventData>;
 

@@ -68,4 +68,15 @@ namespace fmt {
       return format_to(ctx.out(), "\n{{ {} }}", join(m.begin(), m.end(), ", "));
     }
   };
+
+  template<>
+  struct formatter<smv::EventData>: formatter<std::string>
+  {
+    template<typename FormatContext>
+    auto format(const smv::EventData &e, FormatContext &ctx) const
+      -> decltype(ctx.out())
+    {
+      return format_to(ctx.out(), "{}: {{<insert-data>}}", e.type);
+    }
+  };
 } // namespace fmt

@@ -107,7 +107,9 @@
         "qopenglframebufferobject": "cpp",
         "cassert": "cpp",
         "*.inc": "cpp",
-        "qqmlcontext": "cpp"
+        "qqmlcontext": "cpp",
+        "qtcoredepends": "cpp",
+        "qtguidepends": "cpp"
     },
     "[cpp]": {
         "editor.formatOnSave": true
