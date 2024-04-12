@@ -2,7 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.15
 import QtQuick.Shapes 1.15
-import org.ubiquity.view.ShareMyViewWindow 1.0
 import "qrc:/components"
 
 ApplicationWindow {
@@ -15,15 +14,26 @@ ApplicationWindow {
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowSystemMenuHint
     background: rootBackground
 
-    signal targetGeomChanged(size sz, vector2d pos)
+    // Accessing qt from qml
+    // https://doc.qt.io/qt-5/qtqml-cppintegration-interactqmlfromcpp.html
+    // signal targetWindowMoved(point pos)
+    // signal targetWindowResized(size sz)
+    // signal targetWindowChanged(size sz, point pos)
 
-    Component.onCompleted: {
-        rootWindow.targetGeomChanged.connect((sz, pos) => {
-            rootWindow.width = sz.width
-            rootWindow.height = sz.height
-            rootWindow.x = pos.x
-            rootWindow.y = pos.y
-        })
+    Connections {
+        target: smvApp
+
+        function onTargetWindowMoved(pos) {
+            console.log(pos)
+        }
+
+        function onTargetWindowResized(sz) {
+            console.log(sz)
+        }
+
+        function onTargetWindowChanged(sz, pos) {
+            console.log(pos, sz)
+        }
     }
 
     // ParallelAnimation {
@@ -35,12 +45,10 @@ ApplicationWindow {
     //     }
     // }
 
-    SystemPalette { id: palette; colorGroup: SystemPalette.Active }
-
     Rectangle {
         id: rootBackground
         anchors.fill: parent
-        border { color: Qt.lighter(palette.window); width: 3 }
+        border { color: Qt.lighter(rootWindow.palette.window); width: 3 }
         radius: 5
         color: "transparent"
 

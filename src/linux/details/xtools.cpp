@@ -8,19 +8,16 @@
 
 static std::shared_ptr<xcb_errors_context_t> err_ctx;
 
-namespace smv::details
-{
+namespace smv::details {
   using smv::utils::res;
 
   bool initTools()
   {
-    if (err_ctx)
-    {
+    if (err_ctx) {
       return true;
     }
     xcb_errors_context_t *ctx = nullptr;
-    if (xcb_errors_context_new(res::connection.get(), &ctx) < 0)
-    {
+    if (xcb_errors_context_new(res::connection.get(), &ctx) < 0) {
       res::logger->error("error creating xcb_errors_context");
       return false;
     }
@@ -41,8 +38,7 @@ namespace smv::details
 
   std::string getEventName(xcb_generic_event_t *const event)
   {
-    if (!event)
-    {
+    if (!event) {
       return "";
     }
     return xcb_errors_get_name_for_xcb_event(err_ctx.get(), event, nullptr);

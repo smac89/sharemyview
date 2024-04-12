@@ -3,6 +3,7 @@
 #include <QGuiApplication>
 #include <QObject>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <csignal>
 #include <cstdlib>
 #include <functional>
@@ -20,22 +21,14 @@ int main(int argc, char *argv[])
   spdlog::info("Starting...");
   smv::init();
 
-  std::atexit(
-    []()
-    {
-      smv::deinit();
-      spdlog::info("Finished");
-    });
+  std::atexit([]() {
+    smv::deinit();
+    spdlog::info("Finished");
+  });
 
   QCoreApplication::setOrganizationName("Ubiquity");
   QCoreApplication::setApplicationName("Capture");
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
-  QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGL);
-
-  QGuiApplication app(argc, argv);
-  qmlRegisterType<ShareMyViewWindow>(
-    "org.ubiquity.view.ShareMyViewWindow", 1, 0, "ShareMyViewWindow");
+  QGuiApplication       app(argc, argv);
   const QUrl            mainUrl("qrc:/qml/capture.qml");
   QQmlApplicationEngine engine;
 
@@ -43,26 +36,23 @@ int main(int argc, char *argv[])
     &engine,
     &QQmlApplicationEngine::objectCreated,
     &app,
-    [&](QObject *root, const QUrl &url)
-    {
-      if (url != mainUrl)
-      {
-        return;
-      }
-      if (root == nullptr)
-      {
-        spdlog::error("Failed to load qml");
-        // this does not quit the program entirely,
-        // so we need an else
-        QCoreApplication::exit(EXIT_FAILURE);
-      }
-      else
-      {
-        QObject::disconnect(connection);
-      }
-    },
+    [&](QObject *root, const QUrl &url) {
+    if (url != mainUrl) {
+      return;
+    }
+    if (root == nullptr) {
+      spdlog::error("Failed to load qml");
+      // this does not quit the program entirely,
+      // so we need an else
+      QCoreApplication::exit(EXIT_FAILURE);
+    } else {
+      QObject::disconnect(connection);
+    }
+  },
     Qt::QueuedConnection);
 
+  App smvApp;
+  engine.rootContext()->setContextProperty("smvApp", &smvApp);
   engine.load(mainUrl);
   return app.exec();
 }

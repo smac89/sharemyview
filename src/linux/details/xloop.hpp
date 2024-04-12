@@ -2,13 +2,14 @@
 
 #include "smv/window.hpp"
 
+#include <optional>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include <xcb/xcb.h>
 
-namespace smv::details
-{
+namespace smv::details {
   struct XGeom
   {
     smv::Position pos;
@@ -17,9 +18,11 @@ namespace smv::details
 
   struct XWindowInfo
   {
-    std::string   name;
-    smv::Position pos;
-    smv::Size     size;
+    std::string                 name;
+    smv::Position               pos;
+    smv::Size                   size;
+    std::optional<xcb_window_t> parent;
+    std::vector<xcb_window_t>   children;
   };
 
   /**
@@ -33,6 +36,16 @@ namespace smv::details
    * @return true if the window is a normal window
    */
   bool windowIsNormalType(xcb_window_t w);
+
+  /**
+   * @brief Get the Parent of this Window
+   *
+   * @details The parent is the parent window
+   *
+   * @param w the window id to get the parent for
+   * @return std::optional<xcb_window_t>
+   */
+  std::optional<xcb_window_t> getParent(xcb_window_t w);
 
   /**
    * @brief Get the Window Geometry

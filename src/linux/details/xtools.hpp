@@ -4,8 +4,7 @@
 
 #include <xcb/xcb.h>
 
-namespace smv::details
-{
+namespace smv::details {
   bool initTools();
   void deinitTools();
 

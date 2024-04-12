@@ -1,7 +1,10 @@
 #include "xloop.hpp"
 #include "xevents.hpp"
+#include "xmonitor.hpp"
 #include "xtools.hpp"
 #include "xutils.hpp"
+
+#include <optional>
 
 #include <xcb/xcb_ewmh.h>
 
@@ -128,6 +131,19 @@ namespace smv::details {
            *atom_reply.atoms == res::ewm_connection->_NET_WM_WINDOW_TYPE_NORMAL;
   }
 
+  std::optional<xcb_window_t> getParent(xcb_window_t w)
+  {
+    xcb_query_tree_reply_t *reply =
+      xcb_query_tree_reply(res::connection.get(),
+                           xcb_query_tree_unchecked(res::connection.get(), w),
+                           nullptr);
+    if (reply->parent == XCB_NONE) {
+      return std::nullopt;
+    } else {
+      return reply->parent;
+    }
+  }
+
   std::variant<XGeom, std::string> getWindowGeometry(xcb_window_t w)
   {
     xcb_generic_error_t                      *err = nullptr;
@@ -166,7 +182,7 @@ namespace smv::details {
                                             XCB_ATOM_WM_NAME,
                                             XCB_ATOM_STRING,
                                             0,
-                                            1024),
+                                            0),
                  nullptr);
                prop != nullptr) {
       resp = std::string(reinterpret_cast<char *>(xcb_get_property_value(prop)),
@@ -185,9 +201,11 @@ namespace smv::details {
     if (std::holds_alternative<std::string>(geom)) {
       resp = std::get<std::string>(geom);
     } else {
-      resp = XWindowInfo { .name = getWindowName(w),
-                           .pos  = std::get<XGeom>(geom).pos,
-                           .size = std::get<XGeom>(geom).size };
+      resp = XWindowInfo { .name     = getWindowName(w),
+                           .pos      = std::get<XGeom>(geom).pos,
+                           .size     = std::get<XGeom>(geom).size,
+                           .parent   = getParent(w),
+                           .children = queryChildren({ w }) };
     }
     return resp;
   }

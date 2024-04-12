@@ -18,8 +18,8 @@ namespace smv {
   enum class EventType : uint16_t
   {
     None          = 0x0,
-    Move          = 0x2,
-    Resize        = 0x4,
+    WindowMove    = 0x2,
+    WindowResize  = 0x4,
     MouseEnter    = 0x8,
     MouseLeave    = 0x10,
     MouseMove     = 0x20,
@@ -176,9 +176,11 @@ namespace smv {
     constexpr static EventType type = EventType::MouseWheel;
   };
 
-  struct EventDataResize final: EventData
+  struct EventDataWindowResize final: EventData
   {
-    EventDataResize(const std::weak_ptr<Window> &window, uint32_t w, uint32_t h)
+    EventDataWindowResize(const std::weak_ptr<Window> &window,
+                          uint32_t                     w,
+                          uint32_t                     h)
       : EventData(window)
       , w(w)
       , h(h)
@@ -187,16 +189,16 @@ namespace smv {
 
     // The new width and height
     const uint32_t             w, h;
-    constexpr static EventType type = EventType::Resize;
+    constexpr static EventType type = EventType::WindowResize;
   };
 
-  struct EventDataMove final: EventData
+  struct EventDataWindowMove final: EventData
   {
-    EventDataMove(const std::weak_ptr<Window> &window,
-                  uint32_t                     x,
-                  uint32_t                     y,
-                  int16_t                      dx,
-                  int16_t                      dy)
+    EventDataWindowMove(const std::weak_ptr<Window> &window,
+                        uint32_t                     x,
+                        uint32_t                     y,
+                        int16_t                      dx,
+                        int16_t                      dy)
       : EventData(window)
       , x(x)
       , y(y)
@@ -209,7 +211,7 @@ namespace smv {
     const uint32_t x, y;
     // The change in position
     const int16_t              delta_x, delta_y;
-    constexpr static EventType type = EventType::Move;
+    constexpr static EventType type = EventType::WindowMove;
   };
 
   struct EventDataWindowCreated final: EventData

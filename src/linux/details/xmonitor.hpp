@@ -3,8 +3,7 @@
 #include <vector>
 #include <xcb/xcb.h>
 
-namespace smv::details
-{
+namespace smv::details {
   /**
    * @brief Initialize the monitor
    *
@@ -35,11 +34,13 @@ namespace smv::details
   void prepareScreens(const std::vector<xcb_window_t> &screens);
 
   /**
-   * @brief For each of the given root windows, we monitor for new windows
+   * @brief For each of the given root windows, find its direct children
    *
    * @param roots the list of root windows
+   * @return the list of children
    */
-  void monitorRoots(const std::vector<xcb_window_t> &roots);
+  [[maybe_unused]] std::vector<xcb_window_t> queryChildren(
+    const std::vector<xcb_window_t> &roots);
 
   /**
    * @brief Standalone function to monitor the children of a window

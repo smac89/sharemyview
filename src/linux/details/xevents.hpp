@@ -199,7 +199,6 @@ namespace smv::details {
 
 namespace fmt {
   /* https://fmt.dev/9.0.0/api.html#formatting-user-defined-types */
-
   template<>
   struct formatter<TrackedWindows::value_type>: formatter<std::string>
   {
@@ -208,20 +207,9 @@ namespace fmt {
       -> decltype(ctx.out())
     {
       return format_to(ctx.out(),
-                       R"({}: "{}")",
+                       R"({:#x}: "{}")",
                        m.first,
                        styled(m.second->name(), fg(color::yellow_green)));
-    }
-  };
-
-  template<>
-  struct formatter<TrackedWindows>: formatter<std::string>
-  {
-    template<typename FormatContext>
-    auto format(const TrackedWindows &m, FormatContext &ctx) const
-      -> decltype(ctx.out())
-    {
-      return format_to(ctx.out(), "\n{{ {} }}", join(m.begin(), m.end(), ", "));
     }
   };
 } // namespace fmt

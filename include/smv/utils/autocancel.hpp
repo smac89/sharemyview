@@ -14,7 +14,7 @@
 
 constexpr auto LOGGER_NAME_AUTOCANCEL = "smv::autocancel";
 
-namespace smv {
+namespace smv::utils {
   class AutoCancel
   {
     explicit AutoCancel(Cancel cancel, std::uint32_t id)
@@ -55,10 +55,12 @@ namespace smv {
     AutoCancel(AutoCancel &&other) = default;
     AutoCancel &operator=(AutoCancel &&other)
     {
-      this->tryCancel();
-      this->mCancel = std::move(other.mCancel);
-      this->mId     = std::move(other.mId);
-      logger->debug("Move assignment id: {}", mId);
+      if (mId != other.mId) {
+        this->tryCancel();
+        this->mCancel = std::move(other.mCancel);
+        this->mId     = std::move(other.mId);
+        logger->debug("Move assignment id: {}", mId);
+      }
       return *this;
     }
     std::uint32_t id() const { return mId; }
@@ -141,4 +143,4 @@ namespace smv {
   {
     return AutoCancel::wrap(std::move(cancel));
   }
-} // namespace smv
+} // namespace smv::utils

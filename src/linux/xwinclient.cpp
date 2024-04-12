@@ -1,14 +1,10 @@
 #include "smv/events.hpp"
-#include "smv/utils.hpp"
 #include "smv/winclient.hpp"
 #include "xevents.hpp"
 #include "xmonitor.hpp"
 #include "xtools.hpp"
 #include "xutils.hpp"
 #include "xwindow.hpp"
-#ifdef SMV_TRACK_SUBSCRIPTIONS
-#include "smv/autocancel.hpp"
-#endif
 
 #include <condition_variable>
 #include <memory>
@@ -33,6 +29,7 @@ namespace smv {
   {
     std::lock_guard lk(connMutex);
     if (res::connection) {
+      spdlog::apply_logger_env_levels(res::logger);
       res::logger->info("X11 connection already established");
       return;
     }
@@ -85,7 +82,7 @@ namespace smv {
 
   void waitConnection()
   {
-    std::unique_lock<std::mutex> lk(listenGuard);
+    std::unique_lock lk(listenGuard);
     if (!res::connection) {
       waitListenCond.wait(lk, [] {
         return res::connection != nullptr;
@@ -96,11 +93,6 @@ namespace smv {
   Cancel listen(EventType type, EventCB cb)
   {
     waitConnection();
-    std::lock_guard lk(listenGuard);
-#ifdef SMV_TRACK_SUBSCRIPTIONS
-    return autoCancel(details::registerEvent(type, std::move(cb)));
-#else
     return details::registerEvent(type, std::move(cb));
-#endif
   }
 } // namespace smv

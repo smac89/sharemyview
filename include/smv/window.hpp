@@ -3,8 +3,7 @@
 #include <cstdint>
 #include <string>
 
-namespace smv
-{
+namespace smv {
   struct Position
   {
     std::int32_t x, y;

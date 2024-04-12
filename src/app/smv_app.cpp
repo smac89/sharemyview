@@ -1,4 +1,5 @@
 #include "smv_app.hpp"
+#include "smv/utils/autocancel.hpp"
 #include "smv/winclient.hpp"
 
 #include <exception>
@@ -13,56 +14,139 @@
 #include <cstdint>
 #include <spdlog/spdlog.h>
 
-ShareMyViewWindow::ShareMyViewWindow(QWindow *parent)
-  : QQuickWindow(parent)
-  , currentPos(QPoint(0, 0))
+App::App(QObject *parent)
+  : QObject(parent)
   , mCancel(smv::listen<smv::EventDataMouseEnter>(
-      [](const smv::EventDataMouseEnter &data) {
-  // const auto &enterEvent =
-  //   dynamic_cast<const smv::EventDataMouseEnter &>(data);
-  spdlog::info("Mouse enter {{x: {}, y: {}}}", data.x, data.y);
-}))
+      std::bind(&App::operator(), this, std::placeholders::_1)))
 {
-  installEventFilter(this);
+  QObject::connect(this,
+                   &App::targetWindowMoved,
+                   this,
+                   qOverload<const QPoint &>(&App::updateRecordRegion));
+  QObject::connect(this,
+                   &App::targetWindowResized,
+                   this,
+                   qOverload<const QSize &>(&App::updateRecordRegion));
+  QObject::connect(
+    this,
+    &App::targetWindowChanged,
+    this,
+    qOverload<const QSize &, const QPoint &>(&App::updateRecordRegion));
 }
 
-ShareMyViewWindow::~ShareMyViewWindow()
+void App::operator()(const smv::EventDataMouseEnter &data)
 {
-  mCancel();
-}
-
-bool ShareMyViewWindow::eventFilter(QObject *, QEvent *event)
-{
-  if (event->type() == QEvent::MouseButtonPress) {
-    currentPos              = QCursor::pos();
-    QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-    if (mouseEvent->buttons() == Qt::LeftButton) {
-      // TODO: take screenshot here
-      spdlog::info(
-        "Mouse click at {{x: {}, y: {}}}", mouseEvent->x(), mouseEvent->y());
+  if (auto window = data.window.lock(); window != nullptr) {
+    if (mMode == Mode::Region) {
+      if (std::shared_lock lk(mMutex); this->mTargetWindow == nullptr) {
+        return;
+      }
+      this->setTargetWindow(nullptr);
+      spdlog::info("Tracking region", data.x, data.y);
+    } else {
+      if (std::shared_lock lk(mMutex); window == this->mTargetWindow) {
+        return;
+      }
+      this->setTargetWindow(window);
+      spdlog::info("Mouse enter {{x: {}, y: {}}}", data.x, data.y);
     }
   }
-  return false;
 }
 
-void ShareMyViewWindow::takeScreenShot()
+void App::takeScreenShot()
 {
   // fbo->toImage().save("capture.png");
+  spdlog::info("Taking screenshot...");
 }
 
-void ShareMyViewWindow::startRecording() {}
+void App::startRecording() {}
 
-void ShareMyViewWindow::streamRecording() {}
+void App::streamRecording() {}
 
-void ShareMyViewWindow::setMode(const Mode mode)
+void App::updateRecordRegion(const QRect &rect)
+{
+  mRecordRegion = rect;
+}
+
+void App::updateRecordRegion(const QPoint &point)
+{
+  mRecordRegion.moveTo(point);
+}
+
+void App::updateRecordRegion(const QSize &size)
+{
+  mRecordRegion.setSize(size);
+}
+
+void App::updateRecordRegion(const QSize &size, const QPoint &point)
+{
+  mRecordRegion = QRect(point, size);
+}
+
+App::Mode App::mode() const
+{
+  return mMode;
+}
+
+void App::setMode(const Mode mode)
 {
   mMode = mode;
   emit modeChanged(mode);
 }
 
-ShareMyViewWindow::Mode ShareMyViewWindow::mode() const
+std::shared_ptr<smv::Window> App::targetWindow() const
 {
-  return mMode;
+  return mTargetWindow;
+}
+
+void App::setTargetWindow(const std::shared_ptr<smv::Window> window)
+{
+  using AutoCancel                      = smv::utils::AutoCancel;
+  static smv::Cancel cancelWindowMove   = nullptr;
+  static smv::Cancel cancelWindowResize = nullptr;
+
+  if (window != nullptr) {
+    spdlog::info("Tracking window {:#x}", window->id());
+    {
+      std::unique_lock lk(mMutex);
+      this->mTargetWindow = window;
+    }
+
+    spdlog::info("Before cancelWindowMove...");
+    cancelWindowMove = smv::listen<smv::EventDataWindowMove>(
+      window->id(), [this](const smv::EventDataWindowMove &data) {
+      emit targetWindowMoved(QPoint(data.x, data.y));
+    });
+    spdlog::info("After cancelWindowMove...");
+
+    spdlog::info("Before cancelWindowResize...");
+    cancelWindowResize =
+      AutoCancel::wrap(smv::listen<smv::EventDataWindowResize>(
+        window->id(), [this](const smv::EventDataWindowResize &data) {
+      emit targetWindowResized(QSize(data.w, data.h));
+    }));
+    spdlog::info("After cancelWindowResize...");
+
+    spdlog::info("Before emitting...");
+    QMetaObject::invokeMethod(this, [window, this]() {
+      emit targetWindowChanged(
+        QSize(window->size().w, window->size().h),
+        QPoint(window->position().x, window->position().y));
+    });
+    spdlog::info("After emitting...");
+
+  } else {
+    cancelWindowMove   = nullptr;
+    cancelWindowResize = nullptr;
+    std::unique_lock lk(mMutex);
+    this->mTargetWindow = window;
+  }
+}
+
+App::~App()
+{
+  mCancel();
+  spdlog::info("App destroyed");
 }
 
 // void
