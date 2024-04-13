@@ -1,7 +1,10 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
 <qresource prefix="/">
+    <file alias="components/LockTargetButton.qml">assets/qt/components/LockTargetButton.qml</file>
     <file alias="components/ResizeGrip.qml">assets/qt/components/ResizeGrip.qml</file>
     <file alias="qml/capture.qml">assets/qt/capture.qml</file>
+    <file alias="icons/lock.svg">assets/icons/lock.svg</file>
+    <file alias="icons/unlock.svg">assets/icons/unlock.svg</file>
 </qresource>
 </RCC>

@@ -21,10 +21,16 @@ namespace smv::details {
 
       if (event->response_type == XCB_NONE) {
         auto err = std::reinterpret_pointer_cast<xcb_generic_error_t>(event);
-        if (err->error_code != XCB_WINDOW) {
-          // XCB_WINDOW is the error code for an invalid window
-          logger->error("Received error: {}",
-                        getErrorCodeName(err->error_code));
+        switch (err->error_code) {
+          case XCB_WINDOW: {
+            auto werr =
+              std::reinterpret_pointer_cast<xcb_window_error_t>(event);
+            // XCB_WINDOW is the error code for an invalid window
+            logger->error("Window error: {:#x}", werr->bad_value);
+          } break;
+          default:
+            logger->error("Error: {}", getErrorCodeName(err->error_code));
+            break;
         }
       }
       // See https://www.x.org/wiki/Development/Documentation/XGE/
@@ -82,7 +88,9 @@ namespace smv::details {
                   window->position().y != configure->y) {
                 xevents.onWindowMoved(
                   configure->window, configure->x, configure->y);
-              } else {
+              }
+              if (window->size().w != configure->width ||
+                  window->size().h != configure->height) {
                 xevents.onWindowResized(
                   configure->window, configure->width, configure->height);
               }
@@ -100,8 +108,8 @@ namespace smv::details {
             break;
           }
           default: {
-            logger->info("Received default event: {}",
-                         getEventName(event.get()));
+            logger->debug("Received default event: {}",
+                          getEventName(event.get()));
             break;
           }
         }

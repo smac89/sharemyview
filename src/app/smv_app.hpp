@@ -1,8 +1,11 @@
 #pragma once
+#include "mainwindow_geom_proxy.hpp"
 #include "smv/events.hpp"
 
 #include <QObject>
-#include <QWindow>
+#include <QPropertyAnimation>
+#include <QQuickWindow>
+#include <QRect>
 #include <memory>
 #include <shared_mutex>
 
@@ -12,7 +15,7 @@ class App: public QObject
 {
   // https://doc.qt.io/qt-5/qtqml-cppintegration-exposecppattributes.html
   Q_OBJECT
-  Q_PROPERTY(Mode mode READ mode WRITE setMode NOTIFY modeChanged)
+  Q_PROPERTY(Mode mode MEMBER mMode NOTIFY modeChanged)
   Q_PROPERTY(std::shared_ptr<smv::Window> targetWindow READ targetWindow WRITE
                setTargetWindow NOTIFY targetWindowChanged)
 public:
@@ -26,7 +29,6 @@ public:
   Q_ENUM(Mode)
 
   Mode                         mode() const;
-  void                         setMode(const Mode);
   std::shared_ptr<smv::Window> targetWindow() const;
   void setTargetWindow(const std::shared_ptr<smv::Window>);
   void operator()(const smv::EventDataMouseEnter &data);
@@ -44,6 +46,7 @@ public slots:
   void updateRecordRegion(const QPoint &);
   void updateRecordRegion(const QSize &);
   void updateRecordRegion(const QSize &, const QPoint &);
+  void qquickWindowReady(QQuickWindow *window);
 
 private slots:
   void takeScreenShot();
@@ -52,7 +55,9 @@ private slots:
 
 private:
   QRect                        mRecordRegion;
-  Mode                         mMode = Mode::Window;
+  MainWindowGeomAnim           mGeomAnimation;
+  QQuickWindow                *mSceneWindow = nullptr;
+  Mode                         mMode        = Mode::Window;
   smv::Cancel                  mCancel;
   std::shared_mutex            mMutex;
   std::weak_ptr<smv::Window>   mActiveWindow;

@@ -37,6 +37,9 @@ namespace smv::details {
     //  force singleton
     XEvents(const XEvents &)            = delete;
     XEvents &operator=(const XEvents &) = delete;
+    XEvents(XEvents &&)                 = delete;
+    XEvents &operator=(XEvents &&)      = delete;
+    ~XEvents()                          = default;
 
     /**
      * @brief starts the event loop

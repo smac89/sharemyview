@@ -7,7 +7,6 @@ add_requires("libassert 1.2.2", { alias = "libassert", configs = { decompose = t
 target("libcapture")
     set_kind("static")
     add_files("./**.cpp")
-    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=debug")
     add_includedirs("details", "common", "$(projectdir)/include")
     add_packages("spdlog")
     add_packages("xcb", "xcb-util", "xcb-util-wm", "xcb-util-errors", "libassert")

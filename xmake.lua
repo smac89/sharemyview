@@ -30,7 +30,7 @@ target("capture")
     set_kind("binary")
     -- https://github.com/xmake-io/xmake/blob/d8c1f612cdbd5c6f29a7b789d46f91292c1abc1e/xmake/rules/qt/xmake.lua
     add_rules("qt.quickapp")
-    add_frameworks("QtQuickControls2", "QtWidgets", "QtQuickWidgets")
+    add_frameworks("QtQuickControls2", "QtWidgets", "QtSvg", "QtQuickWidgets")
     set_languages("c17", "c++17")
     add_packages("spdlog", "opengl")
     -- include .hpp files so that the moc compiler can do it's thing
@@ -38,6 +38,7 @@ target("capture")
     -- include .qrc files to that they are transpiled by rcc
     add_files("capture.qrc")
     add_includedirs("include")
+    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=info,smv::autocancel=off")
     add_cxflags("-fstack-protector-strong", {tools = {"gcc", "clang"}})
     if is_mode("debug") then
         add_defines("SMV_DEBUG")

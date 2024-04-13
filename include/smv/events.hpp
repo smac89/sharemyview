@@ -4,10 +4,11 @@
 #include <memory>
 #include <string>
 
+#include <spdlog/fmt/fmt.h>
+
 namespace smv {
   struct Window;
   struct EventData;
-  enum class EventType : uint16_t;
 
   using Cancel = std::function<void()>;
   template<typename D>
@@ -61,14 +62,16 @@ namespace smv {
       : window(window)
     {
     }
-
+    virtual std::string format() const { return "<No Data>"; }
     virtual ~EventData() = default;
+
     const std::weak_ptr<Window> window;
     constexpr static EventType  type = EventType::None;
   };
 
   struct EventDataMouseEnter final: EventData
   {
+
     EventDataMouseEnter(const std::weak_ptr<Window> &window,
                         uint32_t                     x,
                         uint32_t                     y)
@@ -77,6 +80,7 @@ namespace smv {
       , y(y)
     {
     }
+    std::string format() const override { return fmt::format("{}, {}", x, y); }
 
     // the mouse position in window coordinate
     uint32_t                   x, y;
@@ -93,6 +97,7 @@ namespace smv {
       , y(y)
     {
     }
+    std::string format() const override { return fmt::format("{}, {}", x, y); }
 
     // the last mouse position in window coordinate
     uint32_t                   x, y;

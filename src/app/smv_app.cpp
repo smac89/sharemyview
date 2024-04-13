@@ -2,20 +2,17 @@
 #include "smv/utils/autocancel.hpp"
 #include "smv/winclient.hpp"
 
+#include <cstdint>
 #include <exception>
 
-#include <QOpenGLContext>
-#include <QOpenGLFramebufferObject>
-#include <QOpenGLFunctions>
-#include <QQuickPaintedItem>
-#include <QScreen>
-#include <QStackedLayout>
-#include <QWindow>
-#include <cstdint>
+#include <QPropertyAnimation>
 #include <spdlog/spdlog.h>
+
+// QT Globals: https://doc.qt.io/qt-5/qtglobal.html
 
 App::App(QObject *parent)
   : QObject(parent)
+  , mGeomAnimation(this)
   , mCancel(smv::listen<smv::EventType::MouseEnter, smv::EventDataMouseEnter>(
       std::bind(&App::operator(), this, std::placeholders::_1)))
 {
@@ -66,32 +63,37 @@ void App::streamRecording() {}
 void App::updateRecordRegion(const QRect &rect)
 {
   mRecordRegion = rect;
+  // mGeomAnimation.animateProperty(rect);
 }
 
 void App::updateRecordRegion(const QPoint &point)
 {
   mRecordRegion.moveTo(point);
+  // mGeomAnimation.animateProperty(point);
 }
 
 void App::updateRecordRegion(const QSize &size)
 {
   mRecordRegion.setSize(size);
+  // mGeomAnimation.animateProperty(size);
 }
 
 void App::updateRecordRegion(const QSize &size, const QPoint &point)
 {
   mRecordRegion = QRect(point, size);
+  // mGeomAnimation.animateProperty(QRect(point, size));
+}
+
+void App::qquickWindowReady(QQuickWindow *window)
+{
+  mSceneWindow  = window;
+  mRecordRegion = window->geometry();
+  mGeomAnimation.qquickWindowReady(window);
 }
 
 App::Mode App::mode() const
 {
   return mMode;
-}
-
-void App::setMode(const Mode mode)
-{
-  mMode = mode;
-  emit modeChanged(mode);
 }
 
 std::shared_ptr<smv::Window> App::targetWindow() const
@@ -114,6 +116,8 @@ void App::setTargetWindow(const std::shared_ptr<smv::Window> window)
 
     cancelWindowMove = AutoCancel::wrap(smv::listen<smv::EventType::WindowMove>(
       window->id(), [this](const smv::EventDataWindowMove &data) {
+      auto animation =
+        QPropertyAnimation(this); // TODO: Get instance of root window
       emit targetWindowMoved(QPoint(data.x, data.y));
     }));
 

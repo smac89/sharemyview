@@ -41,30 +41,30 @@ namespace smv {
   Cancel listen(EventType, EventCB);
 
   template<EventType E, typename D>
-  constexpr Cancel listen(TEventCB<D> cb)
+  constexpr Cancel listen(TEventCB<D> fn)
   {
     static_assert(std::is_base_of_v<smv::EventData, D>,
                   "Data must inherit from EventData");
-    static_assert(E == D::type);
+    static_assert(E == D::type,
+                  "Missing type field. Event type must match data type");
 
-    return listen(E, [cb](const EventData &d) {
-      logger->info("{}", d);
-      cb(dynamic_cast<const D &>(d));
+    return listen(E, [fn = std::move(fn)](const EventData &d) {
+      fn(dynamic_cast<const D &>(d));
     });
   }
 
-  template<smv::EventType E, typename F, typename D = Arg0<F>>
-  constexpr Cancel listen(F arg)
+  template<EventType E, typename F, typename D = Arg0<F>>
+  constexpr Cancel listen(F fn)
   {
-    return listen<E, D>(std::forward<F>(arg));
+    return listen<E, D>(std::forward<F>(fn));
   }
 
-  template<smv::EventType E, typename F, typename D = Arg0<F>>
-  constexpr Cancel listen(const std::uint32_t wid, F arg)
+  template<EventType E, typename F, typename D = Arg0<F>>
+  constexpr Cancel listen(const std::uint32_t wid, F fn)
   {
-    return listen<E, D>([arg, wid](const D &e) {
+    return listen<E, D>([fn, wid](const D &e) {
       if (auto window = e.window.lock(); window && window->id() == wid) {
-        arg(e);
+        fn(e);
       }
     });
   }

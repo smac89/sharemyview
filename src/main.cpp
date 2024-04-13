@@ -1,13 +1,16 @@
 #include "app/smv_app.hpp"
+#include "app/smv_image_provider.hpp"
 #include "smv/winclient.hpp"
-#include <QGuiApplication>
-#include <QObject>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+
 #include <csignal>
 #include <cstdlib>
 #include <functional>
 #include <memory>
+
+#include <QGuiApplication>
+#include <QObject>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <spdlog/cfg/env.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -53,8 +56,10 @@ int main(int argc, char *argv[])
     Qt::QueuedConnection);
 
   App smvApp;
+  engine.addImageProvider("smv", new AppImageProvider);
   engine.rootContext()->setContextProperty("smvApp", &smvApp);
   engine.load(mainUrl);
+  engine.rootObjects().first()->setParent(&app);
   return app.exec();
 }
 

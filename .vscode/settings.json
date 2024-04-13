@@ -109,7 +109,11 @@
         "*.inc": "cpp",
         "qqmlcontext": "cpp",
         "qtcoredepends": "cpp",
-        "qtguidepends": "cpp"
+        "qtguidepends": "cpp",
+        "qquickimageprovider": "cpp",
+        "qpixmap": "cpp",
+        "qsvgrenderer": "cpp",
+        "qquickwindow": "cpp"
     },
     "[cpp]": {
         "editor.formatOnSave": true

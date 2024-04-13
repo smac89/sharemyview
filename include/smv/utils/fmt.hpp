@@ -3,6 +3,7 @@
 #include "smv/events.hpp"
 
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 
 #include <spdlog/fmt/fmt.h>
@@ -58,6 +59,21 @@ namespace fmt {
     }
   };
 
+  template<typename T, typename Char>
+  struct formatter<
+    T,
+    Char,
+    std::enable_if_t<std::is_convertible_v<T *, smv::EventData *>>>
+    : formatter<std::string>
+  {
+    template<typename FormatContext>
+    auto format(const smv::EventData &e, FormatContext &ctx) const
+      -> decltype(ctx.out())
+    {
+      return format_to(ctx.out(), "{}", e.format());
+    }
+  };
+
   template<typename K, typename V>
   struct formatter<std::unordered_map<K, V>>: formatter<std::string>
   {
@@ -66,17 +82,6 @@ namespace fmt {
       -> decltype(ctx.out())
     {
       return format_to(ctx.out(), "\n{{ {} }}", join(m.begin(), m.end(), ", "));
-    }
-  };
-
-  template<>
-  struct formatter<smv::EventData>: formatter<std::string>
-  {
-    template<typename FormatContext>
-    auto format(const smv::EventData &e, FormatContext &ctx) const
-      -> decltype(ctx.out())
-    {
-      return format_to(ctx.out(), "{}: {{<insert-data>}}", e.type);
     }
   };
 } // namespace fmt

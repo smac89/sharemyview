@@ -6,51 +6,103 @@ import "qrc:/components"
 
 ApplicationWindow {
     id: rootWindow
-    width: 640
-    height: 480
+    width: targetWidth
+    height: targetHeight
     visible: true
     title: "Share My View"
     color: "transparent"
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowSystemMenuHint
-    background: rootBackground
+    background: windowFrame
 
-    // Accessing qt from qml
-    // https://doc.qt.io/qt-5/qtqml-cppintegration-interactqmlfromcpp.html
-    // signal targetWindowMoved(point pos)
-    // signal targetWindowResized(size sz)
-    // signal targetWindowChanged(size sz, point pos)
+    readonly property int initialWidth: 640
+    readonly property int initialHeight: 480
+    readonly property int initialX: rootWindow.x
+    readonly property int initialY: rootWindow.y
+    property int targetWidth: initialWidth
+    property int targetHeight: initialHeight
+    property int targetPosX: initialX
+    property int targetPosY: initialY
+
+    Component.onCompleted: {
+        console.log("setting window ready")
+        smvApp.qquickWindowReady(rootWindow)
+        console.log("set window ready")
+    }
 
     Connections {
         target: smvApp
+        // https://doc.qt.io/qt-5/qtqml-cppintegration-interactqmlfromcpp.html
 
-        function onTargetWindowMoved(pos) {
-            console.log(pos)
+        function onTargetWindowMoved(pos: point) {
+            animateMove.stop()
+            console.log("Target moved:", pos)
+            targetPosX = pos.x
+            targetPosY = pos.y
+            animateMove.start()
         }
 
-        function onTargetWindowResized(sz) {
-            console.log(sz)
+        function onTargetWindowResized(sz: size) {
+            animateSize.stop()
+            console.log("Target resized:", sz)
+            targetWidth = sz.width
+            targetHeight = sz.height
+            animateSize.start()
         }
 
-        function onTargetWindowChanged(sz, pos) {
-            console.log(pos, sz)
+        function onTargetWindowChanged(sz: size, pos: point) {
+            animateSize.stop()
+            animateMove.stop()
+            console.log("Target resized:", sz)
+            targetWidth = sz.width
+            targetHeight = sz.height
+            targetPosX = pos.x
+            targetPosY = pos.y
+            animateSize.start()
+            animateMove.start()
         }
     }
 
-    // ParallelAnimation {
-    //     id: animateSize
-    //     NumberAnimation on width { target: rootWindow; duration: 350 }
-    //     NumberAnimation on height { target: rootWindow; duration: 350 }
-    //     onFinished: {
-    //         console.log("Animation done")
-    //     }
-    // }
+    /* SCREEN LOCK BUTTON */
+    LockTargetButton {
+        iconWidth: 38
+        iconHeight: 38
+        anchors {
+            right: parent.right;
+            top: parent.top;
+            rightMargin: 10;
+            topMargin: 10
+        }
+    }
 
     Rectangle {
-        id: rootBackground
-        anchors.fill: parent
+        id: windowFrame
+        width: initialWidth
+        height: initialHeight
+        anchors {
+            // fill: parent
+            horizontalCenter: rootWindow.horizontalCenter
+            verticalCenter: rootWindow.verticalCenter
+        }
         border { color: Qt.lighter(rootWindow.palette.window); width: 3 }
         radius: 5
         color: "transparent"
+
+        ParallelAnimation {
+            id: animateSize
+            alwaysRunToEnd: false
+            NumberAnimation { target: windowFrame; property: "width"; to: targetWidth; duration: 250 }
+            NumberAnimation { target: windowFrame; property: "height"; to: targetHeight; duration: 250 }
+            onFinished: {
+                console.log("Resize finished")
+            }
+        }
+
+        ParallelAnimation {
+            id: animateMove
+            alwaysRunToEnd: false
+            NumberAnimation { target: rootWindow; property: "x"; to: targetPosX; duration: 350 }
+            NumberAnimation { target: rootWindow; property: "y"; to: targetPosY; duration: 350 }
+        }
 
         MouseArea {
             anchors.fill: parent

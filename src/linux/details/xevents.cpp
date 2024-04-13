@@ -321,11 +321,10 @@ namespace smv::details {
   {
     /// Registering an event returns a function which can be
     /// called to unsubscribe from the event.
-    /// TODO: How to manually unsubscribe?
     static std::atomic_uint32_t idPool { 0 };
     std::lock_guard             _ { listenerMutx };
 
-    logger->info("Subscribing to event: {}", type);
+    logger->debug("Subscribing to event: {}", type);
 
     auto id       = ++idPool;
     auto cancelCb = [type, id]() {
@@ -347,7 +346,7 @@ namespace smv::details {
     };
     auto &eventSubs = subscribers[type];
     eventSubs.emplace_back(id, std::move(cb));
-    logger->info("Subscribed to event: {}", type);
+    logger->debug("Subscribed to event: {}", type);
     return [cancelCb = std::move(cancelCb)] {
       static std::once_flag flag;
       // ensure that the callback is only called once
@@ -358,7 +357,8 @@ namespace smv::details {
   template<EventType E, typename D>
   constexpr void publishEvent(D &&data)
   {
-    static_assert(std::is_base_of_v<EventData, D> && D::type == E);
+    static_assert(std::is_base_of_v<EventData, D> && D::type == E,
+                  "Event type mismatch");
 
     auto cbs = std::vector<EventCB> {};
     if (std::shared_lock lk { listenerMutx };
@@ -371,15 +371,17 @@ namespace smv::details {
                      [](auto const &cb) {
         return std::get<1>(cb);
       });
+    } else {
+      return;
     }
-    logger->info(
-      "Before publishing {} event: {}", E, dynamic_cast<EventData &>(data));
+    logger->debug("Before publishing {} event: {}", E, data);
     std::thread([cbs = std::move(cbs), data = std::move(data)]() {
       for (auto const &cb : cbs) {
         cb(data);
       }
     }).detach();
 
+    logger->debug("After publishing {} event", E);
     std::this_thread::yield();
   }
 

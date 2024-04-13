@@ -17,11 +17,11 @@ constexpr auto LOGGER_NAME_AUTOCANCEL = "smv::autocancel";
 namespace smv::utils {
   class AutoCancel
   {
-    explicit AutoCancel(Cancel cancel, std::uint32_t id)
-      : mCancel(std::move(cancel))
+    explicit AutoCancel(Cancel &&cancel, std::uint32_t id)
+      : mCancel(cancel)
       , mId(id)
     {
-      logger->debug("created id: {}", id);
+      logger->debug("Created id: {}", id);
     }
 
   public:
@@ -81,6 +81,7 @@ namespace smv::utils {
       mCancel();
       mCancel = nullptr;
       if (!isDestroy) {
+        // prevent double free
         logger->debug("untracking id: {}", mId);
         cancelables.erase(mId);
       }
@@ -118,23 +119,29 @@ namespace smv::utils {
      *
      * @return true if the cancel function is valid
      */
-    bool hasCancel() const { return mCancel != nullptr; }
+    bool hasCancel() const noexcept { return mCancel != nullptr; }
 
   private:
     Cancel                                                         mCancel;
     std::uint32_t                                                  mId;
     inline static std::atomic_uint32_t                             ids { 1 };
     inline static std::unordered_map<std::uint32_t, std::uint32_t> cancelables;
-    inline static std::mutex                      cancelablesMut;
+    inline static std::recursive_mutex            cancelablesMut;
     inline static std::shared_ptr<spdlog::logger> logger =
       spdlog::stderr_color_mt(LOGGER_NAME_AUTOCANCEL);
 
   public:
     static auto wrap(Cancel cancel) -> AutoCancel
     {
-      std::uint32_t   id = ids++;
-      std::lock_guard lk(cancelablesMut);
-      cancelables[id] = 0;
+      // TODO: check if Cancel is just a wrapper for autocancel
+      // then we don't need a new id
+      std::uint32_t id = ids++;
+      {
+        std::lock_guard lk(cancelablesMut);
+        // the first time we create a cancelable,
+        // we assume its use count is 0
+        cancelables[id] = 0;
+      }
       return AutoCancel(std::move(cancel), id);
     }
   };
