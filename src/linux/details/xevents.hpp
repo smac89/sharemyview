@@ -1,9 +1,8 @@
 #pragma once
 
-#include "smv/winclient.hpp"
+#include "smv/window.hpp"
 
 #include <atomic>
-#include <iterator>
 #include <memory>
 #include <mutex>
 #include <optional>

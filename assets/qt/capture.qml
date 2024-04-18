@@ -4,10 +4,13 @@ import QtQuick.Window 2.15
 import QtQuick.Shapes 1.15
 import "qrc:/components"
 
+/* https://doc.qt.io/qtcreator/creator-quick-ui-forms.html */
+/* https://doc.qt.io/qt-5/qml-qtqml-qt.html */
+
 ApplicationWindow {
     id: rootWindow
-    width: targetWidth
-    height: targetHeight
+    width: initialWidth
+    height: initialHeight
     visible: true
     title: "Share My View"
     color: "transparent"
@@ -24,41 +27,52 @@ ApplicationWindow {
     property int targetPosY: initialY
 
     Component.onCompleted: {
-        console.log("setting window ready")
         smvApp.qquickWindowReady(rootWindow)
-        console.log("set window ready")
+    }
+
+    SequentialAnimation {
+        id: reparentAnimation
+        SmoothedAnimation { target: rootWindow; property: "opacity"; duration: 300; to: 0 }
+        ParallelAnimation {
+            PropertyAction { target: rootWindow; property: "x"; value: targetPosX }
+            PropertyAction { target: rootWindow; property: "y"; value: targetPosY }
+        }
+        SmoothedAnimation { target: rootWindow; property: "opacity"; duration: 500; to: 1 }
+        onFinished: {
+            console.log("Reparent finished")
+        }
     }
 
     Connections {
         target: smvApp
         // https://doc.qt.io/qt-5/qtqml-cppintegration-interactqmlfromcpp.html
-
         function onTargetWindowMoved(pos: point) {
-            animateMove.stop()
             console.log("Target moved:", pos)
+            // rootWindow.x = pos.x
+            // rootWindow.y = pos.y
             targetPosX = pos.x
             targetPosY = pos.y
-            animateMove.start()
+            reparentAnimation.restart()
+            // animateSizePos.restart()
         }
 
         function onTargetWindowResized(sz: size) {
-            animateSize.stop()
             console.log("Target resized:", sz)
-            targetWidth = sz.width
-            targetHeight = sz.height
-            animateSize.start()
+            // rootWindow.width = sz.width
+            // rootWindow.height = sz.height
+            // animateSizePos.restart()
         }
 
         function onTargetWindowChanged(sz: size, pos: point) {
-            animateSize.stop()
-            animateMove.stop()
-            console.log("Target resized:", sz)
-            targetWidth = sz.width
-            targetHeight = sz.height
+            console.log("Target changed:", sz, pos)
+            // rootWindow.x = pos.x
+            // rootWindow.y = pos.y
             targetPosX = pos.x
             targetPosY = pos.y
-            animateSize.start()
-            animateMove.start()
+            reparentAnimation.restart()
+            // rootWindow.width = sz.width
+            // rootWindow.height = sz.height
+            // animateSizePos.restart()
         }
     }
 
@@ -72,6 +86,18 @@ ApplicationWindow {
             rightMargin: 10;
             topMargin: 10
         }
+        onClicked: {
+            console.log("Lock target clicked")
+        }
+    }
+
+    /* CONTROLS */
+    CaptureControls {
+        anchors {
+            bottom: parent.bottom;
+            horizontalCenter: parent.horizontalCenter;
+            bottomMargin: 10
+        }
     }
 
     Rectangle {
@@ -79,30 +105,33 @@ ApplicationWindow {
         width: initialWidth
         height: initialHeight
         anchors {
-            // fill: parent
-            horizontalCenter: rootWindow.horizontalCenter
-            verticalCenter: rootWindow.verticalCenter
+            fill: parent
+            // horizontalCenter: rootWindow.horizontalCenter
+            // verticalCenter: rootWindow.verticalCenter
         }
-        border { color: Qt.lighter(rootWindow.palette.window); width: 3 }
+        border { color: Qt.lighter(rootWindow.palette.window); width: 5 }
         radius: 5
         color: "transparent"
 
         ParallelAnimation {
-            id: animateSize
+            id: animateSizePos
             alwaysRunToEnd: false
-            NumberAnimation { target: windowFrame; property: "width"; to: targetWidth; duration: 250 }
-            NumberAnimation { target: windowFrame; property: "height"; to: targetHeight; duration: 250 }
+            SmoothedAnimation { target: rootWindow; property: "width"; to: targetWidth; duration: 250 }
+            SmoothedAnimation { target: rootWindow; property: "height"; to: targetHeight; duration: 250 }
+            SmoothedAnimation { target: rootWindow; property: "x"; to: targetPosX; duration: 250 }
+            SmoothedAnimation { target: rootWindow; property: "y"; to: targetPosY; duration: 250 }
+
             onFinished: {
-                console.log("Resize finished")
+                console.log("Animation finished")
             }
         }
 
-        ParallelAnimation {
-            id: animateMove
-            alwaysRunToEnd: false
-            NumberAnimation { target: rootWindow; property: "x"; to: targetPosX; duration: 350 }
-            NumberAnimation { target: rootWindow; property: "y"; to: targetPosY; duration: 350 }
-        }
+        // ParallelAnimation {
+        //     id: animateMove
+        //     alwaysRunToEnd: true
+        //     SmoothedAnimation { target: rootWindow; property: "x"; to: targetPosX; duration: 350 }
+        //     SmoothedAnimation { target: rootWindow; property: "y"; to: targetPosY; duration: 350 }
+        // }
 
         MouseArea {
             anchors.fill: parent

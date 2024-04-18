@@ -8,6 +8,7 @@ Item {
     property bool locked: false
     property int iconWidth: 36
     property int iconHeight: 36
+    signal clicked
 
     height: iconHeight + 2
     width: iconWidth + 2
@@ -25,7 +26,10 @@ Item {
         anchors.fill: parent
         padding: 2
         verticalPadding: 3
-        onClicked: locked = !locked
+        onClicked: {
+            locked = !locked
+            root.clicked()
+        }
         background: Rectangle{
             opacity: 0.2
             border {

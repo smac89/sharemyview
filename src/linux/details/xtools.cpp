@@ -1,4 +1,5 @@
 #include "xtools.hpp"
+#include "smv/winclient.hpp"
 #include "xutils.hpp"
 
 #include <memory>

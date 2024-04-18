@@ -1,5 +1,6 @@
 #include "xevents.hpp"
-#include "smv/utils/fmt.hpp"
+#include "smv/utils/fmt.hpp" // IWYU pragma: keep
+#include "smv/winclient.hpp"
 #include "xloop.hpp"
 #include "xmonitor.hpp"
 #include "xutils.hpp"
@@ -32,7 +33,7 @@ namespace smv::details {
    * @param data the data to send
    */
   template<EventType E, typename D>
-  constexpr static void publishEvent(D &&data);
+  static void publishEvent(D &&data);
 
   /**
    * @brief Checks if there are any subscribers to an event
@@ -96,7 +97,7 @@ namespace smv::details {
       return;
     }
     // attempting to grab the lock awaits the event loop
-    std::lock_guard<std::mutex> lk(eventLoopMut);
+    std::lock_guard lk(eventLoopMut);
     // once we're here, the event loop should be stopped
     std::lock_guard _(mSyncMut);
     mTracked.clear();
@@ -106,7 +107,7 @@ namespace smv::details {
 
   void XEvents::onMouseEnter(xcb_window_t window, uint32_t x, uint32_t y)
   {
-    if (std::unique_lock lk(mSyncMut); mCurrentWindow == std::nullopt) {
+    if (std::lock_guard _(mSyncMut); mCurrentWindow == std::nullopt) {
       mCurrentWindow = window;
       if (isEventInteresting(EventType::MouseEnter)) {
         logger->info("Pointer entered window: {:#x}", window);
@@ -116,7 +117,6 @@ namespace smv::details {
           x,
           y,
         };
-        lk.unlock();
         publishEvent<EventType::MouseEnter>(std::move(evt));
       }
     }
@@ -124,7 +124,6 @@ namespace smv::details {
 
   void XEvents::onMouseLeave(xcb_window_t window, uint32_t x, uint32_t y)
   {
-    std::lock_guard _(mSyncMut);
     if (window == XCB_NONE) {
       return;
     }
@@ -132,6 +131,7 @@ namespace smv::details {
       mCurrentWindow = std::nullopt;
       if (isEventInteresting(EventType::MouseLeave)) {
         logger->info("Pointer leave window: {:#x}", window);
+        std::lock_guard _(mSyncMut);
         watchWindow(window);
         auto evt = EventDataMouseLeave {
           mTracked[window],
@@ -158,9 +158,9 @@ namespace smv::details {
 
   void XEvents::onWindowDestroyed(xcb_window_t window)
   {
-    std::lock_guard _(mSyncMut);
     if (isEventInteresting(EventType::WindowClose)) {
       logger->info("Window removed: {:#x}", window);
+      std::lock_guard _(mSyncMut);
       if (isWindowWatched(window)) {
         const auto trackedWindow = mTracked[window];
         auto       evt           = EventDataWindowClose { trackedWindow };
@@ -174,9 +174,9 @@ namespace smv::details {
 
   void XEvents::onWindowMoved(xcb_window_t window, uint32_t x, uint32_t y)
   {
-    std::lock_guard _(mSyncMut);
     if (isEventInteresting(EventType::WindowMove)) {
       logger->info("Window moved: {:#x}, {}, {}", window, x, y);
+      std::lock_guard _(mSyncMut);
       watchWindow(window);
       int16_t deltaX = 0, deltaY = 0;
 
@@ -197,9 +197,9 @@ namespace smv::details {
 
   void XEvents::onWindowResized(xcb_window_t window, uint32_t w, uint32_t h)
   {
-    std::lock_guard _(mSyncMut);
     if (isEventInteresting(EventType::WindowResize)) {
       logger->info("Window resized: {:#x}, {}, {}", window, w, h);
+      std::lock_guard _(mSyncMut);
       watchWindow(window);
       if (auto const &trackedWindow =
             std::dynamic_pointer_cast<XWindow>(mTracked[window])) {
@@ -219,8 +219,8 @@ namespace smv::details {
   void XEvents::onWindowRenamed(xcb_window_t               window,
                                 std::optional<std::string> name)
   {
-    std::lock_guard _(mSyncMut);
     if (isEventInteresting(EventType::WindowRenamed)) {
+      std::lock_guard _(mSyncMut);
       watchWindow(window);
       if (name == std::nullopt) {
         name = getWindowName(window);
@@ -355,7 +355,7 @@ namespace smv::details {
   }
 
   template<EventType E, typename D>
-  constexpr void publishEvent(D &&data)
+  void publishEvent(D &&data)
   {
     static_assert(std::is_base_of_v<EventData, D> && D::type == E,
                   "Event type mismatch");

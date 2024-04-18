@@ -1,7 +1,7 @@
 #include "xmonitor.hpp"
 #include "smv/utils/c_iter.hpp"
+#include "smv/winclient.hpp"
 #include "xevents.hpp"
-#include "xtools.hpp"
 #include "xutils.hpp"
 
 #include <thread>
@@ -117,16 +117,16 @@ namespace smv::details {
   }
 
   std::vector<xcb_window_t> queryChildren(
-    const std::vector<xcb_window_t> &roots)
+    const std::vector<xcb_window_t> &roots,
+    bool                             recursive)
   {
     std::vector<std::pair<xcb_window_t, xcb_query_tree_cookie_t>> ch_query;
 
     for (auto w : roots) {
-      logger->debug("Querying children of {}", w);
+      logger->debug("Querying children of {:#x}", w);
       ch_query.emplace_back(w,
                             xcb_query_tree_unchecked(res::connection.get(), w));
     }
-
     std::vector<xcb_window_t> all_children;
 
     for (auto const &[parent, cookie] : ch_query) {
@@ -137,7 +137,7 @@ namespace smv::details {
         "{:#x} has {} children", parent, query_tree_rep->children_len);
       auto children = xcb_query_tree_children(query_tree_rep.get());
       if (children == nullptr || query_tree_rep->children_len == 0) {
-        logger->warn("no children for {:#x}", parent);
+        logger->debug("no children for {:#x}", parent);
         continue;
       }
 
@@ -152,6 +152,13 @@ namespace smv::details {
            smv::utils::CPtrIterator(children, query_tree_rep->children_len)) {
         all_children.push_back(c);
       }
+    }
+
+    if (all_children.size() > 0 && recursive) {
+      auto descendants = queryChildren(all_children, recursive);
+      all_children.reserve(all_children.size() + descendants.size());
+      all_children.insert(
+        all_children.end(), descendants.begin(), descendants.end());
     }
     return all_children;
   }

@@ -113,7 +113,8 @@
         "qquickimageprovider": "cpp",
         "qpixmap": "cpp",
         "qsvgrenderer": "cpp",
-        "qquickwindow": "cpp"
+        "qquickwindow": "cpp",
+        "qpropertyanimation": "cpp"
     },
     "[cpp]": {
         "editor.formatOnSave": true

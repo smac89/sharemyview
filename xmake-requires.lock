@@ -144,7 +144,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "1.16.1"
+            version = "1.17.0"
         },
         ["libxcursor#31fecfc4"] = {
             repo = {
@@ -323,7 +323,7 @@
             version = "1.22.0"
         },
         ["xcb#7e73ba8e"] = {
-            version = "1.16.1"
+            version = "1.17.0"
         },
         ["xcb-proto#31fecfc4"] = {
             repo = {
@@ -331,7 +331,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "1.16.0"
+            version = "1.17.0"
         },
         ["xcb-util#7e73ba8e"] = {
             repo = {

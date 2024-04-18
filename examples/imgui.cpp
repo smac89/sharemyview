@@ -7,11 +7,9 @@
 #endif
 #include <GLFW/glfw3native.h>
 #include <csignal>
-#include <functional>
 #include <hello_imgui/hello_imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <memory>
 #include <spdlog/cfg/env.h>
 #include <spdlog/spdlog.h>
 

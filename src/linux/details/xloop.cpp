@@ -1,12 +1,15 @@
 #include "xloop.hpp"
+#include "smv/winclient.hpp"
 #include "xevents.hpp"
 #include "xmonitor.hpp"
 #include "xtools.hpp"
 #include "xutils.hpp"
 
+#include <cstdint>
 #include <optional>
 
 #include <xcb/xcb_ewmh.h>
+#include <xcb/xproto.h>
 
 namespace smv::details {
   using smv::utils::res, smv::log::logger;
@@ -171,32 +174,51 @@ namespace smv::details {
 
   std::string getWindowName(xcb_window_t w)
   {
+    static const auto CHUNK_SIZE = 100;
+
     std::string resp;
+    for (uint32_t offset = 0; offset % CHUNK_SIZE == 0; offset += CHUNK_SIZE) {
+      auto *prop =
+        xcb_get_property_reply(res::connection.get(),
+                               xcb_get_property_unchecked(res::connection.get(),
+                                                          0,
+                                                          w,
+                                                          XCB_ATOM_WM_NAME,
+                                                          XCB_ATOM_STRING,
+                                                          offset,
+                                                          CHUNK_SIZE),
+                               nullptr);
+      if (prop == nullptr) {
+        logger->warn("Failed to get WM_NAME for window: {:#x}", w);
+        break;
+      }
+      auto length = xcb_get_property_value_length(prop);
+      resp.append(reinterpret_cast<char *>(xcb_get_property_value(prop)),
+                  length);
+      delete prop;
+      if (length < CHUNK_SIZE) {
+        logger->debug("Found window WM_NAME: '{}'", resp);
+        return resp;
+      }
+    }
 
     xcb_ewmh_get_utf8_strings_reply_t reply {};
     if (xcb_ewmh_get_wm_name_reply(
           res::ewm_connection.get(),
           xcb_ewmh_get_wm_name_unchecked(res::ewm_connection.get(), w),
           &reply,
+          nullptr) ||
+        xcb_ewmh_get_wm_visible_name_reply(
+          res::ewm_connection.get(),
+          xcb_ewmh_get_wm_visible_name_unchecked(res::ewm_connection.get(), w),
+          &reply,
           nullptr)) {
       resp = std::string(reply.strings, reply.strings_len);
+      logger->debug("Found window _NET_WM_NAME: '{}'", resp);
       xcb_ewmh_get_utf8_strings_reply_wipe(&reply);
-    } else if (xcb_get_property_reply_t *prop = xcb_get_property_reply(
-                 res::connection.get(),
-                 xcb_get_property_unchecked(res::connection.get(),
-                                            0,
-                                            w,
-                                            XCB_ATOM_WM_NAME,
-                                            XCB_ATOM_STRING,
-                                            0,
-                                            0),
-                 nullptr);
-               prop != nullptr) {
-      resp = std::string(reinterpret_cast<char *>(xcb_get_property_value(prop)),
-                         prop->value_len);
-      delete prop;
+    } else {
+      logger->warn("Failed to get _NET_WM_NAME for window: {:#x}", w);
     }
-
     return resp;
   }
 

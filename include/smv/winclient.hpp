@@ -1,15 +1,12 @@
 #pragma once
 
 #include "smv/events.hpp"
-#include "smv/utils/fmt.hpp"
-#include "smv/window.hpp"
 
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 #include <spdlog/spdlog.h>
 
@@ -41,9 +38,9 @@ namespace smv {
   Cancel listen(EventType, EventCB);
 
   template<EventType E, typename D>
-  constexpr Cancel listen(TEventCB<D> fn)
+  inline Cancel listen(TEventCB<D> fn)
   {
-    static_assert(std::is_base_of_v<smv::EventData, D>,
+    static_assert(std::is_base_of_v<EventData, D>,
                   "Data must inherit from EventData");
     static_assert(E == D::type,
                   "Missing type field. Event type must match data type");
@@ -54,13 +51,13 @@ namespace smv {
   }
 
   template<EventType E, typename F, typename D = Arg0<F>>
-  constexpr Cancel listen(F fn)
+  inline Cancel listen(F fn)
   {
     return listen<E, D>(std::forward<F>(fn));
   }
 
   template<EventType E, typename F, typename D = Arg0<F>>
-  constexpr Cancel listen(const std::uint32_t wid, F fn)
+  inline Cancel listen(const std::uint32_t wid, F fn)
   {
     return listen<E, D>([fn, wid](const D &e) {
       if (auto window = e.window.lock(); window && window->id() == wid) {

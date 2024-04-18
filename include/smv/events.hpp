@@ -100,7 +100,7 @@ namespace smv {
     std::string format() const override { return fmt::format("{}, {}", x, y); }
 
     // the last mouse position in window coordinate
-    uint32_t                   x, y;
+    const uint32_t             x, y;
     constexpr static EventType type = EventType::MouseLeave;
   };
 

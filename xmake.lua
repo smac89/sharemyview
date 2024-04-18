@@ -38,7 +38,7 @@ target("capture")
     -- include .qrc files to that they are transpiled by rcc
     add_files("capture.qrc")
     add_includedirs("include")
-    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=info,smv::autocancel=off")
+    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=debug,smv::autocancel=off")
     add_cxflags("-fstack-protector-strong", {tools = {"gcc", "clang"}})
     if is_mode("debug") then
         add_defines("SMV_DEBUG")

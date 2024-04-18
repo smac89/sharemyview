@@ -4,14 +4,11 @@
 #include "xmonitor.hpp"
 #include "xtools.hpp"
 #include "xutils.hpp"
-#include "xwindow.hpp"
 
 #include <condition_variable>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
 #include <utility>
-#include <vector>
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <xcb/xcb.h>

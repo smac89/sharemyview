@@ -4,7 +4,6 @@
 
 #include <csignal>
 #include <cstdlib>
-#include <functional>
 #include <memory>
 
 #include <QGuiApplication>
@@ -59,7 +58,6 @@ int main(int argc, char *argv[])
   engine.addImageProvider("smv", new AppImageProvider);
   engine.rootContext()->setContextProperty("smvApp", &smvApp);
   engine.load(mainUrl);
-  engine.rootObjects().first()->setParent(&app);
   return app.exec();
 }
 
@@ -80,29 +78,3 @@ namespace smv::log {
   extern std::shared_ptr<spdlog::logger> const logger =
     spdlog::stderr_color_mt(LOGGER_NAME_WINCLIENT);
 }
-
-// bool
-// eventHandler(SDL_Event *event)
-// {
-//   if (event->type == SDL_WINDOWEVENT) {
-//     switch (event->window.event) {
-//       case SDL_WINDOWEVENT_MOVED:
-//         spdlog::info("sdl window moved to {} {}",
-//                      event->window.data1,
-//                      event->window.data2);
-//     }
-//   } else if (event->type == SDL_MOUSEMOTION) {
-//     spdlog::info("sdl mouse x: {}, y: {}", event->motion.x, event->motion.y);
-//     // return true;
-//   }
-//   return false;
-// }
-
-// params.callbacks.CustomBackground = []() {
-//   auto &io = ImGui::GetIO();
-//   glViewport(0,
-//              0,
-//              static_cast<int>(io.DisplaySize.x),
-//              static_cast<int>(io.DisplaySize.y));
-//   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-// };

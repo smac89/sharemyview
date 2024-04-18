@@ -56,8 +56,7 @@ private slots:
 private:
   QRect                        mRecordRegion;
   MainWindowGeomAnim           mGeomAnimation;
-  QQuickWindow                *mSceneWindow = nullptr;
-  Mode                         mMode        = Mode::Window;
+  Mode                         mMode = Mode::Window;
   smv::Cancel                  mCancel;
   std::shared_mutex            mMutex;
   std::weak_ptr<smv::Window>   mActiveWindow;

@@ -3,7 +3,6 @@
 #include <mutex>
 
 #include <QObject>
-#include <QParallelAnimationGroup>
 #include <QPropertyAnimation>
 #include <QQuickWindow>
 #include <QRect>

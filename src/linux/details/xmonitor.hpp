@@ -37,10 +37,12 @@ namespace smv::details {
    * @brief For each of the given root windows, find its direct children
    *
    * @param roots the list of root windows
+   * @param recursive if true, also find all descendant children
    * @return the list of children
    */
   [[maybe_unused]] std::vector<xcb_window_t> queryChildren(
-    const std::vector<xcb_window_t> &roots);
+    const std::vector<xcb_window_t> &roots,
+    bool                             recursive = false);
 
   /**
    * @brief Standalone function to monitor the children of a window
