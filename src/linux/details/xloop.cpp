@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <optional>
 
+#include <xcb/xcb_event.h>
 #include <xcb/xcb_ewmh.h>
 #include <xcb/xproto.h>
 
@@ -24,17 +25,8 @@ namespace smv::details {
 
       if (event->response_type == XCB_NONE) {
         auto err = std::reinterpret_pointer_cast<xcb_generic_error_t>(event);
-        switch (err->error_code) {
-          case XCB_WINDOW: {
-            auto werr =
-              std::reinterpret_pointer_cast<xcb_window_error_t>(event);
-            // XCB_WINDOW is the error code for an invalid window
-            logger->error("Window error: {:#x}", werr->bad_value);
-          } break;
-          default:
-            logger->error("Error: {}", getErrorCodeName(err->error_code));
-            break;
-        }
+        logger->error("Error: {}",
+                      xcb_event_get_error_label(err->response_type));
       }
       // See https://www.x.org/wiki/Development/Documentation/XGE/
       else if (event->response_type == XCB_GE_GENERIC) {
@@ -42,7 +34,7 @@ namespace smv::details {
           std::reinterpret_pointer_cast<xcb_ge_generic_event_t>(event);
         logger->info("Received generic event {}", getEventName(event.get()));
       } else {
-        switch (event->response_type & ~0x80) {
+        switch (XCB_EVENT_RESPONSE_TYPE(event)) {
             /*
              * NOTE: we only care about the fact that a window is entered
              * or left. Whether or not it used to be inferior to another window

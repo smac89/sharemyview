@@ -106,6 +106,14 @@
             },
             version = "3.4.6"
         },
+        ["libpng#7e73ba8e"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "1.6.43"
+        },
         ["libpthread-stubs#31fecfc4"] = {
             repo = {
                 branch = "master",
@@ -333,6 +341,14 @@
             },
             version = "1.17.0"
         },
+        ["xcb-util#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "0.4.1"
+        },
         ["xcb-util#7e73ba8e"] = {
             repo = {
                 branch = "master",
@@ -348,6 +364,14 @@
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
             version = "1.0"
+        },
+        ["xcb-util-image#7e73ba8e"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "0.4.1"
         },
         ["xcb-util-wm#7e73ba8e"] = {
             repo = {
