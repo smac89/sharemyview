@@ -1,5 +1,4 @@
 #pragma once
-#include "smv/events.hpp"
 #include "smv/window.hpp"
 
 #include <optional>
@@ -12,33 +11,23 @@ namespace smv::details {
     friend class XEvents;
 
   public:
-    explicit XWindow(std::uint32_t id,
-                     std::int32_t  x,
-                     std::int32_t  y,
-                     std::uint32_t w,
-                     std::uint32_t h)
-      : mId(id)
-      , mPosX(x)
-      , mPosY(y)
-      , mWidth(w)
-      , mHeight(h)
+    explicit XWindow(uint32_t id, int32_t x, int32_t y, uint32_t w, uint32_t h)
+      : smv::Window(w, h, x, y)
+      , mId(id)
     {
     }
-
-    std::uint32_t id() const override { return mId; }
-    std::string   name() const override { return mName; }
-    Position position() const override { return { .x = mPosX, .y = mPosY }; }
-    Size     size() const override { return { .w = mWidth, .h = mHeight }; }
-    std::vector<xcb_window_t> children() const { return mChildren; }
+    auto id() const -> uint32_t override { return mId; }
+    auto name() const -> std::string override { return mName; }
+    auto children() const -> std::vector<xcb_window_t> { return mChildren; }
 
   protected:
-    void move(std::int32_t x, std::int32_t y)
+    void move(int32_t x, int32_t y)
     {
       mPosX = x;
       mPosY = y;
     }
 
-    void resize(std::uint32_t w, std::uint32_t h)
+    void resize(uint32_t w, uint32_t h)
     {
       mWidth  = w;
       mHeight = h;
@@ -47,10 +36,11 @@ namespace smv::details {
     void setName(const std::string &name) { this->mName = name; }
     void setParent(const xcb_window_t *const parent)
     {
-      if (parent)
+      if (parent != nullptr) {
         this->mParent = *parent;
-      else
+      } else {
         this->mParent = std::nullopt;
+      }
     }
     void addChild(xcb_window_t child) { this->mChildren.push_back(child); }
     void addChildren(const std::vector<xcb_window_t> &children)
@@ -60,9 +50,7 @@ namespace smv::details {
     }
 
   private:
-    const std::uint32_t         mId;
-    std::int32_t                mPosX, mPosY;
-    std::uint32_t               mWidth, mHeight;
+    uint32_t                    mId;
     std::string                 mName;
     std::optional<xcb_window_t> mParent;
     std::vector<xcb_window_t>   mChildren;

@@ -1,14 +1,13 @@
 #pragma once
-
 #include "smv/events.hpp"
 
 #include <atomic>
-#include <cassert>
 #include <cstdint>
 #include <mutex>
 #include <unordered_map>
 #include <utility>
 
+#include <assert.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -17,8 +16,8 @@ constexpr auto LOGGER_NAME_AUTOCANCEL = "smv::autocancel";
 namespace smv::utils {
   class AutoCancel
   {
-    explicit AutoCancel(Cancel &&cancel, std::uint32_t id)
-      : mCancel(cancel)
+    explicit AutoCancel(Cancel &&cancel, uint32_t id)
+      : mCancel(std::move(cancel))
       , mId(id)
     {
       logger->debug("Created id: {}", id);
@@ -35,7 +34,7 @@ namespace smv::utils {
         logger->debug("Copy created via constructor id: {}", mId);
       }
     }
-    AutoCancel &operator=(const AutoCancel &other)
+    auto operator=(const AutoCancel &other) -> AutoCancel &
     {
       if (mId != other.mId) {
         this->tryCancel();
@@ -53,21 +52,21 @@ namespace smv::utils {
       return *this;
     }
     AutoCancel(AutoCancel &&other) = default;
-    AutoCancel &operator=(AutoCancel &&other)
+    auto operator=(AutoCancel &&other) noexcept -> AutoCancel &
     {
       if (mId != other.mId) {
         this->tryCancel();
         this->mCancel = std::move(other.mCancel);
-        this->mId     = std::move(other.mId);
+        this->mId     = other.mId;
         logger->debug("Move assignment id: {}", mId);
       }
       return *this;
     }
-    std::uint32_t id() const { return mId; }
+    auto id() const -> uint32_t { return mId; }
     ~AutoCancel() { tryCancel(true); }
     void operator()()
     {
-      std::lock_guard lk(cancelablesMut);
+      std::lock_guard _(cancelablesMut);
       if (hasCancel()) {
         doCancel();
       }
@@ -89,13 +88,13 @@ namespace smv::utils {
       mId = 0;
     }
 
-    bool tryCancel(bool isDestroy = false)
+    auto tryCancel(bool isDestroy = false) -> bool
     {
       if (!hasCancel()) {
         return false;
       }
 
-      std::lock_guard lk(cancelablesMut);
+      std::lock_guard _(cancelablesMut);
       auto const     &ref = cancelables.find(mId);
       if (ref == cancelables.end()) {
         // this may happen if the function was already called
@@ -107,7 +106,7 @@ namespace smv::utils {
         return false;
       }
 
-      assert(("No refs", cancelables.at(mId) == 0));
+      VERIFY("No refs", cancelables.at(mId) == 0);
       doCancel(isDestroy);
       return true;
     }
@@ -119,15 +118,15 @@ namespace smv::utils {
      *
      * @return true if the cancel function is valid
      */
-    bool hasCancel() const noexcept { return mCancel != nullptr; }
+    auto hasCancel() const noexcept -> bool { return mCancel != nullptr; }
 
   private:
-    Cancel                                                         mCancel;
-    std::uint32_t                                                  mId;
-    inline static std::atomic_uint32_t                             ids { 1 };
-    inline static std::unordered_map<std::uint32_t, std::uint32_t> cancelables;
-    inline static std::recursive_mutex            cancelablesMut;
-    inline static std::shared_ptr<spdlog::logger> logger =
+    Cancel                                               mCancel;
+    uint32_t                                             mId;
+    inline static std::atomic_uint32_t                   ids { 1 };
+    inline static std::unordered_map<uint32_t, uint32_t> cancelables;
+    inline static std::recursive_mutex                   cancelablesMut;
+    inline static std::shared_ptr<spdlog::logger>        logger =
       spdlog::stderr_color_mt(LOGGER_NAME_AUTOCANCEL);
 
   public:
@@ -135,7 +134,7 @@ namespace smv::utils {
     {
       // TODO: check if Cancel is just a wrapper for autocancel
       // then we don't need a new id
-      std::uint32_t id = ids++;
+      uint32_t id = ids++;
       {
         std::lock_guard lk(cancelablesMut);
         // the first time we create a cancelable,
@@ -146,8 +145,8 @@ namespace smv::utils {
     }
   };
 
-  Cancel autoCancel(Cancel cancel)
-  {
-    return AutoCancel::wrap(std::move(cancel));
-  }
+  // inline Cancel autoCancel(Cancel cancel)
+  // {
+  //   return AutoCancel::wrap(std::move(cancel));
+  // }
 } // namespace smv::utils

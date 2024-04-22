@@ -13,7 +13,7 @@ using Cancel = std::function<void()>;
 
 class AutoCancel
 {
-  explicit AutoCancel(Cancel cancel, std::uint32_t id)
+  explicit AutoCancel(Cancel cancel, uint32_t id)
     : mCancel(std::move(cancel))
     , mId(id)
   {
@@ -48,15 +48,15 @@ public:
     return *this;
   }
   AutoCancel(AutoCancel &&other) = default;
-  AutoCancel &operator=(AutoCancel &&other)
+  auto operator=(AutoCancel &&other) noexcept -> AutoCancel &
   {
     this->tryCancel();
     this->mCancel = std::move(other.mCancel);
-    this->mId     = std::move(other.mId);
+    this->mId     = other.mId;
     spdlog::info("Move assignment id: {}", mId);
     return *this;
   }
-  std::uint32_t id() const { return mId; }
+  auto id() const -> uint32_t { return mId; }
   ~AutoCancel() { tryCancel(true); }
   void operator()()
   {
@@ -81,13 +81,13 @@ protected:
     mId = 0;
   }
 
-  bool tryCancel(bool isDestroy = false)
+  auto tryCancel(bool isDestroy = false) -> bool
   {
     if (!hasCancel()) {
       return false;
     }
 
-    std::lock_guard lk(cancelablesMut);
+    std::lock_guard _(cancelablesMut);
     auto const     &ref = cancelables.find(mId);
     if (ref == cancelables.end()) {
       // this may happen if the function was already called
@@ -111,29 +111,29 @@ protected:
    *
    * @return true if the cancel function is valid
    */
-  bool hasCancel() const { return mCancel != nullptr; }
+  auto hasCancel() const -> bool { return mCancel != nullptr; }
 
 private:
-  Cancel                                                         mCancel;
-  std::uint32_t                                                  mId;
-  inline static std::atomic_uint32_t                             ids { 1 };
-  inline static std::unordered_map<std::uint32_t, std::uint32_t> cancelables;
-  inline static std::mutex                                       cancelablesMut;
+  Cancel                                               mCancel;
+  uint32_t                                             mId;
+  inline static std::atomic_uint32_t                   ids { 1 };
+  inline static std::unordered_map<uint32_t, uint32_t> cancelables;
+  inline static std::mutex                             cancelablesMut;
 
 public:
   static auto wrap(Cancel cancel) -> AutoCancel
   {
-    std::uint32_t   id = ids++;
-    std::lock_guard lk(cancelablesMut);
+    uint32_t        id = ids++;
+    std::lock_guard _(cancelablesMut);
     cancelables[id] = 0;
-    return AutoCancel(cancel, id);
+    return AutoCancel(std::move(cancel), id);
   }
 };
 
-auto createCancel(std::uint32_t id)
+auto createCancel(uint32_t id)
 {
   auto f = [id]() {
-    std::cout << "cancelling " << id << std::endl;
+    std::cout << "cancelling " << id << '\n';
   };
   return AutoCancel::wrap(f);
 }

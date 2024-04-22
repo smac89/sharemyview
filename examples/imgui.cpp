@@ -1,4 +1,3 @@
-#include "app/smv_app.hpp"
 #include "smv/winclient.hpp"
 #include <GLFW/glfw3.h>
 #define GLFW_NATIVE_INCLUDE_NONE

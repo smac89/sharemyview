@@ -11,14 +11,10 @@ set_policy("package.requires_lock", true)
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "$(projectdir)/.vscode"})
 add_repositories("myrepo pkgrepo")
 add_rules("mode.debug", "mode.release")
-add_requires("libsdl 2.30.x")
 add_requires("spdlog 1.13.x", {system = false})
-add_requires("hello-imgui 1.4.x", {
-    configs = {use_glfw3 = true, has_opengl3 = true, imgui_version = "1.90.4-docking"},
-    debug = is_mode("debug")
-})
-add_requires("opengl", {system = true})
+add_requires("libassert 1.2.2", { configs = { decompose = true} })
 add_cxflags("-mshstk", {tools = {"gcc", "clang"}})
+
 
 if is_mode("debug") then
     set_symbols("debug")
@@ -31,21 +27,16 @@ target("capture")
     -- https://github.com/xmake-io/xmake/blob/d8c1f612cdbd5c6f29a7b789d46f91292c1abc1e/xmake/rules/qt/xmake.lua
     add_rules("qt.quickapp")
     add_frameworks("QtQuickControls2", "QtWidgets", "QtSvg", "QtQuickWidgets")
-    set_languages("c17", "c++17")
-    add_packages("spdlog", "opengl")
+    set_languages("c++17")
+    add_packages("spdlog", "libassert")
     -- include .hpp files so that the moc compiler can do it's thing
     add_files("src/main.cpp", "src/app/**.cpp", "src/app/**.hpp")
     -- include .qrc files to that they are transpiled by rcc
-    add_files("capture.qrc")
-    add_includedirs("include")
-    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=warn,smv::autocancel=off")
+    add_files("src/capture.qrc")
+    add_includedirs("include", {public = true})
     add_cxflags("-fstack-protector-strong", {tools = {"gcc", "clang"}})
-    if is_mode("debug") then
-        add_defines("SMV_DEBUG")
-    end
-    if is_plat("linux") then
-        includes("src/linux/xmake.lua")
-        add_deps("libcapture")
-    end
+    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=warn,smv::autocancel=off")
+    includes("src/platform")
+    add_deps("winclient")
 
-includes("examples/xmake.lua")
+includes("examples")

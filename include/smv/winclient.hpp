@@ -1,10 +1,10 @@
 #pragma once
 
-#include "smv/events.hpp"
+#include "events.hpp"
+#include "log.hpp"
 
 #include <cstdint>
 #include <functional>
-#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -25,43 +25,45 @@ namespace {
     typename arg_n<0, decltype(std::function { std::declval<F>() })>::type>>;
 } // namespace
 
-namespace smv::log {
-  constexpr auto LOGGER_NAME_WINCLIENT = "smv::winclient";
-  extern const std::shared_ptr<spdlog::logger> logger;
-} // namespace smv::log
-
 namespace smv {
   using smv::log::logger;
 
-  void   init() noexcept;
-  void   deinit() noexcept;
-  Cancel listen(EventType, EventCB);
+  void init() noexcept;
+  void deinit() noexcept;
+
+  /**
+   * @brief register a callback to receive an event callback
+   * @details the callback is called when an event occurs
+   *
+   * @return Cancel A function for cancelling the subscription
+   */
+  auto listen(EventType, EventCB) -> Cancel;
 
   template<EventType E, typename D>
-  inline Cancel listen(TEventCB<D> fn)
+  inline auto listen(TEventCB<D> func) -> Cancel
   {
     static_assert(std::is_base_of_v<EventData, D>,
                   "Data must inherit from EventData");
     static_assert(E == D::type,
                   "Missing type field. Event type must match data type");
 
-    return listen(E, [fn = std::move(fn)](const EventData &d) {
-      fn(dynamic_cast<const D &>(d));
+    return listen(E, [func = std::move(func)](const EventData &data) {
+      func(dynamic_cast<const D &>(data));
     });
   }
 
   template<EventType E, typename F, typename D = Arg0<F>>
-  inline Cancel listen(F fn)
+  inline auto listen(F func) -> Cancel
   {
-    return listen<E, D>(std::forward<F>(fn));
+    return listen<E, D>(std::forward<F>(func));
   }
 
   template<EventType E, typename F, typename D = Arg0<F>>
-  inline Cancel listen(const std::uint32_t wid, F fn)
+  inline auto listen(const uint32_t wid, F func) -> Cancel
   {
-    return listen<E, D>([fn, wid](const D &e) {
-      if (auto window = e.window.lock(); window && window->id() == wid) {
-        fn(e);
+    return listen<E, D>([func, wid](const D &data) {
+      if (auto window = data.window.lock(); window && window->id() == wid) {
+        func(data);
       }
     });
   }

@@ -21,29 +21,29 @@ const auto SHM_SIZE     = 4 * 1024 * 1024;
 auto main() -> int
 {
   /* XCB CONNECTION STUFF */
-  std::unique_ptr<xcb_connection_t, decltype(&xcb_disconnect)> c(
+  std::unique_ptr<xcb_connection_t, decltype(&xcb_disconnect)> conn(
     xcb_connect(nullptr, nullptr), &xcb_disconnect);
 
-  if (!c) {
+  if (!conn) {
     spdlog::error("failed to connect to X server");
     return EXIT_FAILURE;
   }
 
-  auto *setup      = xcb_get_setup(c.get());
-  auto  roots_iter = xcb_setup_roots_iterator(setup);
+  const auto *setup      = xcb_get_setup(conn.get());
+  auto        roots_iter = xcb_setup_roots_iterator(setup);
   if (roots_iter.rem == 0) {
     spdlog::error("no screen found");
     return EXIT_FAILURE;
   }
 
   auto          root   = roots_iter.data->root;
-  xcb_shm_seg_t shmseg = xcb_generate_id(c.get());
+  xcb_shm_seg_t shmseg = xcb_generate_id(conn.get());
 
   /* SETUP SHARED MEMORY */
   auto shm_reply = std::unique_ptr<xcb_shm_create_segment_reply_t>(
     xcb_shm_create_segment_reply(
-      c.get(),
-      xcb_shm_create_segment_unchecked(c.get(), shmseg, SHM_SIZE, false),
+      conn.get(),
+      xcb_shm_create_segment_unchecked(conn.get(), shmseg, SHM_SIZE, 0U),
       nullptr));
 
   if (!shm_reply) {
@@ -51,7 +51,7 @@ auto main() -> int
     return EXIT_FAILURE;
   }
 
-  auto fds = xcb_shm_create_segment_reply_fds(c.get(), shm_reply.get());
+  auto *fds = xcb_shm_create_segment_reply_fds(conn.get(), shm_reply.get());
   if (shm_reply->nfd != 1) {
     for (int i = 0; i < shm_reply->nfd; i++) {
       close(fds[i]);
@@ -78,7 +78,7 @@ auto main() -> int
 
   if (data.get() == MAP_FAILED) {
     spdlog::error("failed to map shared memory segment");
-    xcb_shm_detach(c.get(), shmseg);
+    xcb_shm_detach(conn.get(), shmseg);
     return EXIT_FAILURE;
   }
 
@@ -96,8 +96,8 @@ auto main() -> int
 
   /* GET IMAGE OF ROOT WINDOW AND STORE IT IN SHARED MEMORY */
   std::shared_ptr<xcb_shm_get_image_reply_t> image(xcb_shm_get_image_reply(
-    c.get(),
-    xcb_shm_get_image_unchecked(c.get(),
+    conn.get(),
+    xcb_shm_get_image_unchecked(conn.get(),
                                 root,
                                 0,
                                 0,
@@ -110,26 +110,27 @@ auto main() -> int
     nullptr));
 
   if (image) {
-    if (auto f = std::ofstream("/tmp/screenshot.ppm", std::ios::binary); f) {
+    if (auto ppmFile = std::ofstream("/tmp/screenshot.ppm", std::ios::binary);
+        ppmFile) {
       spdlog::info("Image size: {}", image->size);
       /* WRITE IMAGE TO FILE IN PPM FORMAT */
-      f << "P6\n" << IMAGE_WIDTH << " " << IMAGE_HEIGHT << "\n255\n";
+      ppmFile << "P6\n" << IMAGE_WIDTH << " " << IMAGE_HEIGHT << "\n255\n";
       const auto *const imageData = data.get();
       for (uint32_t pixel = 0; pixel + 4 <= image->size; pixel += 4) {
-        auto b = imageData[pixel];
-        auto g = imageData[pixel + 1];
-        auto r = imageData[pixel + 2];
+        auto blue  = imageData[pixel];
+        auto green = imageData[pixel + 1];
+        auto red   = imageData[pixel + 2];
         if (setup->image_byte_order == XCB_IMAGE_ORDER_MSB_FIRST) {
-          std::swap(b, r);
+          std::swap(blue, red);
         }
-        f << r << g << b;
+        ppmFile << red << green << blue;
       }
+      spdlog::info("Image written to /tmp/screenshot.ppm");
     } else {
       spdlog::error("failed to open file");
     }
   } else {
     spdlog::error("failed to get image");
   }
-  xcb_shm_detach(c.get(), shmseg);
   return 0;
 }

@@ -1,5 +1,5 @@
 #include "xtools.hpp"
-#include "smv/winclient.hpp"
+#include "smv/log.hpp"
 #include "xutils.hpp"
 
 #include <memory>
@@ -12,7 +12,7 @@ static std::shared_ptr<xcb_errors_context_t> err_ctx;
 namespace smv::details {
   using smv::utils::res, smv::log::logger;
 
-  bool initTools()
+  auto initTools() -> bool
   {
     if (err_ctx) {
       return true;
@@ -32,14 +32,14 @@ namespace smv::details {
     err_ctx.reset();
   }
 
-  std::string getErrorCodeName(uint8_t error_code)
+  auto getErrorCodeName(uint8_t error_code) -> std::string
   {
     return xcb_errors_get_name_for_error(err_ctx.get(), error_code, nullptr);
   }
 
-  std::string getEventName(xcb_generic_event_t *const event)
+  auto getEventName(xcb_generic_event_t *const event) -> std::string
   {
-    if (!event) {
+    if (event == nullptr) {
       return "";
     }
     return xcb_errors_get_name_for_xcb_event(err_ctx.get(), event, nullptr);

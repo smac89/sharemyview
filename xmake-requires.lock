@@ -106,14 +106,6 @@
             },
             version = "3.4.6"
         },
-        ["libpng#7e73ba8e"] = {
-            repo = {
-                branch = "master",
-                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
-                url = "https://gitlab.com/tboox/xmake-repo.git"
-            },
-            version = "1.6.43"
-        },
         ["libpthread-stubs#31fecfc4"] = {
             repo = {
                 branch = "master",
@@ -320,7 +312,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "1.20.0"
+            version = "1.20.1"
         },
         ["wayland#f26e00a1"] = {
             repo = {
@@ -330,7 +322,7 @@
             },
             version = "1.22.0"
         },
-        ["xcb#7e73ba8e"] = {
+        ["xcb#0992bd43"] = {
             version = "1.17.0"
         },
         ["xcb-proto#31fecfc4"] = {
@@ -341,6 +333,14 @@
             },
             version = "1.17.0"
         },
+        ["xcb-util#0992bd43"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "0.4.1"
+        },
         ["xcb-util#31fecfc4"] = {
             repo = {
                 branch = "master",
@@ -349,15 +349,7 @@
             },
             version = "0.4.1"
         },
-        ["xcb-util#7e73ba8e"] = {
-            repo = {
-                branch = "master",
-                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
-                url = "https://gitlab.com/tboox/xmake-repo.git"
-            },
-            version = "0.4.1"
-        },
-        ["xcb-util-errors#31fecfc4"] = {
+        ["xcb-util-errors#67114504"] = {
             repo = {
                 branch = "master",
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
@@ -373,7 +365,7 @@
             },
             version = "0.4.1"
         },
-        ["xcb-util-wm#7e73ba8e"] = {
+        ["xcb-util-wm#0992bd43"] = {
             repo = {
                 branch = "master",
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",

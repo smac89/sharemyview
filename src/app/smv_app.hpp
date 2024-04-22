@@ -9,7 +9,7 @@
 #include <memory>
 #include <shared_mutex>
 
-Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
+Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 
 class App: public QObject
 {
@@ -28,15 +28,15 @@ public:
   };
   Q_ENUM(Mode)
 
-  Mode                         mode() const;
-  std::shared_ptr<smv::Window> targetWindow() const;
-  void setTargetWindow(const std::shared_ptr<smv::Window>);
+  auto mode() const -> Mode;
+  auto targetWindow() const -> std::shared_ptr<smv::Window>;
+  void setTargetWindow(std::shared_ptr<smv::Window>);
   void operator()(const smv::EventDataMouseEnter &data);
 
   ~App();
 
 signals:
-  void modeChanged(const Mode);
+  void modeChanged(Mode);
   void targetWindowMoved(const QPoint &);
   void targetWindowResized(const QSize &);
   void targetWindowChanged(const QSize &, const QPoint &);

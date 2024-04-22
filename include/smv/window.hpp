@@ -1,25 +1,55 @@
 #pragma once
-#include "smv/events.hpp"
+
 #include <cstdint>
 #include <string>
 
 namespace smv {
   struct Position
   {
-    std::int32_t x, y;
+    int x, y;
   };
 
   struct Size
   {
-    std::uint32_t w, h;
+    uint32_t w, h;
   };
 
-  struct Window
+  /**
+   * @brief A region could be a window on the screen
+   * or a part of the screen
+   */
+  struct Region
   {
-    virtual std::uint32_t id() const       = 0;
-    virtual std::string   name() const     = 0;
-    virtual Position      position() const = 0;
-    virtual Size          size() const     = 0;
-    virtual ~Window()                      = default;
+    Region() = default;
+    Region(uint32_t w, uint32_t h, int x, int y)
+      : mWidth(w)
+      , mHeight(h)
+      , mPosX(x)
+      , mPosY(y)
+    {
+    }
+    virtual auto position() const -> Position
+    {
+      return { .x = mPosX, .y = mPosY };
+    }
+
+    virtual auto x() const -> int { return mPosX; }
+    virtual auto y() const -> int { return mPosY; }
+    virtual auto size() const -> Size { return { .w = mWidth, .h = mHeight }; }
+    virtual auto width() const -> uint32_t { return mWidth; }
+    virtual auto height() const -> uint32_t { return mHeight; }
+
+    virtual ~Region() = default;
+
+  protected:
+    uint32_t mWidth = 0, mHeight = 0;
+    int      mPosX = 0, mPosY = 0;
+  };
+
+  struct Window: Region
+  {
+    using Region::Region; // inherit the constructor
+    virtual auto id() const -> uint32_t      = 0;
+    virtual auto name() const -> std::string = 0;
   };
 } // namespace smv

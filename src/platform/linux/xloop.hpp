@@ -32,48 +32,50 @@ namespace smv::details {
 
   /**
    * determines if the given window is a normal window
-   * @param w The window
+   * @param window The window
    * @return true if the window is a normal window
    */
-  bool windowIsNormalType(xcb_window_t w);
+  auto windowIsNormalType(xcb_window_t window) -> bool;
 
   /**
    * @brief Get the Parent of this Window
    *
    * @details The parent is the parent window
    *
-   * @param w the window id to get the parent for
+   * @param window the window id to get the parent for
    * @return std::optional<xcb_window_t>
    */
-  std::optional<xcb_window_t> getParent(xcb_window_t w);
+  auto getParent(xcb_window_t window) -> std::optional<xcb_window_t>;
 
   /**
    * @brief Get the Window Geometry
    *
    * @details The window geometry consists of the position and size
    *
-   * @param w the window id to get the geometry for
+   * @param window the window id to get the geometry for
    * @return std::variant<XGeom, std::string>
    */
-  std::variant<XGeom, std::string> getWindowGeometry(xcb_window_t w);
+  auto getWindowGeometry(xcb_window_t window)
+    -> std::variant<XGeom, std::string>;
 
   /**
    * @brief Get the Window Info
    *
    * @details The window info consists of the name, position and size
    *
-   * @param w the window id to get the info for
+   * @param window the window id to get the info for
    * @return std::variant<XWindowInfo, std::string>
    */
-  std::variant<XWindowInfo, std::string> getWindowInfo(xcb_window_t w);
+  auto getWindowInfo(xcb_window_t window)
+    -> std::variant<XWindowInfo, std::string>;
 
   /**
    * @brief Get the Window Name
    *
    * @details The window name is the name of the window
    *
-   * @param w the window id to get the name for
+   * @param window the window id to get the name for
    * @return std::string
    */
-  std::string getWindowName(xcb_window_t w);
+  auto getWindowName(xcb_window_t window) -> std::string;
 } // namespace smv::details

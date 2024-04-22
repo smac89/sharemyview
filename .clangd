@@ -1,0 +1,22 @@
+Diagnostics:
+  ClangTidy:
+    Add:
+      - "bugprone-*"
+      - "cppcoreguidelines-*"
+      - "clang-analyzer-*"
+      - "modernize-*"
+      - "readability-*"
+      - "performance-*"
+      - "misc-*"
+    CheckOptions:
+      misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: true
+      cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor: true
+      readability-identifier-length.IgnoredVariableNames: '^_$'
+      modernize-type-traits.IgnoreMacros: true
+      readability-implicit-bool-conversion.AllowIntegerConditions: true
+      readability-function-cognitive-complexity.IgnoreMacros: true
+    Remove:
+      - "modernize-use-nodiscard"
+  UnusedIncludes: Strict
+CompileFlags:
+  CompilationDatabase: .vscode/

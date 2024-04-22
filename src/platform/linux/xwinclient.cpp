@@ -10,7 +10,6 @@
 #include <mutex>
 #include <utility>
 
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <xcb/xcb.h>
 
 namespace smv {
@@ -18,12 +17,12 @@ namespace smv {
   static std::mutex              connMutex, listenGuard;
   static std::condition_variable waitListenCond;
 
-  static bool initConnection();
+  static auto initConnection() -> bool;
   static void deinitConnection();
 
   void init() noexcept
   {
-    std::lock_guard lk(connMutex);
+    std::lock_guard _(connMutex);
     if (res::connection) {
       spdlog::apply_logger_env_levels(logger);
       logger->info("X11 connection already established");
@@ -47,18 +46,17 @@ namespace smv {
 
   void deinit() noexcept
   {
-    std::lock_guard lk(connMutex);
+    std::lock_guard _(connMutex);
     if (!res::connection) {
       return;
     }
     details::deinitMonitor();
     details::deinitTools();
     deinitConnection();
-    // TODO: clear all subscriptions
     logger->info("X11 connection closed");
   }
 
-  bool initConnection()
+  auto initConnection() -> bool
   {
     // initialize the connection to X
     res::connection.reset(xcb_connect(nullptr, nullptr));
@@ -78,17 +76,16 @@ namespace smv {
 
   void waitConnection()
   {
-    std::unique_lock lk(listenGuard);
-    if (!res::connection) {
-      waitListenCond.wait(lk, [] {
+    if (std::unique_lock lock(listenGuard); !res::connection) {
+      waitListenCond.wait(lock, [] {
         return res::connection != nullptr;
       });
     }
   }
 
-  Cancel listen(EventType type, EventCB cb)
+  auto listen(EventType type, EventCB callback) -> Cancel
   {
     waitConnection();
-    return details::registerEvent(type, std::move(cb));
+    return details::registerEvent(type, std::move(callback));
   }
 } // namespace smv

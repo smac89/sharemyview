@@ -1,5 +1,5 @@
 #include "smv_app.hpp"
-#include "smv/utils/autocancel.hpp"
+#include "smv/common/autocancel.hpp"
 #include "smv/winclient.hpp"
 #include "smv/window.hpp"
 
@@ -84,12 +84,12 @@ void App::qquickWindowReady(QQuickWindow *window)
   mGeomAnimation.qquickWindowReady(window);
 }
 
-App::Mode App::mode() const
+auto App::mode() const -> App::Mode
 {
   return mMode;
 }
 
-std::shared_ptr<smv::Window> App::targetWindow() const
+auto App::targetWindow() const -> std::shared_ptr<smv::Window>
 {
   return mTargetWindow;
 }

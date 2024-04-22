@@ -7,16 +7,16 @@ namespace {
   template<typename T>
   struct CPterIteratorSentinel
   {
-    const T *const mRef;
-    std::size_t    mIndex;
+    T          *mRef;
+    std::size_t mIndex;
 
-    const T                  &operator*() { return mRef[mIndex]; }
-    CPterIteratorSentinel<T> &operator++()
+    auto operator*() -> const T & { return mRef[mIndex]; }
+    auto operator++() -> CPterIteratorSentinel<T> &
     {
       ++mIndex;
       return *this;
     }
-    bool operator!=(const CPterIteratorSentinel<T> &other) const
+    auto operator!=(const CPterIteratorSentinel<T> &other) const -> bool
     {
       return mIndex != other.mIndex;
     }
@@ -31,6 +31,7 @@ namespace {
   };
 } // namespace
 
+// TODO: Replace this with Boost.Iterator
 namespace smv::utils {
   template<typename T>
   class CPtrIterator
@@ -42,11 +43,11 @@ namespace smv::utils {
     {
     }
 
-    CPterIteratorSentinel<T> begin() const { return { mPtr, 0 }; }
-    CPterIteratorSentinel<T> end() const { return { nullptr, mSize }; }
+    auto begin() const -> CPterIteratorSentinel<T> { return { mPtr, 0 }; }
+    auto end() const -> CPterIteratorSentinel<T> { return { nullptr, mSize }; }
 
   private:
-    const T *const    mPtr;
-    const std::size_t mSize;
+    T          *mPtr;
+    std::size_t mSize;
   };
 } // namespace smv::utils

@@ -10,7 +10,7 @@ namespace smv::details {
    * @return true if the monitor was successfully initialized
    * @return false otherwise
    */
-  bool initMonitor();
+  auto initMonitor() -> bool;
 
   /**
    * @brief Deinitialize the monitor
@@ -24,8 +24,8 @@ namespace smv::details {
    * @param existing_screens the existing screens
    * @return the new screens
    */
-  std::vector<xcb_window_t> findNewScreens(
-    const std::vector<xcb_window_t> &existing_screens = {});
+  auto findNewScreens(const std::vector<xcb_window_t> &existing_screens = {})
+    -> std::vector<xcb_window_t>;
 
   /**
    * Registers some events that we are interested in for the given screens
@@ -40,9 +40,9 @@ namespace smv::details {
    * @param recursive if true, also find all descendant children
    * @return the list of children
    */
-  [[maybe_unused]] std::vector<xcb_window_t> queryChildren(
-    const std::vector<xcb_window_t> &roots,
-    bool                             recursive = false);
+  [[maybe_unused]] auto queryChildren(const std::vector<xcb_window_t> &roots,
+                                      bool recursive = false)
+    -> std::vector<xcb_window_t>;
 
   /**
    * @brief Standalone function to monitor the children of a window

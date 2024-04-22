@@ -1,6 +1,6 @@
 #pragma once
 
-#include "smv/window.hpp"
+#include "smv/events.hpp"
 
 #include <atomic>
 #include <memory>
@@ -29,16 +29,16 @@ namespace smv::details {
      *
      * @return std::optional<xcb_window_t>
      */
-    xcb_window_t getCurrentWindow() const;
+    auto getCurrentWindow() const -> xcb_window_t;
 
   public:
     explicit XEvents();
     //  force singleton
-    XEvents(const XEvents &)            = delete;
-    XEvents &operator=(const XEvents &) = delete;
-    XEvents(XEvents &&)                 = delete;
-    XEvents &operator=(XEvents &&)      = delete;
-    ~XEvents()                          = default;
+    XEvents(const XEvents &)                     = delete;
+    auto operator=(const XEvents &) -> XEvents & = delete;
+    XEvents(XEvents &&)                          = delete;
+    auto operator=(XEvents &&) -> XEvents      & = delete;
+    ~XEvents()                                   = default;
 
     /**
      * @brief starts the event loop
@@ -60,11 +60,11 @@ namespace smv::details {
      *
      * @details sets the current window if it part of our monitored windows
      * @param window The new current window
-     * @param x The mouse x position (relative to the window)
-     * @param y The mouse y position (relative to the window)
+     * @param xpos The mouse x position (relative to the window)
+     * @param ypos The mouse y position (relative to the window)
      * @return void
      */
-    void onMouseEnter(xcb_window_t window, uint32_t x, uint32_t y);
+    void onMouseEnter(xcb_window_t window, uint32_t xpos, uint32_t ypos);
 
     /**
      * @brief a window has been exited by the user
@@ -72,11 +72,11 @@ namespace smv::details {
      * @details when the mouse leaves a window, we are notified, and we unset
      * the current window
      * @param window The window that has been exited
-     * @param x The mouse x position (relative to the window)
-     * @param y The mouse y position (relative to the window)
+     * @param xpos The mouse x position (relative to the window)
+     * @param ypos The mouse y position (relative to the window)
      * @return void
      */
-    void onMouseLeave(xcb_window_t window, uint32_t x, uint32_t y);
+    void onMouseLeave(xcb_window_t window, uint32_t xpos, uint32_t ypos);
 
     /**
      * @brief new window created event
@@ -110,10 +110,10 @@ namespace smv::details {
      * @brief a window has been moved
      *
      * @param window The window that has been moved
-     * @param x The new x position
-     * @param y The new y position
+     * @param xpos The new x position
+     * @param ypos The new y position
      */
-    void onWindowMoved(xcb_window_t window, uint32_t x, uint32_t y);
+    void onWindowMoved(xcb_window_t window, int32_t xpos, int32_t ypos);
 
     /**
      * @brief a window has been renamed
@@ -138,8 +138,8 @@ namespace smv::details {
      * @param window The window to check
      * @return std::weak_ptr<const smv::Window>
      */
-    std::weak_ptr<const smv::Window> getWatchedWindow(
-      xcb_window_t window) const;
+    auto getWatchWindow(xcb_window_t window) const
+      -> std::weak_ptr<const smv::Window>;
 
     /**
      * @brief watches the given window for changes
@@ -158,7 +158,7 @@ namespace smv::details {
      * @param window The window to unwatch
      * @return true if the window was being watched and now isn't
      */
-    bool unwatchWindow(xcb_window_t window);
+    auto unwatchWindow(xcb_window_t window) -> bool;
 
     /**
      * @brief returns the instance
@@ -166,7 +166,7 @@ namespace smv::details {
      * @details Creates a single instance of WindowsManager and returns it
      * @return XEventsMonitor&
      */
-    static XEvents &getInstance();
+    static auto instance() -> XEvents &;
 
   private:
     /**
@@ -192,11 +192,11 @@ namespace smv::details {
    * @brief Register to listen for events
    *
    * @param type The type of event to listen for
-   * @param cb The function to call when the event occurs
+   * @param callback The function to call when the event occurs
    * @return Cancel A function which can be used to signal lack of interest in
    * the event
    */
-  Cancel registerEvent(EventType type, EventCB cb);
+  auto registerEvent(EventType type, EventCB callback) -> Cancel;
 } // namespace smv::details
 
 namespace fmt {
@@ -205,13 +205,13 @@ namespace fmt {
   struct formatter<TrackedWindows::value_type>: formatter<std::string>
   {
     template<typename FormatContext>
-    auto format(const TrackedWindows::value_type &m, FormatContext &ctx) const
-      -> decltype(ctx.out())
+    auto format(const TrackedWindows::value_type &tracked,
+                FormatContext &ctx) const -> decltype(ctx.out())
     {
       return format_to(ctx.out(),
                        R"({:#x}: "{}")",
-                       m.first,
-                       styled(m.second->name(), fg(color::yellow_green)));
+                       tracked.first,
+                       styled(tracked.second->name(), fg(color::yellow_green)));
     }
   };
 } // namespace fmt

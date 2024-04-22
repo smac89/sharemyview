@@ -1,4 +1,5 @@
 #include "smv/events.hpp"
+#include "smv/window.hpp"
 
 #include <functional>
 #include <iostream>
@@ -44,19 +45,20 @@ constexpr void Fns(F arg)
   using ArgD =
     std::remove_cv_t<std::remove_reference_t<typename arg_n<0, Fn>::type>>;
   std::cout << "ArgD: " << typeid(ArgD).name() << std::endl;
+
   return Fns<E, ArgD>(std::forward<F>(arg));
   // return Fns<E, ArgD>([arg](const ArgD &d) {
   //   std::invoke(arg, d);
   // });
 }
 
-template<smv::EventType E, typename ArgD>
-constexpr void Fns(void (*arg)(const ArgD &))
-{
-  return Fns<E, ArgD>([arg](const ArgD &d) {
-    arg(d);
-  });
-}
+// template<smv::EventType E, typename ArgD>
+// constexpr void Fns(void (*arg)(const ArgD &))
+// {
+//   return Fns<E, ArgD>([arg](const ArgD &d) {
+//     arg(d);
+//   });
+// }
 
 template<smv::EventType E, typename ArgD>
 constexpr void Fns(uint32_t wid, void (*arg)(const ArgD &))
@@ -85,7 +87,7 @@ public:
   void setup()
   {
     Fns<smv::EventType::MouseDown>(
-      [this](const smv::EventDataMouseDown &m) -> void {
+      [](const smv::EventDataMouseDown &m) -> void {
       std::cout << "[Bar] hello mouse: " << m.x << "," << m.y << std::endl;
     });
 

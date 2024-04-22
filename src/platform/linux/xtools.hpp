@@ -5,9 +5,9 @@
 #include <xcb/xcb.h>
 
 namespace smv::details {
-  bool initTools();
+  auto initTools() -> bool;
   void deinitTools();
 
-  std::string getErrorCodeName(uint8_t error_code);
-  std::string getEventName(xcb_generic_event_t *const);
+  auto getErrorCodeName(uint8_t error_code) -> std::string;
+  auto getEventName(xcb_generic_event_t *) -> std::string;
 } // namespace smv::details

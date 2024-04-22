@@ -1,9 +1,10 @@
 #include "xmonitor.hpp"
-#include "smv/utils/c_iter.hpp"
-#include "smv/winclient.hpp"
+#include "smv/common/c_iter.hpp"
+#include "smv/log.hpp"
 #include "xevents.hpp"
 #include "xutils.hpp"
 
+#include <memory>
 #include <thread>
 
 #include <xcb/xcb.h>
@@ -13,18 +14,21 @@
 namespace smv::details {
   using smv::utils::res, smv::log::logger;
 
-  bool initMonitor()
+  auto initMonitor() -> bool
   {
     if (res::ewm_connection) {
       return true;
     }
-    auto *ewm = new xcb_ewmh_connection_t;
+    decltype(res::ewm_connection) ewm(new xcb_ewmh_connection_t,
+                                      &xcb_ewmh_connection_wipe);
     if (xcb_ewmh_init_atoms_replies(
-          ewm, xcb_ewmh_init_atoms(res::connection.get(), ewm), nullptr)) {
-      res::ewm_connection.reset(ewm);
+          ewm.get(),
+          xcb_ewmh_init_atoms(res::connection.get(), ewm.get()),
+          nullptr)) {
+      res::ewm_connection.swap(ewm);
       logger->info("Connected to compatible window manager!");
 
-      std::thread(&XEvents::start, &XEvents::getInstance()).detach();
+      std::thread(&XEvents::start, &XEvents::instance()).detach();
     } else {
       logger->info("Not connected to compatible window manager!");
     }
@@ -33,20 +37,20 @@ namespace smv::details {
 
   void deinitMonitor()
   {
-    XEvents::getInstance().stop();
+    XEvents::instance().stop();
     res::ewm_connection.reset();
   }
 
-  std::vector<xcb_window_t> findNewScreens(
-    const std::vector<xcb_window_t> &existing_screens)
+  auto findNewScreens(const std::vector<xcb_window_t> &existing_screens)
+    -> std::vector<xcb_window_t>
   {
     std::vector<xcb_window_t> new_screens;
     if (!res::connection) {
       return new_screens;
     }
 
-    auto setup   = xcb_get_setup(res::connection.get());
-    auto screens = xcb_setup_roots_iterator(setup);
+    const auto *const setup   = xcb_get_setup(res::connection.get());
+    auto              screens = xcb_setup_roots_iterator(setup);
     new_screens.reserve(setup->roots_len);
     //  most x11 servers will have only one screen/root window
     logger->info("Found {} screens", setup->roots_len);
@@ -77,14 +81,14 @@ namespace smv::details {
           _defer(&reply, &xcb_ewmh_get_windows_reply_wipe);
 
         logger->debug("Screen {} with {} virtual roots", i, reply.windows_len);
-        std::copy_if(reply.windows,
-                     reply.windows + reply.windows_len,
-                     std::back_inserter(new_screens),
-                     [&existing_screens](auto w) {
-          return std::find(existing_screens.begin(),
-                           existing_screens.end(),
-                           w) == existing_screens.end();
-        });
+        for (const auto &win : utils::CPtrIterator<xcb_window_t>(
+               reply.windows, reply.windows_len)) {
+          if (std::find(existing_screens.begin(),
+                        existing_screens.end(),
+                        win) == existing_screens.end()) {
+            new_screens.push_back(win);
+          }
+        }
       }
     }
     return new_screens;
@@ -102,11 +106,11 @@ namespace smv::details {
     };
 #pragma GCC diagnostic pop
 
-    for (auto w : screens) {
+    for (auto screen : screens) {
       // for each root window, register that we want to be notified of
       // the given events
       std::ignore = xcb_change_window_attributes_aux(
-        res::connection.get(), w, XCB_CW_EVENT_MASK, &root_mask);
+        res::connection.get(), screen, XCB_CW_EVENT_MASK, &root_mask);
       /* std::ignore = xcb_grab_pointer(connection.get(), 1, w,
                                       XCB_EVENT_MASK_POINTER_MOTION,
                                       XCB_GRAB_MODE_ASYNC,
@@ -116,16 +120,15 @@ namespace smv::details {
     }
   }
 
-  std::vector<xcb_window_t> queryChildren(
-    const std::vector<xcb_window_t> &roots,
-    bool                             recursive)
+  auto queryChildren(const std::vector<xcb_window_t> &roots, bool recursive)
+    -> std::vector<xcb_window_t>
   {
     std::vector<std::pair<xcb_window_t, xcb_query_tree_cookie_t>> ch_query;
 
-    for (auto w : roots) {
-      logger->debug("Querying children of {:#x}", w);
-      ch_query.emplace_back(w,
-                            xcb_query_tree_unchecked(res::connection.get(), w));
+    for (auto root : roots) {
+      logger->debug("Querying children of {:#x}", root);
+      ch_query.emplace_back(
+        root, xcb_query_tree_unchecked(res::connection.get(), root));
     }
     std::vector<xcb_window_t> all_children;
 
@@ -135,7 +138,7 @@ namespace smv::details {
 
       logger->debug(
         "{:#x} has {} children", parent, query_tree_rep->children_len);
-      auto children = xcb_query_tree_children(query_tree_rep.get());
+      auto *children = xcb_query_tree_children(query_tree_rep.get());
       if (children == nullptr || query_tree_rep->children_len == 0) {
         logger->debug("no children for {:#x}", parent);
         continue;
@@ -148,13 +151,13 @@ namespace smv::details {
                               ", "));
 
       all_children.reserve(all_children.size() + query_tree_rep->children_len);
-      for (auto &c :
+      for (const auto &child :
            smv::utils::CPtrIterator(children, query_tree_rep->children_len)) {
-        all_children.push_back(c);
+        all_children.push_back(child);
       }
     }
 
-    if (all_children.size() > 0 && recursive) {
+    if (recursive && !all_children.empty()) {
       auto descendants = queryChildren(all_children, recursive);
       all_children.reserve(all_children.size() + descendants.size());
       all_children.insert(
@@ -183,11 +186,11 @@ namespace smv::details {
                     XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
     };
 #pragma GCC diagnostic pop
-    for (auto w : children) {
+    for (auto child : children) {
       //    xcb_input_xi_select_events(connection.get(), w, 1,
       //    &child_mask.mask);
       std::ignore = xcb_change_window_attributes_aux(
-        res::connection.get(), w, XCB_CW_EVENT_MASK, &root_mask);
+        res::connection.get(), child, XCB_CW_EVENT_MASK, &root_mask);
     }
   }
 } // namespace smv::details

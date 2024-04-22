@@ -1,13 +1,15 @@
 #pragma once
+#include "window.hpp"
+
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <spdlog/fmt/fmt.h>
 
 namespace smv {
-  struct Window;
   struct EventData;
 
   using Cancel = std::function<void()>;
@@ -62,11 +64,11 @@ namespace smv {
       : window(window)
     {
     }
-    virtual std::string format() const { return "<No Data>"; }
+    virtual auto format() const -> std::string { return "<No Data>"; }
     virtual ~EventData() = default;
 
-    const std::weak_ptr<Window> window;
-    constexpr static EventType  type = EventType::None;
+    std::weak_ptr<Window>      window;
+    constexpr static EventType type = EventType::None;
   };
 
   struct EventDataMouseEnter final: EventData
@@ -80,7 +82,11 @@ namespace smv {
       , y(y)
     {
     }
-    std::string format() const override { return fmt::format("{}, {}", x, y); }
+
+    auto format() const -> std::string override
+    {
+      return fmt::format("{}, {}", x, y);
+    }
 
     // the mouse position in window coordinate
     uint32_t                   x, y;
@@ -97,10 +103,13 @@ namespace smv {
       , y(y)
     {
     }
-    std::string format() const override { return fmt::format("{}, {}", x, y); }
+    auto format() const -> std::string override
+    {
+      return fmt::format("{}, {}", x, y);
+    }
 
     // the last mouse position in window coordinate
-    const uint32_t             x, y;
+    uint32_t                   x, y;
     constexpr static EventType type = EventType::MouseLeave;
   };
 
@@ -120,9 +129,9 @@ namespace smv {
     }
 
     // the mouse position in window coordinate
-    const uint32_t             x, y;
-    const int32_t              delta_x, delta_y;
-    uint32_t                   screen_x, screen_y;
+    uint32_t                   x, y;
+    int32_t                    delta_x, delta_y;
+    uint32_t                   screen_x {}, screen_y {};
     constexpr static EventType type = EventType::MouseMove;
   };
 
@@ -140,8 +149,8 @@ namespace smv {
     }
 
     // the mouse position in window coordinate
-    const uint32_t             x, y;
-    const MouseButton          button;
+    uint32_t                   x, y;
+    MouseButton                button;
     constexpr static EventType type = EventType::MouseDown;
   };
 
@@ -159,8 +168,8 @@ namespace smv {
     }
 
     // the mouse position in window coordinate
-    const uint32_t             x, y;
-    const MouseButton          button;
+    uint32_t                   x, y;
+    MouseButton                button;
     constexpr static EventType type = EventType::MouseUp;
   };
 
@@ -199,10 +208,10 @@ namespace smv {
   struct EventDataWindowMove final: EventData
   {
     EventDataWindowMove(const std::weak_ptr<Window> &window,
-                        uint32_t                     x,
-                        uint32_t                     y,
-                        int16_t                      dx,
-                        int16_t                      dy)
+                        int32_t                      x,
+                        int32_t                      y,
+                        int32_t                      dx,
+                        int32_t                      dy)
       : EventData(window)
       , x(x)
       , y(y)
@@ -212,9 +221,9 @@ namespace smv {
     }
 
     // The new position
-    const uint32_t x, y;
+    int32_t x, y;
     // The change in position
-    const int16_t              delta_x, delta_y;
+    int32_t                    delta_x, delta_y;
     constexpr static EventType type = EventType::WindowMove;
   };
 
@@ -239,13 +248,13 @@ namespace smv {
   struct EventDataWindowRenamed final: public EventData
   {
     EventDataWindowRenamed(const std::weak_ptr<Window> &window,
-                           const std::string           &name)
+                           std::string                  name)
       : EventData(window)
-      , name(name)
+      , name(std::move(name))
     {
     }
     // check the name of the window
-    const std::string          name;
+    std::string                name;
     constexpr static EventType type = EventType::WindowRenamed;
   };
 } // namespace smv
