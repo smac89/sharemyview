@@ -10,6 +10,7 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_errors.h>
 #include <xcb/xcb_ewmh.h>
+#include <xcb/xproto.h>
 
 namespace smv::details {
   using smv::utils::res, smv::log::logger;
@@ -146,13 +147,13 @@ namespace smv::details {
 
       logger->debug("Children of {:#x}: [{:#x}]",
                     parent,
-                    fmt::join(smv::utils::CPtrIterator(
+                    fmt::join(smv::utils::CPtrIterator<xcb_window_t>(
                                 children, query_tree_rep->children_len),
                               ", "));
 
       all_children.reserve(all_children.size() + query_tree_rep->children_len);
-      for (const auto &child :
-           smv::utils::CPtrIterator(children, query_tree_rep->children_len)) {
+      for (const auto &child : smv::utils::CPtrIterator<xcb_window_t>(
+             children, query_tree_rep->children_len)) {
         all_children.push_back(child);
       }
     }

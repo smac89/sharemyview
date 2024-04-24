@@ -1,7 +1,6 @@
 set_xmakever("2.8.8")
 set_warnings("allextra")
 set_defaultmode("debug")
-set_config("cc", "gcc")
 set_config("cxx", "g++")
 set_config("qt_sdkver", "5")
 set_config("linkjobs", math.max(os.cpuinfo("ncpu") // 2, 2))
@@ -14,7 +13,6 @@ add_rules("mode.debug", "mode.release")
 add_requires("spdlog 1.13.x", {system = false})
 add_requires("libassert 1.2.2", { configs = { decompose = true} })
 add_cxflags("-mshstk", {tools = {"gcc", "clang"}})
-
 
 if is_mode("debug") then
     set_symbols("debug")

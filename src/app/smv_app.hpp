@@ -30,7 +30,7 @@ public:
 
   auto mode() const -> Mode;
   auto targetWindow() const -> std::shared_ptr<smv::Window>;
-  void setTargetWindow(std::shared_ptr<smv::Window>);
+  void setTargetWindow(const std::shared_ptr<smv::Window> &);
   void operator()(const smv::EventDataMouseEnter &data);
 
   ~App();

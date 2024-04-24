@@ -1,12 +1,13 @@
 #include "xcapture.hpp"
+#include "smv/capture_impl.hpp"
 #include "smv/common/c_iter.hpp"
 #include "smv/log.hpp"
-#include "smv/platform/capture.hpp"
 #include "smv/record.hpp"
 #include "xtools.hpp"
 #include "xutils.hpp"
 #include "xwindow.hpp"
 
+#include <atomic>
 #include <cerrno>
 #include <cstdint>
 #include <cstring>
@@ -22,14 +23,19 @@
 
 constexpr auto SCREENSHOT_ERROR = "Unable to take screenshot";
 constexpr auto SHM_CREATE_ERROR = "Failed to create shared memory segment";
+constexpr auto CAPTURE_MODULE_UNINITIALIZED =
+  "Capture module has not been initialized";
 
 namespace smv::details {
   using smv::utils::res, smv::log::logger;
+  namespace {
+    std::atomic_bool captureReady = false;
+  }
 
   auto capturePixels(xcb_drawable_t                drawable,
                      const Region *const           region,
                      const xcb_shm_segment_info_t &shmInfo)
-    -> std::variant<std::vector<std::byte>, std::string>
+    -> std::variant<std::vector<uint8_t>, std::string>
   {
     xcb_generic_error_t                       *err = nullptr;
     std::shared_ptr<xcb_shm_get_image_reply_t> image(xcb_shm_get_image_reply(
@@ -47,22 +53,19 @@ namespace smv::details {
       &err));
     std::shared_ptr<xcb_generic_error_t>       _ { err };
 
-    if (!image) {
-      if (err != nullptr) {
-        return fmt::format(
-          "{}: {}", SCREENSHOT_ERROR, getErrorCodeName(err->error_code));
-      }
-      return SCREENSHOT_ERROR;
+    if (err != nullptr) {
+      return fmt::format(
+        "{}: {}", SCREENSHOT_ERROR, getErrorCodeName(err->error_code));
     }
     utils::CPtrIterator<uint8_t> imageIterator(shmInfo.shmaddr, image->size);
-    std::vector<std::byte>       captureBytes(image->size);
+    std::vector<uint8_t>         captureBytes(image->size);
     captureBytes.insert(
       captureBytes.begin(), imageIterator.begin(), imageIterator.end());
     return captureBytes;
   }
 
   auto capturePixels(xcb_drawable_t drawable, const Region *const region)
-    -> std::variant<std::vector<std::byte>, std::string>
+    -> std::variant<std::vector<uint8_t>, std::string>
   {
     xcb_generic_error_t                   *err = nullptr;
     std::shared_ptr<xcb_get_image_reply_t> image(xcb_get_image_reply(
@@ -84,7 +87,7 @@ namespace smv::details {
     auto                        *data = xcb_get_image_data(image.get());
     auto                         size = xcb_get_image_data_length(image.get());
     utils::CPtrIterator<uint8_t> imageIterator(data, size);
-    std::vector<std::byte>       captureBytes(size);
+    std::vector<uint8_t>         captureBytes(size);
     captureBytes.insert(
       captureBytes.begin(), imageIterator.begin(), imageIterator.end());
     return captureBytes;
@@ -141,10 +144,12 @@ namespace smv::details {
   {
     if (shmInfo) {
       munmap(shmInfo->shmaddr, shmSize);
+      shmInfo = std::nullopt;
+      shmSize = 0;
     }
   }
 
-  auto XRecord::screenshot(decltype(ScreenCaptureConfig::area) area)
+  auto XRecord::screenshot(decltype(ScreenshotConfig::area) area)
     -> ScreenshotSource
   {
     xcb_drawable_t root   = 0;
@@ -163,9 +168,9 @@ namespace smv::details {
 
     if (shmInfo) {
       std::lock_guard _(captureLock);
-      return capturePixels(root, region, shmInfo.value());
+      return { capturePixels(root, region, shmInfo.value()), region->size() };
     }
-    return capturePixels(root, region);
+    return { capturePixels(root, region), region->size() };
   }
 
   auto XRecord::instance() -> XRecord &
@@ -174,21 +179,46 @@ namespace smv::details {
     return instance;
   }
 
-  auto initRecord() -> bool
+  auto initCapture() -> bool
   {
-    return false;
+    // TODO: something more sophisticated...maybe?
+    captureReady = true;
+    return true;
   }
 
-  void deinitRecord() {}
-
-  auto createScreenshotCaptureSource(const ScreenCaptureConfig &config)
-    -> std::shared_ptr<CaptureSource>
+  void deinitCapture()
   {
+    captureReady = false;
+  }
+
+  auto createScreenshotCaptureSource(const ScreenshotConfig &config)
+    -> std::shared_ptr<ScreenshotSource>
+  {
+    if (!captureReady) {
+      logger->warn(CAPTURE_MODULE_UNINITIALIZED);
+      return nullptr;
+    }
     return std::make_shared<ScreenshotSource>(
       XRecord::instance().screenshot(config.area));
   }
+
+  auto createAudioCaptureSource(const AudioCaptureConfig & /*unused*/)
+    -> std::shared_ptr<AudioCaptureSource>
+  {
+    if (!captureReady) {
+      logger->warn(CAPTURE_MODULE_UNINITIALIZED);
+      return nullptr;
+    }
+    return nullptr;
+  }
+
+  auto createVideoCaptureSource(const VideoCaptureConfig & /*unused*/)
+    -> std::shared_ptr<VideoCaptureSource>
+  {
+    if (!captureReady) {
+      logger->warn(CAPTURE_MODULE_UNINITIALIZED);
+      return nullptr;
+    }
+    return nullptr;
+  }
 } // namespace smv::details
-
-namespace smv {
-
-} // namespace smv

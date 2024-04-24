@@ -1,5 +1,6 @@
 #include "smv_app.hpp"
 #include "smv/common/autocancel.hpp"
+#include "smv/events.hpp"
 #include "smv/winclient.hpp"
 #include "smv/window.hpp"
 
@@ -8,11 +9,15 @@
 
 // QT Globals: https://doc.qt.io/qt-5/qtglobal.html
 
+using std::forward;
+
 App::App(QObject *parent)
   : QObject(parent)
   , mGeomAnimation(this)
-  , mCancel(smv::listen<smv::EventType::MouseEnter, smv::EventDataMouseEnter>(
-      std::bind(&App::operator(), this, std::placeholders::_1)))
+  , mCancel(smv::listen<smv::EventType::MouseEnter>(
+      [this](const smv::EventDataMouseEnter &data) {
+  (*this)(data);
+}))
 {
   QObject::connect(this,
                    &App::targetWindowMoved,
@@ -33,13 +38,13 @@ void App::operator()(const smv::EventDataMouseEnter &data)
 {
   if (auto window = data.window.lock(); window != nullptr) {
     if (mMode == Mode::Region) {
-      if (std::shared_lock lk(mMutex); this->mTargetWindow == nullptr) {
+      if (std::shared_lock _(mMutex); this->mTargetWindow == nullptr) {
         return;
       }
       this->setTargetWindow(nullptr);
       spdlog::info("Tracking region", data.x, data.y);
     } else {
-      if (std::shared_lock lk(mMutex); window == this->mTargetWindow) {
+      if (std::shared_lock _(mMutex); window == this->mTargetWindow) {
         return;
       }
       this->setTargetWindow(window);
@@ -94,7 +99,7 @@ auto App::targetWindow() const -> std::shared_ptr<smv::Window>
   return mTargetWindow;
 }
 
-void App::setTargetWindow(const std::shared_ptr<smv::Window> window)
+void App::setTargetWindow(const std::shared_ptr<smv::Window> &window)
 {
   using AutoCancel                      = smv::utils::AutoCancel;
   static smv::Cancel cancelWindowMove   = nullptr;
@@ -103,7 +108,8 @@ void App::setTargetWindow(const std::shared_ptr<smv::Window> window)
   if (window != nullptr) {
     spdlog::info("Tracking window {:#x}", window->id());
     {
-      std::unique_lock lk(mMutex);
+      // unique_lock is used to actually lock the mutex, rather than sharing
+      std::unique_lock _(mMutex);
       this->mTargetWindow = window;
     }
 
@@ -115,7 +121,8 @@ void App::setTargetWindow(const std::shared_ptr<smv::Window> window)
     cancelWindowResize =
       AutoCancel::wrap(smv::listen<smv::EventType::WindowResize>(
         window->id(), [this](const smv::EventDataWindowResize &data) {
-      emit targetWindowResized(QSize(data.w, data.h));
+      emit targetWindowResized(
+        QSize(static_cast<int>(data.w), static_cast<int>(data.h)));
     }));
 
     emit targetWindowChanged(
@@ -125,7 +132,8 @@ void App::setTargetWindow(const std::shared_ptr<smv::Window> window)
   } else {
     cancelWindowMove   = nullptr;
     cancelWindowResize = nullptr;
-    std::unique_lock lk(mMutex);
+    // unique_lock is used to actually lock the mutex, rather than sharing
+    std::unique_lock _(mMutex);
     this->mTargetWindow = window;
   }
 }
@@ -135,14 +143,3 @@ App::~App()
   mCancel();
   spdlog::info("App destroyed");
 }
-
-// void
-// ShareMyViewWindow::paintEvent(QPaintEvent *)
-// {
-//   QPainter painter(this);
-//   QPainterPath path;
-//   QSizeF itemSize = size();
-//   path.addRoundedRect(0, 0, itemSize.width(), itemSize.height(), 10, 10);
-//   painter.setRenderHint(QPainter::Antialiasing);
-//   painter.strokePath(path, QPen(Qt::gray, 10));
-// }

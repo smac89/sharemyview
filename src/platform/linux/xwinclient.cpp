@@ -1,5 +1,6 @@
 #include "smv/events.hpp"
 #include "smv/winclient.hpp"
+#include "xcapture.hpp"
 #include "xevents.hpp"
 #include "xmonitor.hpp"
 #include "xtools.hpp"
@@ -37,6 +38,10 @@ namespace smv {
       return;
     }
 
+    if (!details::initCapture()) {
+      return;
+    }
+
     if (!details::initMonitor()) {
       return;
     }
@@ -52,6 +57,7 @@ namespace smv {
     }
     details::deinitMonitor();
     details::deinitTools();
+    details::deinitCapture();
     deinitConnection();
     logger->info("X11 connection closed");
   }

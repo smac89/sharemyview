@@ -15,6 +15,7 @@ Diagnostics:
       modernize-type-traits.IgnoreMacros: true
       readability-implicit-bool-conversion.AllowIntegerConditions: true
       readability-function-cognitive-complexity.IgnoreMacros: true
+      cppcoreguidelines-narrowing-conversions.IgnoreConversionFromTypes: "size_t;ptrdiff_t;size_type;difference_type"
     Remove:
       - "modernize-use-nodiscard"
   UnusedIncludes: Strict

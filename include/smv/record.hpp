@@ -5,52 +5,69 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <variant>
 
-constexpr auto DEFAULT_FPS = 40;
+constexpr auto DEFAULT_FPS          = 40;
+constexpr auto DEFAULT_JPEG_QUALITY = 95U;
 
 namespace smv {
   struct CaptureSource
   {
-    virtual auto next() noexcept
+    virtual auto inline next() noexcept
       -> std::optional<std::basic_string_view<std::byte>>       = 0;
     virtual auto error() noexcept -> std::optional<std::string> = 0;
     virtual ~CaptureSource()                                    = default;
   };
 
-  using CaptureCb = std::function<void(std::shared_ptr<CaptureSource> source)>;
+  template<typename S,
+           std::enable_if<std::is_base_of_v<CaptureSource, S>> * = nullptr>
+  using TCaptureCb = std::function<void(const S &source)>;
+  using CaptureCb  = TCaptureCb<CaptureSource>;
 
-  enum class ScreenCaptureMode : uint8_t
+  enum class ScreenshotFormat : uint8_t
   {
-    Single     = 0x1,
-    Continuous = 0x2,
+    PPM = 0x1,
+    PNG = 0x2,
+    JPG = 0x4,
+    QOI = 0x8,
   };
 
-  /**
-   * @brief Configure how the screen will be captured
-   */
-  struct ScreenCaptureConfig
+  enum class AudioCaptureFormat : uint8_t
   {
-    /**
-     * @brief The mode of the screen capture
-     */
-    ScreenCaptureMode screenMode = ScreenCaptureMode::Single;
+    OPUS = 0x1,
+    AAC  = 0x2,
+    MP3  = 0x4,
+  };
 
+  enum class AudioStreamFormat : uint8_t
+  {
+    AAC = 0x1,
+  };
+
+  enum class VideoCaptureFormat : uint8_t
+  {
+    MP4 = 0x1,
+    AVI = 0x2,
+  };
+
+  enum class VideoStreamFormat : uint8_t
+  {
+    H264 = 0x1,
+    H265 = 0x2,
+  };
+
+  struct ScreenshotConfig
+  {
     /**
      * @brief The window/region to be captured
      */
     std::variant<Region, Window *> area = nullptr;
 
-    /**
-     * @brief A hint for the number of frames per second
-     * @details The backend takes this as a hint, but it could be less
-     * or more depending on available system resources
-     */
-    uint8_t fpsHint = DEFAULT_FPS;
+    uint8_t jpegQuality = DEFAULT_JPEG_QUALITY;
   };
 
   /**
@@ -72,13 +89,48 @@ namespace smv {
     float volume = 1.0F;
   };
 
-  struct CaptureConfig
+  struct VideoCaptureConfig: public ScreenshotConfig
   {
-    std::optional<ScreenCaptureConfig> screen;
-    std::optional<AudioCaptureConfig>  audio;
+    /**
+     * @brief The number of frames per second
+     * @details The backend takes this as a hint, but it could be less
+     * or more depending on available system resources
+     */
+    uint8_t fpsHint = DEFAULT_FPS;
+
+    /**
+     * @brief The audio configuration
+     */
+    AudioCaptureConfig audioConfig;
   };
 
-  void capture(CaptureConfig config, CaptureCb callback);
-  void capture(AudioCaptureConfig config, CaptureCb callback);
-  void capture(ScreenCaptureConfig config, CaptureCb callback);
+  struct AudioStreamConfig: public AudioCaptureConfig
+  {
+    std::string rtspUrl;
+  };
+
+  struct VideoStreamConfig: public VideoCaptureConfig
+  {
+    std::string rtspUrl;
+  };
+
+  void capture(VideoCaptureConfig config,
+               VideoCaptureFormat format,
+               CaptureCb          callback);
+
+  void capture(AudioCaptureConfig config,
+               AudioCaptureFormat format,
+               CaptureCb          callback);
+
+  void capture(ScreenshotConfig config,
+               ScreenshotFormat format,
+               CaptureCb        callback);
+
+  void captureStream(VideoStreamConfig config,
+                     VideoStreamFormat format,
+                     CaptureCb         callback);
+
+  void captureStream(AudioStreamConfig config,
+                     AudioStreamFormat format,
+                     CaptureCb         callback);
 } // namespace smv

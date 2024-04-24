@@ -373,6 +373,14 @@
             },
             version = "0.4.2"
         },
+        ["xmake::stb 2023.12.15#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
+                url = "https://gitlab.com/tboox/xmake-repo.git"
+            },
+            version = "2023.12.15"
+        },
         ["xorgproto#31fecfc4"] = {
             repo = {
                 branch = "master",

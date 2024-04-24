@@ -6,12 +6,12 @@
 namespace smv {
   struct Position
   {
-    int x, y;
+    int x = 0, y = 0;
   };
 
   struct Size
   {
-    uint32_t w, h;
+    uint32_t w = 0, h = 0;
   };
 
   /**

@@ -109,6 +109,9 @@ auto main() -> int
                                 0),
     nullptr));
 
+  // xcb_image_shm_get(xcb_connection_t *conn, xcb_drawable_t draw, xcb_image_t
+  // *image, xcb_shm_segment_info_t shminfo, int16_t x, int16_t y, uint32_t
+  // plane_mask)
   if (image) {
     if (auto ppmFile = std::ofstream("/tmp/screenshot.ppm", std::ios::binary);
         ppmFile) {
