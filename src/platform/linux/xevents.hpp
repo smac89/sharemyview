@@ -130,7 +130,7 @@ namespace smv::details {
      * @param window The window to check
      * @return bool
      */
-    bool isWindowWatched(xcb_window_t window) const;
+    auto isWindowWatched(xcb_window_t window) const -> bool;
 
     /**
      * @brief returns the watched window

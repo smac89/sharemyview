@@ -12,7 +12,6 @@ add_repositories("myrepo pkgrepo")
 add_rules("mode.debug", "mode.release")
 add_requires("spdlog 1.13.x", {system = false})
 add_requires("libassert 1.2.2", { configs = { decompose = true} })
-add_cxflags("-mshstk", {tools = {"gcc", "clang"}})
 
 if is_mode("debug") then
     set_symbols("debug")
@@ -32,7 +31,7 @@ target("capture")
     -- include .qrc files to that they are transpiled by rcc
     add_files("src/capture.qrc")
     add_includedirs("include", {public = true})
-    add_cxflags("-fstack-protector-strong", {tools = {"gcc", "clang"}})
+    -- add_cxflags("-fstack-protector-strong", "-mshstk", {tools = {"g++", "clang"}})
     add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=warn,smv::autocancel=off")
     includes("src/platform")
     add_deps("winclient")

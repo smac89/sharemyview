@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 
 Item {
     id: root
-    property color bgColor: Qt.rgb(0.18, 0.25, 0.34)
+    property color bgColor: Qt.rgba(0.18, 0.25, 0.34, 0)
     signal record
     signal stopRecord
     signal stream

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <deque>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
@@ -26,16 +27,16 @@ namespace smv::details {
   namespace {
     std::shared_mutex listenerMutx;
     std::unordered_map<EventType, std::vector<std::tuple<uint32_t, EventCB>>>
-      subscribers;
-
+      listeners;
   } // namespace
+
   /**
    * @brief Publishes an event
    *
    * @param data the data to send
    */
   template<EventType E, typename D>
-  void publishEvent(D data);
+  void enqueueNotification(D data);
 
   /**
    * @brief Checks if there are any subscribers to an event
@@ -123,7 +124,7 @@ namespace smv::details {
           xpos,
           ypos,
         };
-        publishEvent<EventType::MouseEnter>(std::move(evt));
+        enqueueNotification<EventType::MouseEnter>(std::move(evt));
       }
     }
   }
@@ -144,7 +145,7 @@ namespace smv::details {
           xpos,
           ypos,
         };
-        publishEvent<EventType::MouseLeave>(std::move(evt));
+        enqueueNotification<EventType::MouseLeave>(std::move(evt));
       }
     }
   }
@@ -170,7 +171,7 @@ namespace smv::details {
       if (isWindowWatched(window)) {
         const auto trackedWindow = mTracked[window];
         auto       evt           = EventDataWindowClose { trackedWindow };
-        publishEvent<EventType::WindowClose>(std::move(evt));
+        enqueueNotification<EventType::WindowClose>(std::move(evt));
       }
     }
     if (unwatchWindow(window)) {
@@ -195,7 +196,7 @@ namespace smv::details {
         auto evt = EventDataWindowMove {
           mTracked[window], xpos, ypos, deltaX, deltaY,
         };
-        publishEvent<EventType::WindowMove>(std::move(evt));
+        enqueueNotification<EventType::WindowMove>(std::move(evt));
       } else {
         logger->error("Window {:#x} is not an XWindow", window);
       }
@@ -218,7 +219,7 @@ namespace smv::details {
           width,
           height,
         };
-        publishEvent<EventType::WindowResize>(std::move(evt));
+        enqueueNotification<EventType::WindowResize>(std::move(evt));
       } else {
         logger->error("Window {:#x} is not an XWindow", window);
       }
@@ -242,7 +243,7 @@ namespace smv::details {
           mTracked[window],
           name.value(),
         };
-        publishEvent<EventType::WindowRenamed>(std::move(evt));
+        enqueueNotification<EventType::WindowRenamed>(std::move(evt));
       } else {
         logger->error("Window {:#x} is not an XWindow", window);
       }
@@ -307,7 +308,7 @@ namespace smv::details {
     logger->info("Tracked windows: {}", mTracked);
   }
 
-  bool XEvents::unwatchWindow(xcb_window_t window)
+  auto XEvents::unwatchWindow(xcb_window_t window) -> bool
   {
     std::lock_guard _(mSyncMut);
     return mTracked.erase(window) > 0;
@@ -319,7 +320,7 @@ namespace smv::details {
     mTracked.clear();
   }
 
-  XEvents &XEvents::instance()
+  auto XEvents::instance() -> XEvents &
   {
     static XEvents instance;
     return instance;
@@ -341,7 +342,7 @@ namespace smv::details {
       // if the below call throws an exception, it means that
       // there is a problem with the callback itself. i.e. the
       // callback has been called more than once.
-      auto &eventSubs = subscribers.at(type);
+      auto &eventSubs = listeners.at(type);
       eventSubs.erase(std::remove_if(eventSubs.begin(),
                                      eventSubs.end(),
                                      [cancelId](auto const &cancel) {
@@ -351,10 +352,10 @@ namespace smv::details {
 
       if (eventSubs.empty()) {
         logger->info("Unsubscribing from event: {}", type);
-        subscribers.erase(type);
+        listeners.erase(type);
       }
     };
-    auto &eventSubs = subscribers[type];
+    auto &eventSubs = listeners[type];
     eventSubs.emplace_back(cancelId, std::move(callback));
     logger->debug("Subscribed to event: {}", type);
     return [cancelCb = std::move(cancelCb)] {
@@ -365,32 +366,33 @@ namespace smv::details {
   }
 
   template<EventType E, typename D>
-  void publishEvent(D data)
+  void enqueueNotification(D data)
   {
+    static std::mutex queueSync;
     static_assert(std::is_base_of_v<EventData, D> && D::type == E,
                   "Event type mismatch");
+    // grab the queue lock
+    std::lock_guard _ { queueSync };
 
-    auto cbs = std::vector<EventCB> {};
-    if (std::shared_lock _ { listenerMutx };
-        subscribers.find(E) != subscribers.end()) {
-      const auto &notifications = subscribers.at(E);
-      cbs.reserve(notifications.size());
-      std::transform(notifications.begin(),
-                     notifications.end(),
-                     std::back_inserter(cbs),
-                     [](auto const &callback) {
-        return std::get<1>(callback);
-      });
-    } else {
+    if (!isEventInteresting(E)) {
       return;
     }
+    // create a container for subscribers of the event
+    auto callbacks = std::vector<EventCB> {};
+    {
+      std::shared_lock _ { listenerMutx };
+      const auto      &subscribers = listeners.at(E);
+      callbacks.reserve(subscribers.size());
+      for (auto const &subscriber : subscribers) {
+        callbacks.push_back(std::get<1>(subscriber));
+      }
+    }
     logger->debug("Before publishing {} event: {}", E, data);
-    std::thread([cbs = std::move(cbs), data = std::move(data)]() {
+    std::thread([cbs = std::move(callbacks), data = std::move(data)]() {
       for (auto const &callback : cbs) {
         callback(data);
       }
-    }).detach();
-
+    }).join();
     logger->debug("After publishing {} event", E);
     std::this_thread::yield();
   }
@@ -398,6 +400,6 @@ namespace smv::details {
   auto isEventInteresting(EventType type) -> bool
   {
     std::shared_lock _ { listenerMutx };
-    return subscribers.count(type) > 0;
+    return listeners.count(type) > 0;
   }
 } // namespace smv::details

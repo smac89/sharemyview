@@ -26,8 +26,7 @@ namespace smv::details {
 
       if (event->response_type == XCB_NONE) {
         auto err = std::reinterpret_pointer_cast<xcb_generic_error_t>(event);
-        logger->error("Error: {}",
-                      xcb_event_get_error_label(err->response_type));
+        logger->error("Error: {}", getErrorCodeName(err->error_code));
       }
       // See https://www.x.org/wiki/Development/Documentation/XGE/
       else if (event->response_type == XCB_GE_GENERIC) {
