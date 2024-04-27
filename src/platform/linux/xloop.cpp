@@ -113,6 +113,15 @@ namespace smv::details {
     }
   }
 
+  auto pollMouseWindow(xcb_window_t root)
+    -> std::shared_ptr<xcb_query_pointer_reply_t>
+  {
+    return std::shared_ptr<xcb_query_pointer_reply_t>(
+      xcb_query_pointer_reply(res::connection.get(),
+                              xcb_query_pointer(res::connection.get(), root),
+                              nullptr));
+  }
+
   auto windowIsNormalType(const xcb_window_t window) -> bool
   {
     auto window_type_req =

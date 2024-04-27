@@ -1,9 +1,10 @@
 #include "capture_impl.hpp"
+#include "smv/common/fmt.hpp" // IWYU pragma: keep
 #include "smv/log.hpp"
 #include "smv/record.hpp"
 
+#include <optional>
 #include <thread>
-#include <variant>
 
 namespace smv {
   using details::ScreenshotSource, details::AudioCaptureSource,
@@ -13,9 +14,8 @@ namespace smv {
   void capture(const VideoCaptureConfig      &config,
                TCaptureCb<VideoCaptureSource> callback)
   {
-    if (std::holds_alternative<Window *>(config.area) &&
-        std::get<Window *>(config.area) == nullptr) {
-      logger->warn("No region or window specified for video capture");
+    if (!config.isValid()) {
+      logger->warn("Invalid capture config");
       return;
     }
     std::thread([config, callback = std::move(callback)]() {
@@ -45,11 +45,11 @@ namespace smv {
   void capture(const ScreenshotConfig      &config,
                TCaptureCb<ScreenshotSource> callback)
   {
-    if (std::holds_alternative<Window *>(config.area) &&
-        std::get<Window *>(config.area) == nullptr) {
-      logger->warn("No region or window specified for screenshot");
+    if (!config.isValid()) {
+      logger->warn("Invalid capture config");
       return;
     }
+
     std::thread([config = config, callback = std::move(callback)]() {
       auto source = details::createScreenshotCaptureSource(config);
       if (source) {
@@ -73,22 +73,25 @@ namespace smv {
                ScreenshotFormat format,
                CaptureCb        callback)
   {
-    capture(config,
-            [callback = std::move(callback), &format, &config](
-              const ScreenshotSource &source) {
-      std::optional<ScreenshotSource> formattedSource;
 
+    capture(config,
+            [callback = std::move(callback),
+             format,
+             config = std::move(config)](ScreenshotSource &source) {
+      std::optional<ScreenshotSource> formattedSource = std::nullopt;
       switch (format) {
         case ScreenshotFormat::PNG: {
+          logger->info("Converting screenshot to PNG");
           auto pngSource = ScreenshotSource::toPNG(source);
           if (pngSource) {
-            formattedSource = pngSource;
+            formattedSource = std::move(pngSource);
           } else {
             logger->error("Failed to convert screenshot to PNG");
           }
           break;
         }
         case ScreenshotFormat::JPG: {
+          logger->info("Converting screenshot to JPG");
           auto jpgSource = ScreenshotSource::toJPG(source, config.jpegQuality);
           if (jpgSource) {
             formattedSource = jpgSource;
@@ -98,6 +101,7 @@ namespace smv {
           break;
         }
         case ScreenshotFormat::PPM: {
+          logger->info("Converting screenshot to PPM");
           auto ppmSource = ScreenshotSource::toPPM(source);
           if (ppmSource) {
             formattedSource = ppmSource;
@@ -107,6 +111,7 @@ namespace smv {
           break;
         }
         case ScreenshotFormat::QOI: {
+          logger->info("Converting screenshot to QOI");
           auto qoiSource = ScreenshotSource::toQoi(source);
           if (qoiSource) {
             formattedSource = qoiSource;
@@ -115,9 +120,14 @@ namespace smv {
           }
           break;
         }
+        default:
+          logger->error("Unsupported screenshot format: {}", format);
+          break;
       }
       if (formattedSource) {
         callback(*formattedSource);
+      } else {
+        callback(source);
       }
     });
   }

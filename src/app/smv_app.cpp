@@ -1,16 +1,19 @@
 #include "smv_app.hpp"
+#include "qimage.h"
+#include "qstringview.h"
 #include "smv/common/autocancel.hpp"
 #include "smv/events.hpp"
+#include "smv/record.hpp"
 #include "smv/winclient.hpp"
 #include "smv/window.hpp"
+#include "smv_capture.hpp"
+#include "smv_utils.hpp"
 
+#include <QBuffer>
 #include <QPropertyAnimation>
 #include <spdlog/spdlog.h>
 
 // QT Globals: https://doc.qt.io/qt-5/qtglobal.html
-
-using std::forward;
-
 App::App(QObject *parent)
   : QObject(parent)
   , mGeomAnimation(this)
@@ -53,10 +56,35 @@ void App::operator()(const smv::EventDataMouseEnter &data)
   }
 }
 
-void App::takeScreenShot()
+void App::takeScreenshot(const QRect &rect)
 {
-  // fbo->toImage().save("capture.png");
-  spdlog::info("Taking screenshot...");
+  spdlog::info("Taking screenshot: x: {}, y: {}, w: {}, h: {}",
+               rect.x(),
+               rect.y(),
+               rect.width(),
+               rect.height());
+  auto config = smv::ScreenshotConfig { rectToRegion(rect) };
+  if (!config.isValid()) {
+    spdlog::error("Invalid screenshot config");
+    return;
+  }
+  auto format = smv::ScreenshotFormat::PNG;
+  emit mediaCaptureStarted(CaptureMode::Screenshot);
+  smv::capture(config, format, [this](smv::CaptureSource &source) {
+    if (auto err = source.error()) {
+      spdlog::error("Failed to capture screenshot: {}", err.value());
+      return;
+    }
+    spdlog::info("Screenshot captured");
+    auto   imageIO = CaptureSourceIO(&source);
+    QImage image;
+    if (!image.load(&imageIO, "png")) {
+      spdlog::error("Failed to parse image as PNG");
+      return;
+    }
+    image.save("/tmp/screenshot.png");
+    emit mediaCaptureStopped(CaptureMode::Screenshot);
+  });
 }
 
 void App::startRecording() {}
@@ -83,11 +111,11 @@ void App::updateRecordRegion(const QSize &size, const QPoint &point)
   mRecordRegion = QRect(point, size);
 }
 
-void App::qquickWindowReady(QQuickWindow *window)
-{
-  mRecordRegion = window->geometry();
-  mGeomAnimation.qquickWindowReady(window);
-}
+// void App::qquickWindowReady(QQuickWindow *window)
+// {
+//   mRecordRegion = window->geometry();
+//   mGeomAnimation.qquickWindowReady(window);
+// }
 
 auto App::mode() const -> App::Mode
 {
@@ -126,7 +154,8 @@ void App::setTargetWindow(const std::shared_ptr<smv::Window> &window)
     }));
 
     emit targetWindowChanged(
-      QSize(window->size().w, window->size().h),
+      QSize(static_cast<int>(window->size().w),
+            static_cast<int>(window->size().h)),
       QPoint(window->position().x, window->position().y));
 
   } else {

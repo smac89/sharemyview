@@ -2,7 +2,6 @@
 
 #include "window.hpp"
 
-#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <optional>
@@ -18,14 +17,14 @@ namespace smv {
   struct CaptureSource
   {
     virtual auto inline next() noexcept
-      -> std::optional<std::basic_string_view<std::byte>>       = 0;
+      -> std::optional<std::basic_string_view<uint8_t>>         = 0;
     virtual auto error() noexcept -> std::optional<std::string> = 0;
     virtual ~CaptureSource()                                    = default;
   };
 
   template<typename S,
            std::enable_if<std::is_base_of_v<CaptureSource, S>> * = nullptr>
-  using TCaptureCb = std::function<void(const S &source)>;
+  using TCaptureCb = std::function<void(S &source)>;
   using CaptureCb  = TCaptureCb<CaptureSource>;
 
   enum class ScreenshotFormat : uint8_t
@@ -52,6 +51,7 @@ namespace smv {
   {
     MP4 = 0x1,
     AVI = 0x2,
+    GIF = 0x4,
   };
 
   enum class VideoStreamFormat : uint8_t
@@ -65,9 +65,18 @@ namespace smv {
     /**
      * @brief The window/region to be captured
      */
-    std::variant<Region, Window *> area = nullptr;
+    std::variant<Window *, Region> area = nullptr;
 
     uint8_t jpegQuality = DEFAULT_JPEG_QUALITY;
+
+    auto inline isValid() const -> bool
+    {
+      if (std::holds_alternative<Window *>(area)) {
+        const auto *const window = std::get<Window *>(area);
+        return window != nullptr && window->isValid();
+      }
+      return std::get<Region>(area).isValid();
+    }
   };
 
   /**
@@ -114,6 +123,13 @@ namespace smv {
     std::string rtspUrl;
   };
 
+  /**
+   * @brief Asynchronously start capturing for a video stream
+   *
+   * @param config The configuration for the capture
+   * @param format The format of the capture
+   * @param callback The callback to call as capture continues
+   */
   void capture(VideoCaptureConfig config,
                VideoCaptureFormat format,
                CaptureCb          callback);
@@ -122,6 +138,13 @@ namespace smv {
                AudioCaptureFormat format,
                CaptureCb          callback);
 
+  /**
+   * @brief Asynchronously start capturing for a screenshot
+   *
+   * @param config The configuration for the screenshot
+   * @param format The format of the screenshot
+   * @param callback The callback to call when the screenshot is ready
+   */
   void capture(ScreenshotConfig config,
                ScreenshotFormat format,
                CaptureCb        callback);

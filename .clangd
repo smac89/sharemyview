@@ -18,6 +18,10 @@ Diagnostics:
       cppcoreguidelines-narrowing-conversions.IgnoreConversionFromTypes: "size_t;ptrdiff_t;size_type;difference_type"
     Remove:
       - "modernize-use-nodiscard"
+      - "misc-no-recursion"
+      - "cppcoreguidelines-pro-bounds-pointer-arithmetic"
+      - "cppcoreguidelines-avoid-non-const-global-variables"
+      - "bugprone-easily-swappable-parameters"
   UnusedIncludes: Strict
 CompileFlags:
   CompilationDatabase: .vscode/

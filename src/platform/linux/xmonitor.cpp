@@ -53,7 +53,8 @@ namespace smv::details {
     const auto *const setup   = xcb_get_setup(res::connection.get());
     auto              screens = xcb_setup_roots_iterator(setup);
     new_screens.reserve(setup->roots_len);
-    //  most x11 servers will have only one screen/root window
+    //  most x11 servers will have only one screen/root window, but it's
+    //  possible to have more
     logger->info("Found {} screens", setup->roots_len);
 
     for (; screens.rem > 0; xcb_screen_next(&screens)) {
@@ -97,15 +98,15 @@ namespace smv::details {
 
   void prepareScreens(const std::vector<xcb_window_t> &screens)
   {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-
-    static constexpr xcb_change_window_attributes_value_list_t root_mask {
-      .event_mask = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
+    // initialization is done this way to avoid compiler warnings about
+    // unintialized fields
+    static constexpr auto root_mask = []() constexpr {
+      xcb_change_window_attributes_value_list_t mask {};
+      mask.event_mask = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
       // XCB_EVENT_MASK_STRUCTURE_NOTIFY |
       // XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW,
-    };
-#pragma GCC diagnostic pop
+      return mask;
+    }();
 
     for (auto screen : screens) {
       // for each root window, register that we want to be notified of
@@ -169,9 +170,6 @@ namespace smv::details {
 
   void monitorChildren(const std::vector<xcb_window_t> &children)
   {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-
     //  static constexpr struct {
     //    xcb_input_event_mask_t mask = {.deviceid =
     //    XCB_INPUT_DEVICE_ALL_MASTER,
@@ -181,12 +179,16 @@ namespace smv::details {
     //        XCB_INPUT_XI_EVENT_MASK_ENTER | XCB_INPUT_XI_EVENT_MASK_LEAVE);
     //  } child_mask;
 
-    static constexpr xcb_change_window_attributes_value_list_t root_mask {
-      .event_mask = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW |
-                    XCB_EVENT_MASK_PROPERTY_CHANGE |
-                    XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
-    };
-#pragma GCC diagnostic pop
+    // intialization is done this way to avoid compiler warnings about
+    // unintialized fields
+    static constexpr auto root_mask = []() constexpr {
+      xcb_change_window_attributes_value_list_t mask {};
+      mask.event_mask =
+        XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW |
+        XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
+      return mask;
+    }();
+
     for (auto child : children) {
       //    xcb_input_xi_select_events(connection.get(), w, 1,
       //    &child_mask.mask);

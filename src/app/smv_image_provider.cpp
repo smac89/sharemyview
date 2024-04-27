@@ -11,9 +11,9 @@ AppImageProvider::AppImageProvider()
 {
 }
 
-QImage AppImageProvider::requestImage(const QString &id,
-                                      QSize         *size,
-                                      const QSize   &requestedSize)
+auto AppImageProvider::requestImage(const QString &id,
+                                    QSize         *size,
+                                    const QSize   &requestedSize) -> QImage
 {
   auto imageSource = QString(":/%1").arg(id);
   auto width       = requestedSize.width();
@@ -23,7 +23,7 @@ QImage AppImageProvider::requestImage(const QString &id,
     width  = DEFAULT_IMAGE_WIDTH;
     height = DEFAULT_IMAGE_HEIGHT;
   }
-  if (size) {
+  if (size != nullptr) {
     *size = QSize(width, height);
   }
   QImage image(width, height, QImage::Format_ARGB32);

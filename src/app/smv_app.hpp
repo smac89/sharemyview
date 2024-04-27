@@ -1,6 +1,7 @@
 #pragma once
 #include "mainwindow_geom_proxy.hpp"
 #include "smv/events.hpp"
+#include "smv_capture.hpp"
 
 #include <QObject>
 #include <QPropertyAnimation>
@@ -9,7 +10,7 @@
 #include <memory>
 #include <shared_mutex>
 
-Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
+Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
 
 class App: public QObject
 {
@@ -33,23 +34,25 @@ public:
   void setTargetWindow(const std::shared_ptr<smv::Window> &);
   void operator()(const smv::EventDataMouseEnter &data);
 
-  ~App();
+  ~App() override;
 
 signals:
   void modeChanged(Mode);
   void targetWindowMoved(const QPoint &);
   void targetWindowResized(const QSize &);
   void targetWindowChanged(const QSize &, const QPoint &);
+  void mediaCaptureStarted(CaptureMode);
+  void mediaCaptureStopped(CaptureMode);
 
 public slots:
   void updateRecordRegion(const QRect &rect);
   void updateRecordRegion(const QPoint &);
   void updateRecordRegion(const QSize &);
   void updateRecordRegion(const QSize &, const QPoint &);
-  void qquickWindowReady(QQuickWindow *window);
+  void takeScreenshot(const QRect &rect);
+  // void qquickWindowReady(QQuickWindow *window);
 
 private slots:
-  void takeScreenShot();
   void startRecording();
   void streamRecording();
 

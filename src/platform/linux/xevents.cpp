@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <deque>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
@@ -22,8 +21,8 @@
 
 namespace smv::details {
   using smv::log::logger;
-
   using smv::utils::res;
+
   namespace {
     std::shared_mutex listenerMutx;
     std::unordered_map<EventType, std::vector<std::tuple<uint32_t, EventCB>>>
@@ -48,10 +47,10 @@ namespace smv::details {
 
   XEvents::XEvents()
   {
-    VERIFY((res::connection), "X connection is invalid");
+    ASSERT(
+      res::connection != nullptr, "X connection is invalid", res::connection);
     auto new_screens = findNewScreens(mRoots);
     if (!new_screens.empty()) {
-      logger->info("Found {} new screens", mRoots.size());
       prepareScreens(new_screens);
       mRoots.insert(mRoots.end(), new_screens.begin(), new_screens.end());
       std::vector<xcb_window_t> children = queryChildren(new_screens);
@@ -75,17 +74,10 @@ namespace smv::details {
     xcb_aux_sync(res::connection.get());
     logger->info("Polling for events...");
     for (auto const &root : mRoots) {
-      std::unique_ptr<xcb_query_pointer_reply_t> reply(
-        xcb_query_pointer_reply(res::connection.get(),
-                                xcb_query_pointer(res::connection.get(), root),
-                                nullptr));
-
-      if (reply) {
-        XEvents::instance().onMouseEnter(
-          reply->child, reply->win_x, reply->win_y);
+      if (auto reply = pollMouseWindow(root)) {
+        instance().onMouseEnter(reply->child, reply->win_x, reply->win_y);
         break;
       }
-      std::this_thread::yield();
     }
     while (mRunning) {
       pollEvents();

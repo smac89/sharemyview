@@ -38,13 +38,14 @@ namespace smv {
       return;
     }
 
+    if (!details::initMonitor()) {
+      return;
+    }
+
     if (!details::initCapture()) {
       return;
     }
 
-    if (!details::initMonitor()) {
-      return;
-    }
     logger->info("X11 connection established");
     waitListenCond.notify_all();
   }
@@ -55,9 +56,9 @@ namespace smv {
     if (!res::connection) {
       return;
     }
+    details::deinitCapture();
     details::deinitMonitor();
     details::deinitTools();
-    details::deinitCapture();
     deinitConnection();
     logger->info("X11 connection closed");
   }

@@ -33,11 +33,18 @@ namespace smv {
       return { .x = mPosX, .y = mPosY };
     }
 
-    virtual auto x() const -> int { return mPosX; }
-    virtual auto y() const -> int { return mPosY; }
-    virtual auto size() const -> Size { return { .w = mWidth, .h = mHeight }; }
-    virtual auto width() const -> uint32_t { return mWidth; }
-    virtual auto height() const -> uint32_t { return mHeight; }
+    virtual inline auto x() const -> int { return mPosX; }
+    virtual inline auto y() const -> int { return mPosY; }
+    virtual inline auto size() const -> Size
+    {
+      return { .w = mWidth, .h = mHeight };
+    }
+    virtual inline auto width() const -> uint32_t { return mWidth; }
+    virtual inline auto height() const -> uint32_t { return mHeight; }
+    virtual inline auto isValid() const -> bool
+    {
+      return width() > 0 && height() > 0;
+    }
 
     virtual ~Region() = default;
 

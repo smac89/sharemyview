@@ -30,7 +30,8 @@ namespace smv::details {
     explicit XRecord();
 
   public:
-    auto screenshot(decltype(ScreenshotConfig::area) area) -> ScreenshotSource;
+    auto screenshot(const decltype(ScreenshotConfig::area) &area)
+      -> ScreenshotSource;
 
     ~XRecord();
 

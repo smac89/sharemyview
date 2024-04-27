@@ -126,5 +126,20 @@
     "[lua]": {
         "editor.defaultFormatter": "yinfei.luahelper",
         "editor.formatOnSave": true
-    }
+    },
+    /* https://xmake.io/#/plugin/more_plugins?id=clangd */
+    "C_Cpp.codeAnalysis.runAutomatically": false,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.formatting": "disabled",
+    "C_Cpp.autoAddFileAssociations": false,
+    "C_Cpp.autocompleteAddParentheses": false,
+    "C_Cpp.autocomplete": "disabled",
+    "C_Cpp.errorSquiggles": "disabled",
+
+    "xmake.additionalConfigArguments": [
+    ],
+    "lldb.displayFormat": "auto",
+    "lldb.showDisassembly": "auto",
+    "lldb.dereferencePointers": true,
+    "lldb.consoleMode": "evaluate"
 }

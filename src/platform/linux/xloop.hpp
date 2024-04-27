@@ -2,6 +2,7 @@
 
 #include "smv/window.hpp"
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <variant>
@@ -29,6 +30,14 @@ namespace smv::details {
    * @brief broadcast events from the X server and send to the XEvents
    */
   void pollEvents();
+
+  /**
+   * @brief poll the mouse window
+   * @param window The window
+   * @return true if the mouse is in the window
+   */
+  auto pollMouseWindow(xcb_window_t root)
+    -> std::shared_ptr<xcb_query_pointer_reply_t>;
 
   /**
    * determines if the given window is a normal window

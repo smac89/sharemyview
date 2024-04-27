@@ -1,6 +1,7 @@
 #pragma once
 
 #include "smv/events.hpp"
+#include "smv/record.hpp"
 
 #include <string_view>
 #include <type_traits>
@@ -67,10 +68,10 @@ namespace fmt {
     : formatter<std::string>
   {
     template<typename FormatContext>
-    auto format(const smv::EventData &e, FormatContext &ctx) const
+    auto format(const smv::EventData &data, FormatContext &ctx) const
       -> decltype(ctx.out())
     {
-      return format_to(ctx.out(), "{}", e.format());
+      return format_to(ctx.out(), "{}", data.format());
     }
   };
 
@@ -78,10 +79,36 @@ namespace fmt {
   struct formatter<std::unordered_map<K, V>>: formatter<std::string>
   {
     template<typename FormatContext>
-    auto format(const std::unordered_map<K, V> &m, FormatContext &ctx) const
+    auto format(const std::unordered_map<K, V> &map, FormatContext &ctx) const
       -> decltype(ctx.out())
     {
-      return format_to(ctx.out(), "\n{{ {} }}", join(m.begin(), m.end(), ", "));
+      return format_to(
+        ctx.out(), "\n{{ {} }}", join(map.begin(), map.end(), ", "));
+    }
+  };
+
+  template<>
+  struct formatter<smv::ScreenshotFormat>: formatter<std::string_view>
+  {
+    template<typename FormatContext>
+    auto format(smv::ScreenshotFormat ssFmt, FormatContext &ctx) const
+    {
+      std::string_view name = "Unknown";
+      switch (ssFmt) {
+        case smv::ScreenshotFormat::JPG:
+          name = "Jpeg";
+          break;
+        case smv::ScreenshotFormat::PNG:
+          name = "Png";
+          break;
+        case smv::ScreenshotFormat::PPM:
+          name = "Ppm";
+          break;
+        case smv::ScreenshotFormat::QOI:
+          name = "Qoi";
+          break;
+      }
+      return formatter<std::string_view>::format(name, ctx);
     }
   };
 } // namespace fmt

@@ -18,6 +18,9 @@
 
 ### Qt
 - https://stackoverflow.com/a/52624533/2089675
+- https://github.com/Luxoft/qml-coreui
+- https://doc.qt.io/QMLLive/qmllive-installation.html
+- https://github.com/carlonluca/lqtutils
 
 ### Conventions
 - https://manual.gromacs.org/documentation/2019/dev-manual/naming.html

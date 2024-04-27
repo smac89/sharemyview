@@ -3,9 +3,11 @@ set_warnings("allextra")
 set_defaultmode("debug")
 set_config("cxx", "g++")
 set_config("qt_sdkver", "5")
+set_config("debugger", "lldb")
 set_config("linkjobs", math.max(os.cpuinfo("ncpu") // 2, 2))
 set_encodings("utf-8")
 set_policy("package.requires_lock", true)
+set_policy("build.warning", true)
 
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "$(projectdir)/.vscode"})
 add_repositories("myrepo pkgrepo")
@@ -14,8 +16,8 @@ add_requires("spdlog 1.13.x", {system = false})
 add_requires("libassert 1.2.2", { configs = { decompose = true} })
 
 if is_mode("debug") then
-    set_symbols("debug")
-    set_optimize("fast")
+    -- https://doc.qt.io/qt-5/qtquick-debugging.html#debugging-module-imports
+    -- set_runenv("QML_IMPORT_TRACE", "1")
 end
 
 target("capture")
@@ -32,7 +34,7 @@ target("capture")
     add_files("src/capture.qrc")
     add_includedirs("include", {public = true})
     -- add_cxflags("-fstack-protector-strong", "-mshstk", {tools = {"g++", "clang"}})
-    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=warn,smv::autocancel=off")
+    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=info,smv::autocancel=off")
     includes("src/platform")
     add_deps("winclient")
 

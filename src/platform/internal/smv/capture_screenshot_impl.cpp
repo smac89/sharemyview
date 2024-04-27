@@ -30,14 +30,14 @@ namespace smv::details {
       dest->captureBytes.insert(
         dest->captureBytes.begin(), iter.begin(), iter.end());
     };
-    if (stbi_write_png_to_func(
-          writeFunc,
-          &pngSource,
-          static_cast<int>(source.width()),
-          static_cast<int>(source.height()),
-          source.channels(),
-          source.captureBytes.data(),
-          static_cast<int>(source.width() * source.channels()))) {
+
+    if (stbi_write_png_to_func(writeFunc,
+                               &pngSource,
+                               static_cast<int>(source.width()),
+                               static_cast<int>(source.height()),
+                               source.channels(),
+                               source.captureBytes.data(),
+                               static_cast<int>(source.scanLine()))) {
       pngSource.format       = ScreenshotFormat::PNG;
       pngSource.w            = source.width();
       pngSource.h            = source.height();
@@ -50,6 +50,9 @@ namespace smv::details {
   auto ScreenshotSource::toJPG(const ScreenshotSource &source, int quality)
     -> std::optional<ScreenshotSource>
   {
+    // TODO: Create an anonymous class that wraps stb_image_write_jpg
+    // and return an instance of that, so that the conversion is lazy?
+
     ScreenshotSource jpgSource;
     auto             writeFunc = [](void *context, void *data, int size) {
       auto *dest = static_cast<ScreenshotSource *>(context);

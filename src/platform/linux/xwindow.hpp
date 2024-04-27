@@ -19,6 +19,10 @@ namespace smv::details {
     auto id() const -> uint32_t override { return mId; }
     auto name() const -> std::string override { return mName; }
     auto children() const -> std::vector<xcb_window_t> { return mChildren; }
+    auto isValid() const -> bool override
+    {
+      return Window::isValid() && id() != XCB_NONE;
+    }
 
   protected:
     void move(int32_t x, int32_t y)

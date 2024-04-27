@@ -1,5 +1,7 @@
 #include "app/smv_app.hpp"
+#include "app/smv_capture.hpp"
 #include "app/smv_image_provider.hpp"
+#include "qqml.h"
 #include "smv/winclient.hpp"
 
 #include <csignal>
@@ -16,7 +18,7 @@
 
 static void setupSignals();
 
-int main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
   spdlog::cfg::load_env_levels();
   setupSignals();
@@ -31,7 +33,11 @@ int main(int argc, char *argv[])
 
   QCoreApplication::setOrganizationName("Ubiquity");
   QCoreApplication::setApplicationName("Capture");
-  QGuiApplication       app(argc, argv);
+  QGuiApplication app(argc, argv);
+  qmlRegisterUncreatableType<CaptureModeClass>(
+    "smv.app.capture", 1, 0, "CaptureMode", "Not creatable as it is an enum");
+  qRegisterMetaType<CaptureMode>("CaptureMode");
+
   const QUrl            mainUrl("qrc:/qml/capture.qml");
   QQmlApplicationEngine engine;
 
@@ -45,7 +51,7 @@ int main(int argc, char *argv[])
     }
     if (root == nullptr) {
       spdlog::error("Failed to load qml");
-      // this does not quit the program entirely,
+      // this error does not quit the program entirely,
       // so we need an else
       QCoreApplication::exit(EXIT_FAILURE);
     } else {
@@ -58,10 +64,10 @@ int main(int argc, char *argv[])
   engine.addImageProvider("smv", new AppImageProvider);
   engine.rootContext()->setContextProperty("smvApp", &smvApp);
   engine.load(mainUrl);
-  return app.exec();
+  return QGuiApplication::exec();
 }
 
-void sigHandler(int)
+void sigHandler(int /*unused*/)
 {
   static std::once_flag flag;
   std::call_once(flag, &QCoreApplication::quit);

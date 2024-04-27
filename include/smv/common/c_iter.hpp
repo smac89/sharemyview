@@ -11,6 +11,11 @@ namespace {
     std::size_t mIndex;
 
     auto operator*() -> T & { return mRef[mIndex]; }
+    auto operator--() -> IteratorSentinel<T> &
+    {
+      --mIndex;
+      return *this;
+    }
     auto operator++() -> IteratorSentinel<T> &
     {
       ++mIndex;
@@ -26,7 +31,7 @@ namespace {
     using value_type        = T;
     using pointer           = T *const;
     using reference         = T &;
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
     using difference_type   = std::ptrdiff_t;
   };
 } // namespace
