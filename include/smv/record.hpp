@@ -27,7 +27,7 @@ namespace smv {
   using TCaptureCb = std::function<void(S &source)>;
   using CaptureCb  = TCaptureCb<CaptureSource>;
 
-  enum class ScreenshotFormat : uint8_t
+  enum class ScreenshotFormat
   {
     PPM = 0x1,
     PNG = 0x2,
@@ -35,26 +35,26 @@ namespace smv {
     QOI = 0x8,
   };
 
-  enum class AudioCaptureFormat : uint8_t
+  enum class AudioCaptureFormat
   {
     OPUS = 0x1,
     AAC  = 0x2,
     MP3  = 0x4,
   };
 
-  enum class AudioStreamFormat : uint8_t
+  enum class AudioStreamFormat
   {
     AAC = 0x1,
   };
 
-  enum class VideoCaptureFormat : uint8_t
+  enum class VideoCaptureFormat
   {
     MP4 = 0x1,
     AVI = 0x2,
     GIF = 0x4,
   };
 
-  enum class VideoStreamFormat : uint8_t
+  enum class VideoStreamFormat
   {
     H264 = 0x1,
     H265 = 0x2,

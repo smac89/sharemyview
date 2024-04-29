@@ -1,6 +1,7 @@
 #include "app/smv_app.hpp"
 #include "app/smv_capture.hpp"
 #include "app/smv_image_provider.hpp"
+#include "qcoreapplication.h"
 #include "qqml.h"
 #include "smv/winclient.hpp"
 
@@ -32,11 +33,16 @@ auto main(int argc, char *argv[]) -> int
   });
 
   QCoreApplication::setOrganizationName("Ubiquity");
-  QCoreApplication::setApplicationName("Capture");
+  QCoreApplication::setApplicationName("ShareMyView");
   QGuiApplication app(argc, argv);
   qmlRegisterUncreatableType<CaptureModeClass>(
     "smv.app.capture", 1, 0, "CaptureMode", "Not creatable as it is an enum");
-  qRegisterMetaType<CaptureMode>("CaptureMode");
+  qmlRegisterUncreatableType<ScreenshotFormatClass>(
+    "smv.app.capture",
+    1,
+    0,
+    "ScreenshotFormat",
+    "Not creatable as it is an enum");
 
   const QUrl            mainUrl("qrc:/qml/capture.qml");
   QQmlApplicationEngine engine;

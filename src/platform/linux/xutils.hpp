@@ -21,10 +21,9 @@ namespace smv::utils {
 
   struct xscreen
   {
-    xcb_visual_class_t     visual_class;
-    std::array<uint8_t, 3> rgb_mask;
-    xcb_image_order_t      order;
-    uint8_t                root_depth;
-    xcb_window_t           root;
+    xcb_visualid_t               visual;
+    decltype(xcb_depth_t::depth) root_depth;
+    xcb_image_order_t            order;
+    xcb_window_t                 root;
   };
 } // namespace smv::utils

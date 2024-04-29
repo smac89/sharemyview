@@ -1,7 +1,8 @@
 #pragma once
 #include "mainwindow_geom_proxy.hpp"
+#include "qvariant.h"
 #include "smv/events.hpp"
-#include "smv_capture.hpp"
+#include "smv_utils.hpp"
 
 #include <QObject>
 #include <QPropertyAnimation>
@@ -42,6 +43,8 @@ signals:
   void targetWindowResized(const QSize &);
   void targetWindowChanged(const QSize &, const QPoint &);
   void mediaCaptureStarted(CaptureMode);
+  void mediaCaptureSuccess(CaptureMode, const QVariant &);
+  void mediaCaptureFailed(CaptureMode, const QString &);
   void mediaCaptureStopped(CaptureMode);
 
 public slots:
@@ -49,7 +52,7 @@ public slots:
   void updateRecordRegion(const QPoint &);
   void updateRecordRegion(const QSize &);
   void updateRecordRegion(const QSize &, const QPoint &);
-  void takeScreenshot(const QRect &rect);
+  void takeScreenshot(const QRect &rect, ScreenshotFormat);
   // void qquickWindowReady(QQuickWindow *window);
 
 private slots:

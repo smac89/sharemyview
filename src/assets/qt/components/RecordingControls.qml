@@ -15,15 +15,8 @@ Item {
     property int maxWidth: 640
     property int mode: CaptureMode.Screenshot
 
-    signal audioSourceChanged(int sourceId) // microphone or audiostream
-    signal videoSourceChanged(int sourceId) // camera, or monitor
-    signal videoEnabled(bool enabled)
-    signal audioEnabled(bool enabled)
-    signal takeScreenshot()
-    signal recordStarted(bool region, bool audio, bool isStream)
-    signal recordPaused()
-    signal recordStoped()
-    signal recordSourceChange(bool region, bool audio, bool microphone)
+    signal takeScreenshot
+    signal recordRegion(bool streaming)
 
     SystemPalette {
         id: palette
@@ -51,12 +44,10 @@ Item {
             }
 
             Connections {
+                target: screenshotLoader.item
                 function onTakeScreenshot() {
                     Qt.callLater(takeScreenshot);
-                    console.log("Take screenshot");
                 }
-
-                target: screenshotLoader.item
             }
 
             Loader {
@@ -76,9 +67,7 @@ Item {
                     console.log("Stream loaded");
                 }
             }
-
         }
-
     }
 
     Component {
@@ -91,7 +80,7 @@ Item {
             property int hoverWidth: 44
             property int hoverHeight: 44
 
-            signal takeScreenshot()
+            signal takeScreenshot
 
             containmentMask: button
             implicitWidth: hovered ? hoverWidth : 38
@@ -116,9 +105,7 @@ Item {
                         ColorAnimation {
                             duration: 150
                         }
-
                     }
-
                 }
 
                 background: Rectangle {
@@ -131,11 +118,8 @@ Item {
                         ColorAnimation {
                             duration: 100
                         }
-
                     }
-
                 }
-
             }
 
             DropShadow {
@@ -156,43 +140,33 @@ Item {
                 onClicked: Qt.callLater(takeScreenshot)
             }
 
-            component AnimateSize: NumberAnimation {
-                easing.type: Easing.InOutQuad
-                duration: 150
-            }
-
             Behavior on implicitWidth {
 
-                animation: AnimateSize {
-                }
-
+                animation: AnimateSize {}
             }
 
             Behavior on implicitHeight {
 
-                animation: AnimateSize {
-                }
-
+                animation: AnimateSize {}
             }
-
         }
+    }
 
+    component AnimateSize: NumberAnimation {
+        easing.type: Easing.InOutQuad
+        duration: 150
     }
 
     Component {
         id: streamControls
 
-        Item {
-        }
-
+        Item {}
     }
 
     Component {
         id: recordControls
 
-        Item {
-        }
-
+        Item {}
     }
 
     component ActionButton: Item {
@@ -200,7 +174,7 @@ Item {
         required property string inactiveIcon
         property bool active: true
 
-        signal clicked()
+        signal clicked
 
         containmentMask: button
         Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
@@ -232,7 +206,6 @@ Item {
                 border.width: 1.5
                 border.color: Qt.darker(palette.button, 1.5)
             }
-
         }
 
         DropShadow {
@@ -246,14 +219,11 @@ Item {
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: (mouse) => {
+                onClicked: mouse => {
                     active = !active;
                     parent.parent.clicked();
                 }
             }
-
         }
-
     }
-
 }

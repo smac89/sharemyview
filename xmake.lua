@@ -34,7 +34,7 @@ target("capture")
     add_files("src/capture.qrc")
     add_includedirs("include", {public = true})
     -- add_cxflags("-fstack-protector-strong", "-mshstk", {tools = {"g++", "clang"}})
-    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=info,smv::autocancel=off")
+    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=off,smv::autocancel=off")
     includes("src/platform")
     add_deps("winclient")
 

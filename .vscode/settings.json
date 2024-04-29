@@ -127,6 +127,9 @@
         "editor.defaultFormatter": "yinfei.luahelper",
         "editor.formatOnSave": true
     },
+    "[qml]": {
+        "editor.formatOnSave": true
+    },
     /* https://xmake.io/#/plugin/more_plugins?id=clangd */
     "C_Cpp.codeAnalysis.runAutomatically": false,
     "C_Cpp.intelliSenseEngine": "disabled",
@@ -141,5 +144,6 @@
     "lldb.displayFormat": "auto",
     "lldb.showDisassembly": "auto",
     "lldb.dereferencePointers": true,
-    "lldb.consoleMode": "evaluate"
+    "lldb.consoleMode": "evaluate",
+    "qmlFormat.command": "/usr/lib/qt6/bin/qmlformat"
 }

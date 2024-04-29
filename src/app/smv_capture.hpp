@@ -1,21 +1,59 @@
 #pragma once
 
-#include <QObject>
+#include "smv/record.hpp"
 
-// https://qml.guide/enums-in-qt-qml/
-class CaptureModeClass: public QObject
+#include <cstdint>
+#include <cstring>
+#include <string_view>
+
+#include <QDataStream>
+#include <QIODevice>
+#include <QRect>
+#include <spdlog/spdlog.h>
+
+/**
+ * @brief wraps a smv::CaptureSource into a QIODevice
+ */
+class CaptureSourceIO: public QIODevice
 {
-  Q_GADGET
 public:
-  enum class Value
+  explicit CaptureSourceIO(smv::CaptureSource *source)
+    : mCaptureSource(source)
   {
-    Screenshot = 0x1,
-    Record     = 0x2,
-    Stream     = 0x4
-  };
-  Q_ENUM(Value)
+    if (auto image = mCaptureSource->next()) {
+      current = *image;
+      open(QIODevice::ReadOnly);
+    }
+  }
+
+  auto isSequential() const -> bool override { return true; }
+
+protected:
+  auto readData(char *data, qint64 maxSize) -> qint64 override
+  {
+    if (current.empty() || maxSize <= 0) {
+      return 0;
+    }
+    auto size = qMin(maxSize, static_cast<qint64>(current.size()));
+    std::memcpy(data, current.data(), size);
+    current.remove_prefix(size);
+    if (current.empty()) {
+      if (auto image = mCaptureSource->next()) {
+        current = *image;
+        if (size < maxSize) {
+          return size + readData(&data[size], maxSize - size);
+        }
+      }
+    }
+    return size;
+  }
+
+  auto writeData(const char * /*data*/, qint64 /*maxSize*/) -> qint64 override
+  {
+    return -1;
+  }
 
 private:
-  explicit CaptureModeClass() = default;
+  std::basic_string_view<uint8_t> current;
+  smv::CaptureSource *const       mCaptureSource;
 };
-using CaptureMode = CaptureModeClass::Value;

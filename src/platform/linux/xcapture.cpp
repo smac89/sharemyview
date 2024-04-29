@@ -35,14 +35,14 @@ namespace smv::details {
   using smv::utils::res, smv::log::logger;
   namespace {
     std::atomic_bool  captureReady = false;
-    xcb_image_order_t imageOrder   = XCB_IMAGE_ORDER_MSB_FIRST;
+    xcb_image_order_t imageOrder   = XCB_IMAGE_ORDER_LSB_FIRST;
 
     auto pixelsToVector(const uint8_t *bytes, size_t size)
       -> std::vector<uint8_t>
     {
       ASSERT(
         size % MAX_BYTES_PER_PIXEL == 0, "size must be a multiple of 4", size);
-      std::vector<uint8_t> captureBytes;
+      std::vector<uint8_t> captureBytes {};
       captureBytes.reserve(size);
 
       for (size_t i = 0; i + MAX_BYTES_PER_PIXEL < size;
@@ -122,6 +122,8 @@ namespace smv::details {
     auto        roots = xcb_setup_roots_iterator(setup);
 
     xcb_shm_seg_t shmseg = xcb_generate_id(res::connection.get());
+    // TODO: Initialize for multiple screens or use a value big enough for all
+    // screens
     auto shmSize = roots.data->width_in_pixels * roots.data->height_in_pixels *
                    MAX_BYTES_PER_PIXEL;
 
@@ -204,10 +206,12 @@ namespace smv::details {
 
   auto initCapture() -> bool
   {
+    // TODO: when capturing a region which may be in a different screen
+    // we need to use the correct root window
+    // @see xscreen from xutils.hpp
     const auto *setup = xcb_get_setup(res::connection.get());
     imageOrder        = static_cast<xcb_image_order_t>(setup->image_byte_order);
 
-    // TODO: something more sophisticated...maybe?
     captureReady = true;
     return true;
   }

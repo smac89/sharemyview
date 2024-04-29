@@ -6,17 +6,24 @@ Item {
     width: 20
     height: 20
     anchors.margins: 5
+
     // TODO: This might need to be removed to detect mouse enter
     // containmentMask: gripShape
 
-    SystemPalette { id: palette; colorGroup: SystemPalette.Active }
+    SystemPalette {
+        id: palette
+        colorGroup: SystemPalette.Active
+    }
 
     enum Pos {
-        TL, TR, BL, BR
+        TL,
+        TR,
+        BL,
+        BR
     }
 
     // https://doc.qt.io/qt-5/qtqml-syntax-signals.html#adding-signals-to-custom-qml-types
-    signal dragStarted(edges: int)
+    signal dragStarted(int edges)
     signal dragEnded
 
     required property int position
@@ -29,25 +36,25 @@ Item {
 
     Component.onCompleted: {
         switch (position) {
-            case ResizeGrip.Pos.TL:
-                _cursorType = Qt.SizeFDiagCursor
-                _edges = Qt.TopEdge | Qt.LeftEdge
-                break
-            case ResizeGrip.Pos.TR:
-                _cursorType = Qt.SizeBDiagCursor
-                _edges = Qt.TopEdge | Qt.RightEdge
-                rotation = 90
-                break
-            case ResizeGrip.Pos.BL:
-                _cursorType = Qt.SizeBDiagCursor
-                _edges = Qt.BottomEdge | Qt.LeftEdge
-                rotation = -90
-                break
-            case ResizeGrip.Pos.BR:
-                _cursorType = Qt.SizeFDiagCursor
-                _edges = Qt.BottomEdge | Qt.RightEdge
-                rotation = 180
-                break
+        case ResizeGrip.Pos.TL:
+            _cursorType = Qt.SizeFDiagCursor;
+            _edges = Qt.TopEdge | Qt.LeftEdge;
+            break;
+        case ResizeGrip.Pos.TR:
+            _cursorType = Qt.SizeBDiagCursor;
+            _edges = Qt.TopEdge | Qt.RightEdge;
+            rotation = 90;
+            break;
+        case ResizeGrip.Pos.BL:
+            _cursorType = Qt.SizeBDiagCursor;
+            _edges = Qt.BottomEdge | Qt.LeftEdge;
+            rotation = -90;
+            break;
+        case ResizeGrip.Pos.BR:
+            _cursorType = Qt.SizeFDiagCursor;
+            _edges = Qt.BottomEdge | Qt.RightEdge;
+            rotation = 180;
+            break;
         }
     }
 
@@ -64,10 +71,20 @@ Item {
                 strokeColor: palette.window
                 fillColor: gripColor
                 fillRule: ShapePath.WindingFill
-                startX: 0; startY: 0
-                PathLine { x: root.width; y: 0 }
-                PathLine { x: 0; y: root.height }
-                PathLine { x: 0; y: 0 }
+                startX: 0
+                startY: 0
+                PathLine {
+                    x: root.width
+                    y: 0
+                }
+                PathLine {
+                    x: 0
+                    y: root.height
+                }
+                PathLine {
+                    x: 0
+                    y: 0
+                }
             }
         }
     }
@@ -79,13 +96,13 @@ Item {
         hoverEnabled: true
         propagateComposedEvents: false
         cursorShape: _cursorType
-        onPressed: (mouse) => {
-            root.dragStarted(_edges)
-            mouse.accepted = true
+        onPressed: mouse => {
+            root.dragStarted(_edges);
+            mouse.accepted = true;
         }
-        onReleased: (mouse) => {
-            root.dragEnded()
-            mouse.accepted = false
+        onReleased: mouse => {
+            root.dragEnded();
+            mouse.accepted = false;
         }
     }
 }

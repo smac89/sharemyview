@@ -9,7 +9,6 @@ ComboBox {
     property int mode
 
     Component.onCompleted: {
-        // set default mode
         mode = CaptureMode.Screenshot;
     }
     anchors.fill: parent
@@ -17,19 +16,23 @@ ComboBox {
     anchors.rightMargin: 1
     valueRole: "mode"
     textRole: "text"
-    model: [{
-        "icon": "image://smv/icons/mode_screenshot.svg",
-        "text": "Screenshot",
-        "mode": CaptureMode.Screenshot
-    }, {
-        "icon": "image://smv/icons/mode_record.svg",
-        "text": "Record",
-        "mode": CaptureMode.Record
-    }, {
-        "icon": "image://smv/icons/mode_stream.svg",
-        "text": "Stream",
-        "mode": CaptureMode.Stream
-    }]
+    model: [
+        {
+            "icon": "image://smv/icons/mode_screenshot.svg",
+            "text": "Screenshot",
+            "mode": CaptureMode.Screenshot
+        },
+        {
+            "icon": "image://smv/icons/mode_record.svg",
+            "text": "Record",
+            "mode": CaptureMode.Record
+        },
+        {
+            "icon": "image://smv/icons/mode_stream.svg",
+            "text": "Stream",
+            "mode": CaptureMode.Stream
+        }
+    ]
     onActivated: {
         mode = root.currentValue;
         var text = "mode changed: %1";
@@ -63,13 +66,9 @@ ComboBox {
         height: 20
         x: root.width - width - root.rightPadding
         y: root.topPadding + (root.availableHeight - height) / 2
-        Component.onCompleted: {
-            console.log("chevron:", width, height);
-        }
 
         Image {
             id: chevron
-
             source: "image://smv/icons/chevron.svg"
             smooth: true
             sourceSize: Qt.size(parent.width, parent.height)
@@ -81,7 +80,6 @@ ComboBox {
             source: chevron
             color: palette.buttonText
         }
-
     }
 
     delegate: ItemDelegate {
@@ -95,7 +93,5 @@ ComboBox {
             height: parent.height
             color: root.currentIndex === index ? Qt.lighter(palette.button) : palette.window
         }
-
     }
-
 }

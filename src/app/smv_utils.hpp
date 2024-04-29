@@ -1,16 +1,10 @@
 #pragma once
 
 #include "smv/record.hpp"
-#include "smv/window.hpp"
 
-#include <cstdint>
-#include <cstring>
-#include <string_view>
+#include <type_traits>
 
-#include <QDataStream>
-#include <QIODevice>
-#include <QRect>
-#include <spdlog/spdlog.h>
+#include <QObject>
 
 /**
  * @brief Converts a QRect to a smv::Region
@@ -20,52 +14,48 @@
  */
 auto rectToRegion(const QRect &rect) -> smv::Region;
 
-/**
- * @brief wraps a smv::CaptureSource into a QIODevice
- */
-class CaptureSourceIO: public QIODevice
+// https://qml.guide/enums-in-qt-qml/
+class CaptureModeClass
 {
+  Q_GADGET
 public:
-  explicit CaptureSourceIO(smv::CaptureSource *source)
-    : mCaptureSource(source)
+  enum class Value
   {
-    if (auto image = mCaptureSource->next()) {
-      current = *image;
-      open(QIODevice::ReadOnly);
-    }
-  }
-
-  auto isSequential() const -> bool override { return true; }
-
-protected:
-  auto readData(char *data, qint64 maxSize) -> qint64 override
-  {
-    if (current.empty()) {
-      return 0;
-    }
-    if (maxSize <= 0) {
-      return 0;
-    }
-    auto size = qMin(maxSize, static_cast<qint64>(current.size()));
-    std::memcpy(data, current.data(), size);
-    current.remove_prefix(size);
-    if (current.empty()) {
-      if (auto image = mCaptureSource->next()) {
-        current = *image;
-        if (size < maxSize) {
-          return size + readData(&data[size], maxSize - size);
-        }
-      }
-    }
-    return size;
-  }
-
-  auto writeData(const char * /*data*/, qint64 /*maxSize*/) -> qint64 override
-  {
-    return -1;
-  }
+    Screenshot = 0x1,
+    Record     = 0x2,
+    Stream     = 0x4
+  };
+  Q_ENUM(Value)
 
 private:
-  std::basic_string_view<uint8_t> current;
-  smv::CaptureSource *const       mCaptureSource;
+  explicit CaptureModeClass() = default;
 };
+using CaptureMode = CaptureModeClass::Value;
+Q_DECLARE_METATYPE(CaptureMode);
+// qRegisterMetaType<CaptureMode>("CaptureMode");
+
+class ScreenshotFormatClass
+{
+  Q_GADGET
+  using FormatType = std::underlying_type_t<smv::ScreenshotFormat>;
+
+public:
+  enum class Value
+  {
+    PPM = static_cast<FormatType>(smv::ScreenshotFormat::PPM),
+    PNG = static_cast<FormatType>(smv::ScreenshotFormat::PNG),
+    JPG = static_cast<FormatType>(smv::ScreenshotFormat::JPG),
+  };
+  Q_ENUM(Value);
+
+private:
+  explicit ScreenshotFormatClass() = default;
+
+public:
+  static auto toString(Value value) -> QString;
+};
+using ScreenshotFormat = ScreenshotFormatClass::Value;
+Q_DECLARE_METATYPE(ScreenshotFormat);
+// qRegisterMetaType<ScreenshotFormat>("ScreenshotFormat");
+
+auto saveScreenshot(const QImage &image, const QString &name) -> QString;

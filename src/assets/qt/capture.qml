@@ -10,20 +10,18 @@ import "qrc:/components"
 import smv.app.capture 1.0
 
 ApplicationWindow {
+    // smvApp.qquickWindowReady(rootWindow);
+
     id: rootWindow
 
-    readonly property int initialWidth: 640
-    readonly property int initialHeight: 480
+    readonly property int initialWidth: 1024
+    readonly property int initialHeight: 768
     readonly property int initialX: rootWindow.x
     readonly property int initialY: rootWindow.y
     property int targetWidth: initialWidth
     property int targetHeight: initialHeight
     property int targetPosX: initialX
     property int targetPosY: initialY
-
-    signal mediaCaptureRequested(int mode)
-    signal mediaCaptureStarted()
-    signal mediaCaptureStopped()
 
     width: initialWidth
     height: initialHeight
@@ -34,38 +32,20 @@ ApplicationWindow {
     color: "transparent"
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowSystemMenuHint
     background: windowFrame
-    Component.onCompleted: {
-        // smvApp.qquickWindowReady(rootWindow);
-    }
 
-    Connections {
-        function onMediaCaptureRequested(mode) {
-            switch (mode) {
-            case CaptureMode.Screenshot:
-                {
-                    Qt.callLater(smvApp.takeScreenshot, Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height));
-                    console.log("Media capture requested: Screenshot");
-                    break;
-                };
-            case CaptureMode.Record:
-                {
-                    console.log("Media capture requested: Record");
-                    break;
-                };
-            case CaptureMode.Stream:
-                {
-                    console.log("Media capture requested: Stream");
-                    break;
-                };
-            default:
-                {
-                    console.log("Media capture requested: Unknown mode");
-                    break;
-                };
-            }
+    MediaCaptureHandler {
+        id: mediaCapture
+        target: rootWindow
+        screenshotCallback: () => {
+            smvApp.takeScreenshot(Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height), ScreenshotFormat.PNG);
+        }
+        recordingCallback: () => {
+            console.log("Recording not implemented");
         }
 
-        target: rootWindow
+        streamCallback: () => {
+            console.log("Stream not implemented");
+        }
     }
 
     SequentialAnimation {
@@ -94,7 +74,6 @@ ApplicationWindow {
                 property: "y"
                 value: targetPosY
             }
-
         }
 
         SmoothedAnimation {
@@ -103,7 +82,6 @@ ApplicationWindow {
             duration: 500
             to: 1
         }
-
     }
 
     Connections {
@@ -137,33 +115,7 @@ ApplicationWindow {
             targetPosX = pos.x;
             targetPosY = pos.y;
         }
-
-        function onMediaCaptureStarted(mode: int) {
-            console.log("Media capture started:", mode);
-        }
-
-        function onMediaCaptureStopped(mode: int) {
-            console.log("Media capture stopped:", mode);
-        }
-
         target: smvApp
-    }
-
-    // SCREEN LOCK BUTTON
-    LockTargetButton {
-        iconWidth: 38
-        iconHeight: 38
-        onClicked: {
-            console.log("Lock target clicked");
-        }
-
-        anchors {
-            right: parent.right
-            top: parent.top
-            rightMargin: 10
-            topMargin: 10
-        }
-
     }
 
     Rectangle {
@@ -185,52 +137,12 @@ ApplicationWindow {
             width: 5
         }
 
-        ParallelAnimation {
-            id: animateSizePos
-
-            alwaysRunToEnd: false
-            onFinished: {
-                console.log("Animation finished");
-            }
-
-            SmoothedAnimation {
-                target: rootWindow
-                property: "width"
-                to: targetWidth
-                duration: 250
-            }
-
-            SmoothedAnimation {
-                target: rootWindow
-                property: "height"
-                to: targetHeight
-                duration: 250
-            }
-
-            SmoothedAnimation {
-                target: rootWindow
-                property: "x"
-                to: targetPosX
-                duration: 250
-            }
-
-            SmoothedAnimation {
-                target: rootWindow
-                property: "y"
-                to: targetPosY
-                duration: 250
-            }
-
-        }
-
         MouseArea {
             // parent.grabToImage((result) => {
             //     result.saveToFile("/tmp/image.png")
             // })
-
             anchors.fill: parent
-            onClicked: {
-            }
+            onClicked: {}
         }
 
         RecordingControls {
@@ -240,7 +152,9 @@ ApplicationWindow {
             anchors.bottom: parent.bottom
             anchors.margins: 10
             mode: parent.mode
-            onTakeScreenshot: mediaCaptureRequested(CaptureMode.Screenshot)
+            onTakeScreenshot: {
+                mediaCapture.mediaCaptureRequested(CaptureMode.Screenshot);
+            }
         }
 
         Rectangle {
@@ -257,7 +171,6 @@ ApplicationWindow {
                     windowFrame.mode = mode;
                 }
             }
-
         }
 
         DragHandler {
@@ -303,7 +216,5 @@ ApplicationWindow {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
         }
-
     }
-
 }

@@ -16,7 +16,17 @@ namespace smv::details {
     , private Size
   {
   public:
-    ScreenshotSource() = default;
+    ScreenshotSource()
+      : ScreenshotSource({}, { 0, 0 })
+    {
+    }
+
+    ScreenshotSource(std::variant<std::vector<uint8_t>, std::string> &&data,
+                     Size dimension)
+      : ScreenshotSource(std::move(data), dimension, 3, 1, 0)
+    {
+    }
+
     /**
      * @brief Construct a new Screenshot Source object
      *
@@ -38,9 +48,9 @@ namespace smv::details {
      */
     ScreenshotSource(std::variant<std::vector<uint8_t>, std::string> &&data,
                      Size    dimension,
-                     uint8_t channelCount    = 3,
-                     uint8_t bytesPerPixel   = 1,
-                     uint8_t scanlinePadding = 0)
+                     uint8_t channelCount,
+                     uint8_t bytesPerPixel,
+                     uint8_t scanlinePadding)
       : Size(dimension)
       , channelCount(channelCount)
       , bytesPerPixel(bytesPerPixel)
@@ -53,6 +63,7 @@ namespace smv::details {
         logger->debug("Failed to capture screenshot: {}", errMsg.value());
       }
     }
+
     auto next() noexcept
       -> std::optional<std::basic_string_view<uint8_t>> override
     {
@@ -101,7 +112,7 @@ namespace smv::details {
     std::optional<std::string>      errMsg;
     std::optional<ScreenshotFormat> format  = std::nullopt;
     uint64_t                        readPos = 0;
-    std::vector<uint8_t>            captureBytes {};
+    std::vector<uint8_t>            captureBytes;
   };
 
   struct AudioCaptureSource: CaptureSource

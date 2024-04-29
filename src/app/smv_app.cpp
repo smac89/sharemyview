@@ -1,6 +1,4 @@
 #include "smv_app.hpp"
-#include "qimage.h"
-#include "qstringview.h"
 #include "smv/common/autocancel.hpp"
 #include "smv/events.hpp"
 #include "smv/record.hpp"
@@ -10,7 +8,12 @@
 #include "smv_utils.hpp"
 
 #include <QBuffer>
+#include <QDateTime>
+#include <QMetaEnum>
 #include <QPropertyAnimation>
+#include <QStandardPaths>
+#include <QThread>
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 // QT Globals: https://doc.qt.io/qt-5/qtglobal.html
@@ -35,6 +38,15 @@ App::App(QObject *parent)
     &App::targetWindowChanged,
     this,
     qOverload<const QSize &, const QPoint &>(&App::updateRecordRegion));
+  // connect all media capture events
+  QObject::connect(
+    this, &App::mediaCaptureSuccess, this, [this](CaptureMode mode) {
+    emit mediaCaptureStopped(mode);
+  });
+  QObject::connect(
+    this, &App::mediaCaptureFailed, this, [this](CaptureMode mode) {
+    emit mediaCaptureStopped(mode);
+  });
 }
 
 void App::operator()(const smv::EventDataMouseEnter &data)
@@ -56,8 +68,9 @@ void App::operator()(const smv::EventDataMouseEnter &data)
   }
 }
 
-void App::takeScreenshot(const QRect &rect)
+void App::takeScreenshot(const QRect &rect, ScreenshotFormat format)
 {
+  emit mediaCaptureStarted(CaptureMode::Screenshot);
   spdlog::info("Taking screenshot: x: {}, y: {}, w: {}, h: {}",
                rect.x(),
                rect.y(),
@@ -65,25 +78,45 @@ void App::takeScreenshot(const QRect &rect)
                rect.height());
   auto config = smv::ScreenshotConfig { rectToRegion(rect) };
   if (!config.isValid()) {
-    spdlog::error("Invalid screenshot config");
+    auto msg =
+      fmt::format("Invalid screenshot config: x: {}, y: {}, w: {}, h: {}",
+                  rect.x(),
+                  rect.y(),
+                  rect.width(),
+                  rect.height());
+    emit mediaCaptureFailed(CaptureMode::Screenshot,
+                            QString::fromStdString(msg));
+    spdlog::error(msg);
     return;
   }
-  auto format = smv::ScreenshotFormat::PNG;
-  emit mediaCaptureStarted(CaptureMode::Screenshot);
-  smv::capture(config, format, [this](smv::CaptureSource &source) {
+  smv::capture(config,
+               static_cast<smv::ScreenshotFormat>(format),
+               [this, format](smv::CaptureSource &source) {
     if (auto err = source.error()) {
-      spdlog::error("Failed to capture screenshot: {}", err.value());
+      auto msg = fmt::format("Failed to capture screenshot: {}", err.value());
+      emit mediaCaptureFailed(CaptureMode::Screenshot,
+                              QString::fromStdString(msg));
+      spdlog::error(msg);
       return;
     }
-    spdlog::info("Screenshot captured");
-    auto   imageIO = CaptureSourceIO(&source);
+    auto   extension = ScreenshotFormatClass::toString(format);
+    auto   imageIO   = CaptureSourceIO(&source);
     QImage image;
-    if (!image.load(&imageIO, "png")) {
-      spdlog::error("Failed to parse image as PNG");
+    if (!image.load(&imageIO, extension.toLocal8Bit())) {
+      const auto msg =
+        fmt::format("Failed to load '{}' image", extension.toStdString());
+      emit mediaCaptureFailed(CaptureMode::Screenshot,
+                              QString::fromStdString(msg));
+      spdlog::error(msg);
       return;
     }
-    image.save("/tmp/screenshot.png");
-    emit mediaCaptureStopped(CaptureMode::Screenshot);
+    auto fileName =
+      QString("%1.%2")
+        .arg(QDateTime::currentDateTime().toString("yyyy-MMM-dd_hh-mm-ss-zzz"))
+        .arg(extension.toLower());
+
+    emit mediaCaptureSuccess(CaptureMode::Screenshot,
+                             saveScreenshot(image, fileName));
   });
 }
 
