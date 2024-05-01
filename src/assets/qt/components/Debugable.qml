@@ -1,29 +1,89 @@
 import QtQuick 2.15
-import QtQuick.Layouts 1.15
+import QtQuick.Controls 2.15
+import QtQuick.Shapes 1.15
+import easy.colors 1.0
 
-Item {
-    id: debug
+StackView {
+    id: root
+    initialItem: child
+    implicitWidth: child.width
+    implicitHeight: child.height
 
-    StackLayout {
-        id: container
+    property string borderColor: q(cc`random`)
+    property bool isDebug: false
+    property int borderWidth: 4
+    property int borderRadius: 3
 
-        anchors.fill: parent
+    default required property Item child
 
-        Rectangle {
-            anchors.fill: parent
-            border.color: Qt.rgba(Math.random(), Math.random(), Math.random(), 1)
-            border.width: 2
+    DebugRect {
+        id: debugParent
+        visible: root.isDebug
+    }
+
+    states: [
+        State {
+            when: root.isDebug
+            ParentChange {
+                target: child
+                parent: debugParent
+            }
+        },
+        State {
+            when: !root.isDebug
+            ParentChange {
+                target: child
+                parent: root
+            }
         }
+    ]
 
-        Rectangle {
-            width: parent.width - 2
-            height: parent.height - 2
-            children: Array(debug.children).filter((c) => {
-                return c != container;
-            })
-            Component.onCompleted: {
-                for (var i = 0; i < debug.children.length; i++) {
-                    console.log(debug.children[i]);
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        acceptedModifiers: Qt.ShiftModifier | Qt.ControlModifier
+        enabled: root.isDebug
+        onTapped: root.borderColor = q(cc`random`)
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        acceptedModifiers: Qt.ControlModifier
+        onTapped: root.isDebug = !root.isDebug
+    }
+
+    component DebugRect: Rectangle {
+        width: parent.width
+        height: parent.height
+        color: "transparent"
+        radius: root.borderRadius
+        containmentMask: border
+
+        Shape {
+            id: border
+            containsMode: Shape.BoundingRectContains
+            ShapePath {
+                strokeColor: root.borderColor
+                strokeWidth: root.borderWidth
+                fillColor: "transparent"
+                fillRule: ShapePath.WindingFill
+                strokeStyle: ShapePath.DashLine
+                startX: 0
+                startY: 0
+                PathLine {
+                    x: border.parent.width
+                    y: 0
+                }
+                PathLine {
+                    x: border.parent.width
+                    y: border.parent.height
+                }
+                PathLine {
+                    x: 0
+                    y: border.parent.height
+                }
+                PathLine {
+                    x: 0
+                    y: 0
                 }
             }
         }
