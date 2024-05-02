@@ -5,15 +5,16 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Shapes 1.15
-import QtQuick.Window 2.15
+import smv.app.CaptureMode 1.0
+import smv.app.ScreenshotFormat 1.0
+import smv.app.AppCore 1.0
+import easy.colors 1.0
 import "qrc:/components"
-import smv.app.capture 1.0
+import "qrc:/settings"
 
 ApplicationWindow {
     // smvApp.qquickWindowReady(rootWindow);
-
     id: rootWindow
-
     readonly property int initialWidth: 1024
     readonly property int initialHeight: 768
     readonly property int initialX: rootWindow.x
@@ -37,7 +38,7 @@ ApplicationWindow {
         id: mediaCapture
         target: rootWindow
         screenshotCallback: () => {
-            smvApp.takeScreenshot(Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height), ScreenshotFormat.PNG);
+            AppCore.takeScreenshot(Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height), ScreenshotFormat.PNG);
         }
         recordingCallback: () => {
             console.log("Recording not implemented");
@@ -115,45 +116,56 @@ ApplicationWindow {
             targetPosX = pos.x;
             targetPosY = pos.y;
         }
-        target: smvApp
+        target: AppCore
     }
 
     Rectangle {
         id: windowFrame
 
         property int mode
+        property bool drawerOpen: false
+        property bool resizing: false
 
-        width: initialWidth
-        height: initialHeight
+        // width: initialWidth
+        // height: initialHeight
         radius: 5
-        color: "transparent"
+        border.color: Qt.lighter(rootWindow.palette.window)
+        border.width: 5
+        color: parent.color
 
-        anchors {
-            fill: parent
-        }
-
-        border {
-            color: Qt.lighter(rootWindow.palette.window)
-            width: 5
-        }
-
-        MouseArea {
-            // parent.grabToImage((result) => {
-            //     result.saveToFile("/tmp/image.png")
-            // })
-            anchors.fill: parent
-            onClicked: {}
+        ControlSettings {
+            parent: windowFrame
+            width: recordingControls.controlsWidth + background.anchors.rightMargin - 50
+            height: parent.height - recordingControls.height * 4
+            visible: windowFrame.drawerOpen
+            mode: parent.mode
+            background: Rectangle {
+                color: palette.base
+                radius: 10
+                border.width: 2
+                border.color: palette.text
+                anchors.fill: parent
+                anchors.rightMargin: (windowFrame.width - recordingControls.controlsWidth) / 2 + 25
+            }
+            onClosed: {
+                parent.drawerOpen = false;
+            }
         }
 
         RecordingControls {
+            id: recordingControls
             width: parent.width - 20
             height: 50
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.margins: 10
             mode: parent.mode
+            drawerOpen: parent.drawerOpen
             onTakeScreenshot: {
                 mediaCapture.mediaCaptureRequested(CaptureMode.Screenshot);
+            }
+            onOpenRecordingSettings: open => {
+                parent.drawerOpen = open;
             }
         }
 
@@ -161,9 +173,10 @@ ApplicationWindow {
             width: 150
             height: 50
             anchors.centerIn: parent
-            // border.color: "#f84a2b"
             radius: 5
             color: "transparent"
+            border.color: palette.text
+            border.width: 2
 
             ModeSelect {
                 anchors.fill: parent
@@ -174,13 +187,19 @@ ApplicationWindow {
         }
 
         DragHandler {
+            id: dragHandler
             target: null
+            enabled: !windowFrame.drawerOpen
             acceptedButtons: Qt.LeftButton
             dragThreshold: 10
             acceptedDevices: PointerDevice.GenericPointer
-            grabPermissions: PointerHandler.CanTakeOverFromItems | PointerHandler.CanTakeOverFromHandlersOfDifferentType | PointerHandler.ApprovesTakeOverByItems
+            // grabPermissions: PointerHandler.CanTakeOverFromItems | PointerHandler.CanTakeOverFromHandlersOfDifferentType | PointerHandler.ApprovesTakeOverByItems
+            grabPermissions: PointerHandler.TakeOverForbidden
             // TODO: Fix bug with after resizing, cannot start dragging
             onActiveChanged: {
+                // if this seems confusing where we get "active" from,
+                // it's actually in the name of this handler. It's a handler for when the
+                // active attribute of this component changes
                 if (active) {
                     console.log("Start system move");
                     // https://codereview.qt-project.org/c/qt/qtbase/+/219277
@@ -191,30 +210,71 @@ ApplicationWindow {
 
         ResizeGrip {
             position: ResizeGrip.Pos.TL
-            onDragStarted: rootWindow.startSystemResize(edges)
+            onDragStarted: {
+                rootWindow.startSystemResize(edges);
+                parent.resizing = true;
+            }
+            onDragEnded: parent.resizing = false
             anchors.left: parent.left
             anchors.top: parent.top
         }
 
         ResizeGrip {
             position: ResizeGrip.Pos.TR
-            onDragStarted: rootWindow.startSystemResize(edges)
+            onDragStarted: {
+                rootWindow.startSystemResize(edges);
+                parent.resizing = true;
+            }
+            onDragEnded: parent.resizing = false
             anchors.right: parent.right
             anchors.top: parent.top
         }
 
         ResizeGrip {
             position: ResizeGrip.Pos.BL
-            onDragStarted: rootWindow.startSystemResize(edges)
+            onDragStarted: {
+                rootWindow.startSystemResize(edges);
+                parent.resizing = true;
+            }
+            onDragEnded: parent.resizing = false
             anchors.left: parent.left
             anchors.bottom: parent.bottom
         }
 
         ResizeGrip {
             position: ResizeGrip.Pos.BR
-            onDragStarted: rootWindow.startSystemResize(edges)
+            onDragStarted: {
+                rootWindow.startSystemResize(edges);
+                parent.resizing = true;
+            }
+            onDragEnded: parent.resizing = false
             anchors.right: parent.right
             anchors.bottom: parent.bottom
+        }
+
+        Behavior on color {
+            ColorAnimation {}
+        }
+
+        Component.onCompleted: {
+            color = Qt.binding(function () {
+                if (drawerOpen) {
+                    return rgba("#1a1918", 0.8);
+                }
+                if (resizing || dragHandler.active) {
+                    return rgba("#1a1918", 0.4);
+                }
+                switch (mode) {
+                case CaptureMode.Screenshot:
+                    return rgba("#e3c61e", 0.8);
+                case CaptureMode.Record:
+                    return rgba("#c5066f", 0.8);
+                case CaptureMode.Stream:
+                    return rgba("#3339ee", 0.8);
+                default:
+                    return "transparent";
+                }
+            });
         }
     }
 }

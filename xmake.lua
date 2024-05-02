@@ -14,6 +14,7 @@ add_repositories("myrepo pkgrepo")
 add_rules("mode.debug", "mode.release")
 add_requires("spdlog 1.13.x", {system = false})
 add_requires("libassert 1.2.2", { configs = { decompose = true} })
+add_requires("qml-colors 1.0")
 
 if is_mode("debug") then
     -- https://doc.qt.io/qt-5/qtquick-debugging.html#debugging-module-imports
@@ -27,14 +28,14 @@ target("capture")
     add_rules("qt.quickapp")
     add_frameworks("QtQuickControls2", "QtWidgets", "QtSvg", "QtQuickWidgets")
     set_languages("c++17")
-    add_packages("spdlog", "libassert")
+    add_packages("spdlog", "libassert", "qml-colors")
     -- include .hpp files so that the moc compiler can do it's thing
     add_files("src/main.cpp", "src/app/**.cpp", "src/app/**.hpp")
     -- include .qrc files to that they are transpiled by rcc
     add_files("src/capture.qrc")
     add_includedirs("include", {public = true})
     -- add_cxflags("-fstack-protector-strong", "-mshstk", {tools = {"g++", "clang"}})
-    add_runenvs("SPDLOG_LEVEL", "=warning,smv::winclient=off,smv::autocancel=off")
+    add_runenvs("SPDLOG_LEVEL", "=info,smv::winclient=off,smv::autocancel=off")
     includes("src/platform")
     add_deps("winclient")
 

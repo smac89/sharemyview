@@ -1,4 +1,5 @@
 #include "smv_app.hpp"
+#include "qqmllist.h"
 #include "smv/common/autocancel.hpp"
 #include "smv/events.hpp"
 #include "smv/record.hpp"
@@ -13,11 +14,12 @@
 #include <QPropertyAnimation>
 #include <QStandardPaths>
 #include <QThread>
+#include <qglobal.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 // QT Globals: https://doc.qt.io/qt-5/qtglobal.html
-App::App(QObject *parent)
+AppCore::AppCore(QObject *parent)
   : QObject(parent)
   , mGeomAnimation(this)
   , mCancel(smv::listen<smv::EventType::MouseEnter>(
@@ -26,30 +28,30 @@ App::App(QObject *parent)
 }))
 {
   QObject::connect(this,
-                   &App::targetWindowMoved,
+                   &AppCore::targetWindowMoved,
                    this,
-                   qOverload<const QPoint &>(&App::updateRecordRegion));
+                   qOverload<const QPoint &>(&AppCore::updateRecordRegion));
   QObject::connect(this,
-                   &App::targetWindowResized,
+                   &AppCore::targetWindowResized,
                    this,
-                   qOverload<const QSize &>(&App::updateRecordRegion));
+                   qOverload<const QSize &>(&AppCore::updateRecordRegion));
   QObject::connect(
     this,
-    &App::targetWindowChanged,
+    &AppCore::targetWindowChanged,
     this,
-    qOverload<const QSize &, const QPoint &>(&App::updateRecordRegion));
+    qOverload<const QSize &, const QPoint &>(&AppCore::updateRecordRegion));
   // connect all media capture events
   QObject::connect(
-    this, &App::mediaCaptureSuccess, this, [this](CaptureMode mode) {
+    this, &AppCore::mediaCaptureSuccess, this, [this](CaptureMode mode) {
     emit mediaCaptureStopped(mode);
   });
   QObject::connect(
-    this, &App::mediaCaptureFailed, this, [this](CaptureMode mode) {
+    this, &AppCore::mediaCaptureFailed, this, [this](CaptureMode mode) {
     emit mediaCaptureStopped(mode);
   });
 }
 
-void App::operator()(const smv::EventDataMouseEnter &data)
+void AppCore::operator()(const smv::EventDataMouseEnter &data)
 {
   if (auto window = data.window.lock(); window != nullptr) {
     if (mMode == Mode::Region) {
@@ -68,7 +70,7 @@ void App::operator()(const smv::EventDataMouseEnter &data)
   }
 }
 
-void App::takeScreenshot(const QRect &rect, ScreenshotFormat format)
+void AppCore::takeScreenshot(const QRect &rect, ScreenshotFormat format)
 {
   emit mediaCaptureStarted(CaptureMode::Screenshot);
   spdlog::info("Taking screenshot: x: {}, y: {}, w: {}, h: {}",
@@ -99,7 +101,7 @@ void App::takeScreenshot(const QRect &rect, ScreenshotFormat format)
       spdlog::error(msg);
       return;
     }
-    auto   extension = ScreenshotFormatClass::toString(format);
+    auto   extension = ScreenshotFormatClass::formatToString(format);
     auto   imageIO   = CaptureSourceIO(&source);
     QImage image;
     if (!image.load(&imageIO, extension.toLocal8Bit())) {
@@ -120,26 +122,26 @@ void App::takeScreenshot(const QRect &rect, ScreenshotFormat format)
   });
 }
 
-void App::startRecording() {}
+void AppCore::startRecording() {}
 
-void App::streamRecording() {}
+void AppCore::streamRecording() {}
 
-void App::updateRecordRegion(const QRect &rect)
+void AppCore::updateRecordRegion(const QRect &rect)
 {
   mRecordRegion = rect;
 }
 
-void App::updateRecordRegion(const QPoint &point)
+void AppCore::updateRecordRegion(const QPoint &point)
 {
   mRecordRegion.moveTo(point);
 }
 
-void App::updateRecordRegion(const QSize &size)
+void AppCore::updateRecordRegion(const QSize &size)
 {
   mRecordRegion.setSize(size);
 }
 
-void App::updateRecordRegion(const QSize &size, const QPoint &point)
+void AppCore::updateRecordRegion(const QSize &size, const QPoint &point)
 {
   mRecordRegion = QRect(point, size);
 }
@@ -150,17 +152,17 @@ void App::updateRecordRegion(const QSize &size, const QPoint &point)
 //   mGeomAnimation.qquickWindowReady(window);
 // }
 
-auto App::mode() const -> App::Mode
+auto AppCore::mode() const -> AppCore::Mode
 {
   return mMode;
 }
 
-auto App::targetWindow() const -> std::shared_ptr<smv::Window>
+auto AppCore::targetWindow() const -> std::shared_ptr<smv::Window>
 {
   return mTargetWindow;
 }
 
-void App::setTargetWindow(const std::shared_ptr<smv::Window> &window)
+void AppCore::setTargetWindow(const std::shared_ptr<smv::Window> &window)
 {
   using AutoCancel                      = smv::utils::AutoCancel;
   static smv::Cancel cancelWindowMove   = nullptr;
@@ -200,7 +202,7 @@ void App::setTargetWindow(const std::shared_ptr<smv::Window> &window)
   }
 }
 
-App::~App()
+AppCore::~AppCore()
 {
   mCancel();
   spdlog::info("App destroyed");

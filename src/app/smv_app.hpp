@@ -1,19 +1,24 @@
 #pragma once
 #include "mainwindow_geom_proxy.hpp"
-#include "qvariant.h"
 #include "smv/events.hpp"
 #include "smv_utils.hpp"
 
-#include <QObject>
-#include <QPropertyAnimation>
-#include <QQuickWindow>
-#include <QRect>
 #include <memory>
 #include <shared_mutex>
 
+#include <QJSEngine>
+#include <QObject>
+#include <QPropertyAnimation>
+#include <QQmlEngine>
+#include <QQuickWindow>
+#include <QRect>
+#include <QVariant>
+#include <spdlog/spdlog.h>
+
+// TODO: remove?
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
 
-class App: public QObject
+class AppCore: public QObject
 {
   // https://doc.qt.io/qt-5/qtqml-cppintegration-exposecppattributes.html
   Q_OBJECT
@@ -21,7 +26,7 @@ class App: public QObject
   Q_PROPERTY(std::shared_ptr<smv::Window> targetWindow READ targetWindow WRITE
                setTargetWindow NOTIFY targetWindowChanged)
 public:
-  explicit App(QObject *parent = nullptr);
+  explicit AppCore(QObject *parent = nullptr);
 
   enum class Mode
   {
@@ -35,7 +40,7 @@ public:
   void setTargetWindow(const std::shared_ptr<smv::Window> &);
   void operator()(const smv::EventDataMouseEnter &data);
 
-  ~App() override;
+  ~AppCore() override;
 
 signals:
   void modeChanged(Mode);
@@ -47,17 +52,16 @@ signals:
   void mediaCaptureFailed(CaptureMode, const QString &);
   void mediaCaptureStopped(CaptureMode);
 
+private slots:
+  void startRecording();
+  void streamRecording();
+
 public slots:
   void updateRecordRegion(const QRect &rect);
   void updateRecordRegion(const QPoint &);
   void updateRecordRegion(const QSize &);
   void updateRecordRegion(const QSize &, const QPoint &);
   void takeScreenshot(const QRect &rect, ScreenshotFormat);
-  // void qquickWindowReady(QQuickWindow *window);
-
-private slots:
-  void startRecording();
-  void streamRecording();
 
 private:
   QRect                        mRecordRegion;
@@ -67,4 +71,18 @@ private:
   std::shared_mutex            mMutex;
   std::weak_ptr<smv::Window>   mActiveWindow;
   std::shared_ptr<smv::Window> mTargetWindow;
+
+public:
+  static constexpr auto               QML_NAME = "AppCore";
+  [[maybe_unused]] inline static auto registerInstance() -> int
+  {
+    static AppCore appCore;
+    // register the app core as a singleton. see:
+    // https://doc.qt.io/qt-5/qtqml-cppintegration-overview.html#choosing-the-correct-integration-method-between-c-and-qml
+    auto typeId =
+      qmlRegisterSingletonInstance("smv.app.AppCore", 1, 0, QML_NAME, &appCore);
+    spdlog::info(
+      "AppCore registered. Name={}, URL={}", QML_NAME, "smv.app.AppCore");
+    return typeId;
+  }
 };

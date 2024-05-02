@@ -5,7 +5,7 @@ import QtQml 2.15
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import smv.app.capture 1.0
+import smv.app.CaptureMode 1.0
 
 Item {
     id: root
@@ -14,8 +14,13 @@ Item {
     // TODO add list of audio sources
     property int maxWidth: 640
     property int mode: CaptureMode.Screenshot
+    property bool drawerOpen: false
+    readonly property int controlsWidth: controls.width
+    readonly property int controlsX: controls.x
+    readonly property int controlsY: controls.y
 
     signal takeScreenshot
+    signal openRecordingSettings(bool open)
     signal recordRegion(bool streaming)
 
     SystemPalette {
@@ -26,18 +31,19 @@ Item {
         anchors.fill: parent
 
         Rectangle {
+            id: controls
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             Layout.fillHeight: true
-            // border.color: "#fa1f1f"
-            // border.width: 2
+            border.color: palette.text
+            border.width: 2
             radius: height / 2
-            color: palette.window
+            color: palette.base
             Layout.maximumWidth: maxWidth
             Layout.fillWidth: true
 
             Loader {
                 id: screenshotLoader
-
+                enabled: !root.drawerOpen
                 anchors.centerIn: parent
                 sourceComponent: screenshotControls
                 active: mode === CaptureMode.Screenshot
@@ -46,12 +52,13 @@ Item {
             Connections {
                 target: screenshotLoader.item
                 function onTakeScreenshot() {
-                    Qt.callLater(takeScreenshot);
+                    Qt.callLater(root.takeScreenshot);
                 }
             }
 
             Loader {
                 anchors.centerIn: parent
+                enabled: !root.drawerOpen
                 sourceComponent: recordControls
                 active: mode === CaptureMode.Record
                 onLoaded: () => {
@@ -61,11 +68,30 @@ Item {
 
             Loader {
                 anchors.centerIn: parent
+                enabled: !root.drawerOpen
                 sourceComponent: streamControls
                 active: mode === CaptureMode.Stream
                 onLoaded: () => {
                     console.log("Stream loaded");
                 }
+            }
+
+            Button {
+                id: modeDrawerButton
+                anchors.right: parent.right
+                anchors.rightMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                display: AbstractButton.IconOnly
+                background: Rectangle {
+                    color: "transparent"
+                    width: 40
+                    height: 40
+                }
+                icon {
+                    source: root.drawerOpen ? "image://smv/icons/menu_on.svg" : "image://smv/icons/menu_off.svg"
+                    color: palette.buttonText
+                }
+                onClicked: root.openRecordingSettings(!root.drawerOpen)
             }
         }
     }

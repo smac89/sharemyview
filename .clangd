@@ -22,6 +22,7 @@ Diagnostics:
       - "cppcoreguidelines-pro-bounds-pointer-arithmetic"
       - "cppcoreguidelines-avoid-non-const-global-variables"
       - "bugprone-easily-swappable-parameters"
+      - "misc-use-anonymous-namespace"
   UnusedIncludes: Strict
 CompileFlags:
   CompilationDatabase: .vscode/

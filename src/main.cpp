@@ -1,18 +1,17 @@
 #include "app/smv_app.hpp"
-#include "app/smv_capture.hpp"
 #include "app/smv_image_provider.hpp"
-#include "qcoreapplication.h"
-#include "qqml.h"
+#include "qqmlengine.h"
 #include "smv/winclient.hpp"
 
 #include <csignal>
 #include <cstdlib>
 #include <memory>
 
-#include <QGuiApplication>
+#include <QApplication>
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <qqml.h>
 #include <spdlog/cfg/env.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -27,18 +26,23 @@ auto main(int argc, char *argv[]) -> int
   spdlog::info("Starting...");
   smv::init();
 
-  std::atexit([]() {
+  std::atexit([] {
     smv::deinit();
     spdlog::info("Finished");
   });
 
   QCoreApplication::setOrganizationName("Ubiquity");
   QCoreApplication::setApplicationName("ShareMyView");
-  QGuiApplication app(argc, argv);
+  QCoreApplication::setOrganizationDomain("labs.ecfreno.com");
+  QApplication app(argc, argv);
   qmlRegisterUncreatableType<CaptureModeClass>(
-    "smv.app.capture", 1, 0, "CaptureMode", "Not creatable as it is an enum");
+    "smv.app.CaptureMode",
+    1,
+    0,
+    "CaptureMode",
+    "Not creatable as it is an enum");
   qmlRegisterUncreatableType<ScreenshotFormatClass>(
-    "smv.app.capture",
+    "smv.app.ScreenshotFormat",
     1,
     0,
     "ScreenshotFormat",
@@ -66,9 +70,20 @@ auto main(int argc, char *argv[]) -> int
   },
     Qt::QueuedConnection);
 
-  App smvApp;
-  engine.addImageProvider("smv", new AppImageProvider);
-  engine.rootContext()->setContextProperty("smvApp", &smvApp);
+  engine.setOutputWarningsToStandardError(false);
+  QObject::connect(&engine,
+                   &QQmlApplicationEngine::warnings,
+                   [](const QList<QQmlError> &warnings) {
+    for (const auto &warning : warnings) {
+      spdlog::error(warning.toString().toStdString());
+    }
+  });
+
+  AppCore::registerInstance();
+  auto imageProvider = std::make_shared<AppImageProvider>();
+  QQmlApplicationEngine::setObjectOwnership(imageProvider.get(),
+                                            QQmlEngine::CppOwnership);
+  engine.addImageProvider("smv", imageProvider.get());
   engine.load(mainUrl);
   return QGuiApplication::exec();
 }

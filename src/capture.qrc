@@ -9,7 +9,11 @@
     <file alias="components/Debugable.qml">assets/qt/components/Debugable.qml</file>
     <file alias="components/ResizeGrip.qml">assets/qt/components/ResizeGrip.qml</file>
     <file alias="components/RecordingControls.qml">assets/qt/components/RecordingControls.qml</file>
+    <file alias="settings/ControlSettings.qml">assets/qt/components/settings/ControlSettings.qml</file>
+    <file alias="settings/ConfigScreenshot.qml">assets/qt/components/settings/ConfigScreenshot.qml</file>
     <file alias="icons/chevron.svg">assets/icons/chevron.svg</file>
+    <file alias="icons/menu_on.svg">assets/icons/menu_on.svg</file>
+    <file alias="icons/menu_off.svg">assets/icons/menu_off.svg</file>
     <file alias="icons/lock.svg">assets/icons/lock.svg</file>
     <file alias="icons/unlock.svg">assets/icons/unlock.svg</file>
     <file alias="icons/audio_on.svg">assets/icons/audio_on.svg</file>

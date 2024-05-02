@@ -1,7 +1,7 @@
 import QtGraphicalEffects 1.15
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import smv.app.capture 1.0
+import smv.app.CaptureMode 1.0
 
 ComboBox {
     id: root
@@ -12,8 +12,7 @@ ComboBox {
         mode = CaptureMode.Screenshot;
     }
     anchors.fill: parent
-    anchors.leftMargin: 1
-    anchors.rightMargin: 1
+    anchors.margins: 2
     valueRole: "mode"
     textRole: "text"
     model: [

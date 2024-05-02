@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Shapes 1.15
+import easy.colors 1.0
 
 Item {
     id: root
@@ -28,32 +29,36 @@ Item {
 
     required property int position
     // https://rgbcolorpicker.com/0-1
-    property color gripColor: Qt.rgba(0.345, 0.514, 0.161, 0.8)
-    // https://doc.qt.io/qt-5/qt.html#Edge-enum
-    property int _edges
-    // https://doc.qt.io/qt-5/qt.html#CursorShape-enum
-    property int _cursorType
+    property color gripColor: rgba("#4a7c15", 0.8)
+
+    QtObject {
+        id: priv
+        // https://doc.qt.io/qt-5/qt.html#Edge-enum
+        property int edges
+        // https://doc.qt.io/qt-5/qt.html#CursorShape-enum
+        property int cursorType
+    }
 
     Component.onCompleted: {
         switch (position) {
         case ResizeGrip.Pos.TL:
-            _cursorType = Qt.SizeFDiagCursor;
-            _edges = Qt.TopEdge | Qt.LeftEdge;
+            priv.cursorType = Qt.SizeFDiagCursor;
+            priv.edges = Qt.TopEdge | Qt.LeftEdge;
             break;
         case ResizeGrip.Pos.TR:
-            _cursorType = Qt.SizeBDiagCursor;
-            _edges = Qt.TopEdge | Qt.RightEdge;
-            rotation = 90;
+            priv.cursorType = Qt.SizeBDiagCursor;
+            priv.edges = Qt.TopEdge | Qt.RightEdge;
+            root.rotation = 90;
             break;
         case ResizeGrip.Pos.BL:
-            _cursorType = Qt.SizeBDiagCursor;
-            _edges = Qt.BottomEdge | Qt.LeftEdge;
-            rotation = -90;
+            priv.cursorType = Qt.SizeBDiagCursor;
+            priv.edges = Qt.BottomEdge | Qt.LeftEdge;
+            root.rotation = -90;
             break;
         case ResizeGrip.Pos.BR:
-            _cursorType = Qt.SizeFDiagCursor;
-            _edges = Qt.BottomEdge | Qt.RightEdge;
-            rotation = 180;
+            priv.cursorType = Qt.SizeFDiagCursor;
+            priv.edges = Qt.BottomEdge | Qt.RightEdge;
+            root.rotation = 180;
             break;
         }
     }
@@ -61,7 +66,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: "transparent"
-        visible: mouseArea.containsMouse
+        visible: mouseArea.containsPress
+
+        // border.color: "white"
 
         Shape {
             anchors.fill: parent
@@ -92,17 +99,21 @@ Item {
     MouseArea {
         id: mouseArea
         anchors.fill: parent
-        acceptedButtons: Qt.LeftButton
+        // acceptedButtons: Qt.LeftButton
         hoverEnabled: true
-        propagateComposedEvents: false
-        cursorShape: _cursorType
+        // propagateComposedEvents: false
+        cursorShape: priv.cursorType
         onPressed: mouse => {
-            root.dragStarted(_edges);
-            mouse.accepted = true;
+            console.log("Pressed");
+            root.dragStarted(priv.edges);
         }
         onReleased: mouse => {
+            console.log("Released");
             root.dragEnded();
-            mouse.accepted = false;
+        }
+        onExited: mouse => {
+            console.log("Released");
+            root.dragEnded();
         }
     }
 }

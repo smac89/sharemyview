@@ -4,6 +4,7 @@
 
 #include <type_traits>
 
+#include <QMetaEnum>
 #include <QObject>
 
 /**
@@ -31,7 +32,7 @@ private:
   explicit CaptureModeClass() = default;
 };
 using CaptureMode = CaptureModeClass::Value;
-Q_DECLARE_METATYPE(CaptureMode);
+// Q_DECLARE_METATYPE(CaptureMode);
 // qRegisterMetaType<CaptureMode>("CaptureMode");
 
 class ScreenshotFormatClass
@@ -42,20 +43,29 @@ class ScreenshotFormatClass
 public:
   enum class Value
   {
-    PPM = static_cast<FormatType>(smv::ScreenshotFormat::PPM),
     PNG = static_cast<FormatType>(smv::ScreenshotFormat::PNG),
     JPG = static_cast<FormatType>(smv::ScreenshotFormat::JPG),
+    PPM = static_cast<FormatType>(smv::ScreenshotFormat::PPM),
   };
   Q_ENUM(Value);
 
 private:
   explicit ScreenshotFormatClass() = default;
+  static const QMetaEnum metaEnum;
 
 public:
-  static auto toString(Value value) -> QString;
+  static auto              formatToString(Value value) -> QString;
+  static const QStringList allFormats;
 };
 using ScreenshotFormat = ScreenshotFormatClass::Value;
-Q_DECLARE_METATYPE(ScreenshotFormat);
+// Q_DECLARE_METATYPE(ScreenshotFormat);
 // qRegisterMetaType<ScreenshotFormat>("ScreenshotFormat");
 
+/**
+ * @brief Save the screenshot to a file at an appropriate location
+ *
+ * @param image The image to save
+ * @param name The name used to save the image
+ * @return QString
+ */
 auto saveScreenshot(const QImage &image, const QString &name) -> QString;

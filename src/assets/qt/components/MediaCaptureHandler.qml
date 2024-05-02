@@ -1,5 +1,6 @@
 import QtQuick 2.15
-import smv.app.capture 1.0
+import smv.app.CaptureMode 1.0
+import smv.app.AppCore 1.0
 
 Item {
     id: root
@@ -11,7 +12,7 @@ Item {
     signal mediaCaptureRequested(int mode)
     signal mediaCaptureStarted(int mode)
     signal mediaCaptureFailed(int mode, string error)
-    signal mediaCaptureSuccess(int mode, string path)
+    signal mediaCaptureSuccess(int mode, variant result)
     signal mediaCaptureRequestEnded(int mode)
 
     states: [
@@ -49,12 +50,16 @@ Item {
         // See https://doc.qt.io/qt-5/qml-qtquick-transition.html#reversible-prop
         Transition {
             to: ""
-            AnimateOpacity {}
+            SequentialAnimation {
+                AnimateVisible {}
+                AnimateOpacity {}
+            }
         },
         Transition {
             to: "screenshotRequested"
             SequentialAnimation {
                 AnimateOpacity {}
+                AnimateVisible {}
                 ScriptAction {
                     scriptName: "takeScreenshot"
                 }
@@ -97,7 +102,7 @@ Item {
             console.log("Media capture failed...", error);
         }
 
-        function onMediaCaptureSuccess(mode: int, result: string) {
+        function onMediaCaptureSuccess(mode: int, result: variant) {
             console.log("Media capture success...", result);
         }
 
@@ -132,16 +137,23 @@ Item {
 
     Component.onCompleted: {
         // https://doc.qt.io/qt-5/qtqml-syntax-signals.html#connecting-signals-to-methods-and-signals
-        smvApp.mediaCaptureStarted.connect(root.mediaCaptureStarted);
-        smvApp.mediaCaptureFailed.connect(root.mediaCaptureFailed);
-        smvApp.mediaCaptureSuccess.connect(root.mediaCaptureSuccess);
-        smvApp.mediaCaptureStopped.connect(root.mediaCaptureRequestEnded);
+        AppCore.mediaCaptureStarted.connect(root.mediaCaptureStarted);
+        AppCore.mediaCaptureFailed.connect(root.mediaCaptureFailed);
+        AppCore.mediaCaptureSuccess.connect(root.mediaCaptureSuccess);
+        AppCore.mediaCaptureStopped.connect(root.mediaCaptureRequestEnded);
     }
 
     component AnimateOpacity: NumberAnimation {
         target: root.target
         property: "opacity"
         easing.type: Easing.InOutQuad
+        duration: 300
+    }
+
+    component AnimateVisible: NumberAnimation {
+        target: root.target
+        property: "visible"
+        duration: 0
     }
 
     // Component {

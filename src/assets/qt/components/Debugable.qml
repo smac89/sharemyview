@@ -9,11 +9,13 @@ StackView {
     implicitWidth: child.width
     implicitHeight: child.height
 
+    // TODO: Choose a contrasting color automatically
     property string borderColor: q(cc`random`)
     property bool isDebug: false
     property int borderWidth: 4
     property int borderRadius: 3
 
+    // this will usually correspond to the last child
     default required property Item child
 
     DebugRect {

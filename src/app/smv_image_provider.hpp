@@ -1,13 +1,18 @@
 #pragma once
 
 #include <QImage>
+#include <QObject>
 #include <QQuickImageProvider>
 
-class AppImageProvider: public QQuickImageProvider
+// TODO: Consider using QQuickAsyncImageProvider.
+// https://doc.qt.io/qt-5/qquickasyncimageprovider.html
+class AppImageProvider
+  : public QObject
+  , public QQuickImageProvider
 {
 public:
-  AppImageProvider();
-  QImage requestImage(const QString &id,
-                      QSize         *size,
-                      const QSize   &requestedSize) override;
+  explicit AppImageProvider(QObject * = nullptr);
+  auto requestImage(const QString & /*id*/,
+                    QSize * /*size*/,
+                    const QSize & /*requestedSize*/) -> QImage override;
 };

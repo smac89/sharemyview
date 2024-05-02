@@ -27,11 +27,13 @@ namespace smv {
   using TCaptureCb = std::function<void(S &source)>;
   using CaptureCb  = TCaptureCb<CaptureSource>;
 
+  // NOTE: Leave these enum values to be stored as ints, because when they are
+  // used on the QT side, they are stored as int
   enum class ScreenshotFormat
   {
-    PPM = 0x1,
-    PNG = 0x2,
-    JPG = 0x4,
+    PNG = 0x1,
+    JPG = 0x2,
+    PPM = 0x4,
     QOI = 0x8,
   };
 

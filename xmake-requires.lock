@@ -256,7 +256,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "1.11.1"
+            version = "1.12.0"
         },
         ["opengl#31fecfc4"] = {
             repo = {
@@ -296,7 +296,13 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "3.11.8"
+            version = "3.12.3"
+        },
+        ["qml-colors 1.0#31fecfc4"] = {
+            repo = {
+                url = "pkgrepo"
+            },
+            version = "v1.0"
         },
         ["spdlog 1.13.x#31fecfc4"] = {
             repo = {
