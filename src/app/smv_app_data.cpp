@@ -1,5 +1,5 @@
 #include "smv_app_data.hpp"
-#include "qobject.h"
+#include "smv_utils.hpp"
 
 #include <filesystem>
 #include <regex>
@@ -28,7 +28,8 @@ ScreenshotsConfig::ScreenshotsConfig(QObject *parent)
 {
   QSettings settings;
   settings.beginGroup(category());
-  if (auto folder = settings.value("folder"); folder.isNull()) {
+  if (auto saveLocation = settings.value("saveLocation");
+      saveLocation.isNull()) {
     std::regex pat(u8R"(\bscreenshots?\b)",
                    std::regex_constants::ECMAScript |
                      std::regex_constants::icase);
@@ -49,10 +50,10 @@ ScreenshotsConfig::ScreenshotsConfig(QObject *parent)
     auto appScreenshots =
       screenshotsPath /
       QCoreApplication::applicationName().toLower().toStdString();
-    mFolder = QString::fromStdString(appScreenshots.string());
-    settings.setValue("folder", mFolder);
+    mSaveLocation = QString::fromStdString(appScreenshots.string());
+    settings.setValue("saveLocation", mSaveLocation);
   } else {
-    mFolder = folder.toString();
+    mSaveLocation = saveLocation.toString();
   }
 
   if (auto format = settings.value("format"); format.isNull()) {
@@ -77,6 +78,59 @@ ScreenshotsConfig::ScreenshotsConfig(QObject *parent)
   } else {
     mSuffix = suffix.toString();
   }
+}
+
+void ScreenshotsConfig::setFormat(const QString &format)
+{
+  if (mFormat != format) {
+    mFormat = format;
+    QSettings settings;
+    settings.beginGroup(category());
+    settings.setValue("format", mFormat);
+    settings.endGroup();
+    settings.sync();
+  }
+}
+
+void ScreenshotsConfig::setPrefix(const QString &prefix)
+{
+  if (mPrefix != prefix) {
+    mPrefix = prefix;
+    QSettings settings;
+    settings.beginGroup(category());
+    settings.setValue("prefix", mPrefix);
+    settings.endGroup();
+    settings.sync();
+  }
+}
+
+void ScreenshotsConfig::setSuffix(const QString &suffix)
+{
+  if (mSuffix != suffix) {
+    mSuffix = suffix;
+    QSettings settings;
+    settings.beginGroup(category());
+    settings.setValue("suffix", mSuffix);
+    settings.endGroup();
+    settings.sync();
+  }
+}
+
+void ScreenshotsConfig::setSaveLocation(const QString &saveLocation)
+{
+  if (mSaveLocation != saveLocation) {
+    mSaveLocation = saveLocation;
+    QSettings settings;
+    settings.beginGroup(category());
+    settings.setValue("saveLocation", mSaveLocation);
+    settings.endGroup();
+    settings.sync();
+  }
+}
+
+auto ScreenshotsConfig::formatEnum() const -> ScreenshotFormat
+{
+  return ScreenshotFormatClass::fromString(mFormat);
 }
 
 auto AppData::create([[maybe_unused]] QQmlEngine *engine,

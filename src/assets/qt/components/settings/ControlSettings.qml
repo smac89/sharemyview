@@ -6,7 +6,7 @@ Drawer {
     id: root
     dim: false
     modal: false
-    topMargin: (parent.height - height) / 2
+    topMargin: (parent.height - height) / 4
     rightPadding: background.anchors.rightMargin
     transformOrigin: Popup.Left
     edge: Qt.RightEdge

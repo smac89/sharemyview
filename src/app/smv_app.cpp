@@ -11,10 +11,10 @@
 #include <QBuffer>
 #include <QDateTime>
 #include <QMetaEnum>
+#include <QObject>
 #include <QPropertyAnimation>
 #include <QStandardPaths>
 #include <QThread>
-#include <qglobal.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
@@ -70,7 +70,7 @@ void AppCore::operator()(const smv::EventDataMouseEnter &data)
   }
 }
 
-void AppCore::takeScreenshot(const QRect &rect, ScreenshotFormat format)
+void AppCore::takeScreenshot(const QRect &rect, QObject *screenshotConfig)
 {
   emit mediaCaptureStarted(CaptureMode::Screenshot);
   spdlog::info("Taking screenshot: x: {}, y: {}, w: {}, h: {}",
@@ -91,9 +91,13 @@ void AppCore::takeScreenshot(const QRect &rect, ScreenshotFormat format)
     spdlog::error(msg);
     return;
   }
+  auto format     = screenshotConfig->property("format").toString();
+  auto formatEnum = ScreenshotFormatClass::fromString(format);
+  // TODO check if format is valid
+
   smv::capture(config,
-               static_cast<smv::ScreenshotFormat>(format),
-               [this, format](smv::CaptureSource &source) {
+               static_cast<smv::ScreenshotFormat>(formatEnum),
+               [this, format, &screenshotConfig](smv::CaptureSource &source) {
     if (auto err = source.error()) {
       auto msg = fmt::format("Failed to capture screenshot: {}", err.value());
       emit mediaCaptureFailed(CaptureMode::Screenshot,
@@ -101,9 +105,9 @@ void AppCore::takeScreenshot(const QRect &rect, ScreenshotFormat format)
       spdlog::error(msg);
       return;
     }
-    auto   extension = ScreenshotFormatClass::formatToString(format);
-    auto   imageIO   = CaptureSourceIO(&source);
-    QImage image;
+    const auto &extension = format;
+    auto        imageIO   = CaptureSourceIO(&source);
+    QImage      image;
     if (!image.load(&imageIO, extension.toLocal8Bit())) {
       const auto msg =
         fmt::format("Failed to load '{}' image", extension.toStdString());
@@ -112,13 +116,17 @@ void AppCore::takeScreenshot(const QRect &rect, ScreenshotFormat format)
       spdlog::error(msg);
       return;
     }
-    auto fileName =
-      QString("%1.%2")
-        .arg(QDateTime::currentDateTime().toString("yyyy-MMM-dd_hh-mm-ss-zzz"))
-        .arg(extension.toLower());
+    auto fileName = QString("%1%2.%3")
+                      .arg(screenshotConfig->property("prefix").toString())
+                      .arg(QDateTime::currentDateTime().toString(
+                        screenshotConfig->property("suffix").toString()))
+                      .arg(extension.toLower());
 
-    emit mediaCaptureSuccess(CaptureMode::Screenshot,
-                             saveScreenshot(image, fileName));
+    emit mediaCaptureSuccess(
+      CaptureMode::Screenshot,
+      saveScreenshot(image,
+                     screenshotConfig->property("saveLocation").toString(),
+                     fileName));
   });
 }
 

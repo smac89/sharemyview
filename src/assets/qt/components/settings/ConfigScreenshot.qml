@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 import Qt.labs.platform 1.1
-import Qt.labs.settings 1.0
 import smv.app.ScreenshotFormat 1.0
 import smv.app.AppCore 1.0
 import smv.app.AppData 1.0
@@ -23,17 +22,10 @@ Frame {
         color: "transparent"
     }
 
-    Settings {
-        id: settings
-        category: AppData.screenshot.category
-        property alias format: formatChoiceGroup.format
-        property alias saveLocation: saveLocation.text
-    }
-
     FolderDialog {
         id: saveLocationDialog
         title: "Choose Default Save Location"
-        folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+        folder: AppData.screenshot.saveLocation ?? StandardPaths.writableLocation(StandardPaths.PicturesLocation)
         onAccepted: {
             saveLocation.text = currentFolder;
         }
@@ -47,7 +39,7 @@ Frame {
         Debugable {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            Layout.bottomMargin: 20
+            Layout.bottomMargin: root.height > 400 ? 10 : 5
             AutoSizeColumnLayout {
                 anchors.topMargin: 5
                 anchors.bottomMargin: 5
@@ -82,15 +74,19 @@ Frame {
                 AutoSizeRowLayout {
                     id: nameOpts
                     spacing: 4
-                    // anchors.topMargin: 10
                     Label {
                         Layout.fillWidth: true
                         elide: Text.ElideRight
                         text: "Prefix"
                     }
                     TextField {
+                        id: prefix
                         Layout.fillWidth: true
+                        text: AppData.screenshot.prefix
                         placeholderText: "Screenshot_"
+                        onEditingFinished: {
+                            AppData.screenshot.prefix = prefix.text;
+                        }
                     }
                     Label {
                         Layout.fillWidth: true
@@ -98,8 +94,30 @@ Frame {
                         text: "Suffix"
                     }
                     TextField {
+                        id: suffix
                         Layout.fillWidth: true
-                        placeholderText: "%d_%H-%M-%S."
+                        text: AppData.screenshot.suffix
+                        placeholderText: "yyyy-MMM-dd_hh-mm-ss-zzz"
+                        onEditingFinished: {
+                            // TODO check if text is valid before
+                            // new Date(Date.now()).toLocaleString(Qt.locale(), suffix_)
+                            AppData.screenshot.suffix = suffix.text;
+                        }
+                    }
+                }
+                Label {
+                    topPadding: 10
+                    bottomPadding: 10
+                    font.italic: true
+                    font.pointSize: 12
+                    text: {
+                        const format_ = formatChoiceGroup.format;
+                        const prefix_ = prefix.displayText;
+                        const suffix_ = suffix.displayText;
+                        if (format_ && prefix_ && suffix_) {
+                            return "example: %1%2.%3".arg(prefix_).arg(new Date(Date.now()).toLocaleString(Qt.locale(), suffix_)).arg(format_.toLowerCase());
+                        }
+                        return "";
                     }
                 }
             }
@@ -119,7 +137,11 @@ Frame {
                     selectByMouse: true
                     anchors.topMargin: 10
                     Layout.fillWidth: true
-                    placeholderText: "~/Pictures/"
+                    text: AppData.screenshot.saveLocation
+                    placeholderText: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                    onEditingFinished: {
+                        AppData.screenshot.saveLocation = saveLocation.text;
+                    }
                 }
                 Button {
                     text: "..."
@@ -143,9 +165,11 @@ Frame {
                 anchors.fill: parent
                 ButtonGroup {
                     id: formatChoiceGroup
-                    property string format: ""
-                    Component.onDestruction: {
-                        settings.format = format;
+                    property string format: AppData.screenshot.format
+                    onClicked: {
+                        AppData.screenshot.format = button.text;
+                        // TODO: Why doesn't format update with app data?
+                        format = button.text;
                     }
                 }
                 SettingTitle {
@@ -154,17 +178,9 @@ Frame {
                 Repeater {
                     model: AppData.screenshot.formatsList
                     RadioButton {
-                        checked: modelData === settings.format
+                        checked: modelData === formatChoiceGroup.format
                         text: modelData
                         ButtonGroup.group: formatChoiceGroup
-                        onCheckedChanged: {
-                            formatChoiceGroup.format = modelData;
-                        }
-                    }
-                    Component.onCompleted: {
-                        if (formatChoiceGroup.checkedButton === null && count > 0) {
-                            itemAt(0).toggle();
-                        }
                     }
                 }
             }

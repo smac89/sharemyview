@@ -1,6 +1,7 @@
 #pragma once
 #include "mainwindow_geom_proxy.hpp"
 #include "smv/events.hpp"
+#include "smv_app_data.hpp"
 #include "smv_utils.hpp"
 
 #include <memory>
@@ -61,7 +62,7 @@ public slots:
   void updateRecordRegion(const QPoint &);
   void updateRecordRegion(const QSize &);
   void updateRecordRegion(const QSize &, const QPoint &);
-  void takeScreenshot(const QRect &rect, ScreenshotFormat);
+  void takeScreenshot(const QRect &rect, QObject *);
 
 private:
   QRect                        mRecordRegion;

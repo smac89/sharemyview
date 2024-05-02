@@ -8,6 +8,7 @@ import QtQuick.Shapes 1.15
 import smv.app.CaptureMode 1.0
 import smv.app.ScreenshotFormat 1.0
 import smv.app.AppCore 1.0
+import smv.app.AppData 1.0
 import easy.colors 1.0
 import "qrc:/components"
 import "qrc:/settings"
@@ -38,7 +39,7 @@ ApplicationWindow {
         id: mediaCapture
         target: rootWindow
         screenshotCallback: () => {
-            AppCore.takeScreenshot(Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height), ScreenshotFormat.PNG);
+            AppCore.takeScreenshot(Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height), AppData.screenshot);
         }
         recordingCallback: () => {
             console.log("Recording not implemented");
@@ -136,7 +137,12 @@ ApplicationWindow {
         ControlSettings {
             parent: windowFrame
             width: recordingControls.controlsWidth + background.anchors.rightMargin - 50
-            height: parent.height - recordingControls.height * 4
+            height: {
+                // https://doc.qt.io/qt-5/qtqml-syntax-propertybinding.html
+                const h = parent.height - recordingControls.height * 2;
+                // TODO: control height better
+                return h > 400 ? 400 : h;
+            }
             visible: windowFrame.drawerOpen
             mode: parent.mode
             background: Rectangle {

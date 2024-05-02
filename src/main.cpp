@@ -1,6 +1,6 @@
 #include "app/smv_app.hpp"
 #include "app/smv_image_provider.hpp"
-#include "qqmlengine.h"
+#include "app/smv_utils.hpp"
 #include "smv/winclient.hpp"
 
 #include <csignal>
@@ -8,10 +8,10 @@
 #include <memory>
 
 #include <QApplication>
+#include <QLoggingCategory>
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <qqml.h>
 #include <spdlog/cfg/env.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -34,6 +34,9 @@ auto main(int argc, char *argv[]) -> int
   QCoreApplication::setOrganizationName("Ubiquity");
   QCoreApplication::setApplicationName("ShareMyView");
   QCoreApplication::setOrganizationDomain("labs.ecfreno.com");
+  // https://doc.qt.io/qt-5/qtqml-syntax-propertybinding.html#debugging-overwriting-of-bindings
+  QLoggingCategory::setFilterRules(
+    QStringLiteral("qt.qml.binding.removal.info=true"));
   QApplication app(argc, argv);
   qmlRegisterUncreatableType<CaptureModeClass>(
     "smv.app.CaptureMode",
@@ -47,6 +50,8 @@ auto main(int argc, char *argv[]) -> int
     0,
     "ScreenshotFormat",
     "Not creatable as it is an enum");
+  qRegisterMetaType<CaptureMode>("CaptureMode");
+  qRegisterMetaType<ScreenshotFormat>("ScreenshotFormat");
 
   const QUrl            mainUrl("qrc:/qml/capture.qml");
   QQmlApplicationEngine engine;

@@ -4,6 +4,7 @@
 
 #include <type_traits>
 
+#include <QDateTime>
 #include <QMetaEnum>
 #include <QObject>
 
@@ -32,8 +33,6 @@ private:
   explicit CaptureModeClass() = default;
 };
 using CaptureMode = CaptureModeClass::Value;
-// Q_DECLARE_METATYPE(CaptureMode);
-// qRegisterMetaType<CaptureMode>("CaptureMode");
 
 class ScreenshotFormatClass
 {
@@ -55,17 +54,19 @@ private:
 
 public:
   static auto              formatToString(Value value) -> QString;
+  static auto              fromString(const QString &value) -> Value;
   static const QStringList allFormats;
 };
 using ScreenshotFormat = ScreenshotFormatClass::Value;
-// Q_DECLARE_METATYPE(ScreenshotFormat);
-// qRegisterMetaType<ScreenshotFormat>("ScreenshotFormat");
 
 /**
  * @brief Save the screenshot to a file at an appropriate location
  *
  * @param image The image to save
+ * @param location The folder to save the image
  * @param name The name used to save the image
  * @return QString
  */
-auto saveScreenshot(const QImage &image, const QString &name) -> QString;
+auto saveScreenshot(const QImage  &image,
+                    const QString &location,
+                    const QString &name) -> QString;

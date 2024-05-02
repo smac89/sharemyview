@@ -28,6 +28,11 @@ auto ScreenshotFormatClass::formatToString(Value value) -> QString
   return metaEnum.valueToKey(static_cast<int>(value));
 }
 
+auto ScreenshotFormatClass::fromString(const QString &value) -> ScreenshotFormat
+{
+  return static_cast<Value>(metaEnum.keyToValue(value.toLocal8Bit()));
+}
+
 const QMetaEnum ScreenshotFormatClass::metaEnum =
   QMetaEnum::fromType<ScreenshotFormat>();
 
@@ -39,42 +44,17 @@ const QStringList ScreenshotFormatClass::allFormats = []() {
   return formats;
 }();
 
-auto saveScreenshot(const QImage &image, const QString &name) -> QString
+auto saveScreenshot(const QImage  &image,
+                    const QString &location,
+                    const QString &name) -> QString
 {
+  fs::create_directories(location.toStdString());
 
-  const static std::regex screenshots(u8R"(\bScreenshots?\b)",
-                                      std::regex_constants::ECMAScript |
-                                        std::regex_constants::icase);
+  const auto savePath = location + QDir::separator() + name;
 
-  auto picturesFolder  = fs::path { QStandardPaths::writableLocation(
-                                     QStandardPaths::PicturesLocation)
-                                     .toStdString() };
-  auto screenshotsPath = picturesFolder / "Screenshots";
-
-  if (!fs::exists(picturesFolder)) {
-    fs::create_directories(screenshotsPath);
-  } else {
-    // check if screenshot(s) folder already exists
-    for (const auto &entry : fs::directory_iterator(picturesFolder)) {
-      if (std::regex_match(entry.path().filename().u8string(), screenshots)) {
-        screenshotsPath = entry.path();
-        break;
-      }
-    }
-  }
-
-  auto appScreenshots =
-    screenshotsPath /
-    QCoreApplication::applicationName().toLower().toStdString();
-
-  fs::create_directories(appScreenshots);
-
-  const auto finalSavePath =
-    QString::fromStdString(appScreenshots.string()) + QDir::separator() + name;
-
-  if (!image.save(finalSavePath)) {
+  if (!image.save(savePath)) {
     // TODO: handle error
-    spdlog::error("Failed to save screenshot: {}", finalSavePath.toStdString());
+    spdlog::error("Failed to save screenshot: {}", savePath.toStdString());
   }
-  return finalSavePath;
+  return savePath;
 }
