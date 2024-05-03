@@ -24,6 +24,7 @@ namespace smv::details {
   using smv::utils::res;
 
   namespace {
+    // shared_mutex is used so that all readers can read at the same time
     std::shared_mutex listenerMutx;
     std::unordered_map<EventType, std::vector<std::tuple<uint32_t, EventCB>>>
       listeners;
@@ -248,7 +249,8 @@ namespace smv::details {
     return mTracked.find(window) != mTracked.end();
   }
 
-  std::weak_ptr<const Window> XEvents::getWatchWindow(xcb_window_t window) const
+  auto XEvents::getWatchWindow(xcb_window_t window) const
+    -> std::weak_ptr<const Window>
   {
     std::lock_guard _(mSyncMut);
     if (isWindowWatched(window)) {
@@ -360,11 +362,8 @@ namespace smv::details {
   template<EventType E, typename D>
   void enqueueNotification(D data)
   {
-    static std::mutex queueSync;
     static_assert(std::is_base_of_v<EventData, D> && D::type == E,
                   "Event type mismatch");
-    // grab the queue lock
-    std::lock_guard _ { queueSync };
 
     if (!isEventInteresting(E)) {
       return;
@@ -384,7 +383,7 @@ namespace smv::details {
       for (auto const &callback : cbs) {
         callback(data);
       }
-    }).join();
+    }).detach();
     logger->debug("After publishing {} event", E);
     std::this_thread::yield();
   }
