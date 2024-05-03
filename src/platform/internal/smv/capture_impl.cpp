@@ -90,11 +90,11 @@ namespace smv {
           }
           break;
         }
-        case ScreenshotFormat::JPG: {
+        case ScreenshotFormat::JPEG: {
           logger->info("Converting screenshot to JPG");
           auto jpgSource = ScreenshotSource::toJPG(source, config.jpegQuality);
           if (jpgSource) {
-            formattedSource = jpgSource;
+            formattedSource = std::move(jpgSource);
           } else {
             logger->error("Failed to convert screenshot to JPG");
           }
@@ -104,7 +104,7 @@ namespace smv {
           logger->info("Converting screenshot to PPM");
           auto ppmSource = ScreenshotSource::toPPM(source);
           if (ppmSource) {
-            formattedSource = ppmSource;
+            formattedSource = std::move(ppmSource);
           } else {
             logger->error("Failed to convert screenshot to PPM");
           }
@@ -114,7 +114,7 @@ namespace smv {
           logger->info("Converting screenshot to QOI");
           auto qoiSource = ScreenshotSource::toQoi(source);
           if (qoiSource) {
-            formattedSource = qoiSource;
+            formattedSource = std::move(qoiSource);
           } else {
             logger->error("Failed to convert screenshot to QOI");
           }

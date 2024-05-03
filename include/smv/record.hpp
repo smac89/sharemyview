@@ -16,8 +16,21 @@ constexpr auto DEFAULT_JPEG_QUALITY = 95U;
 namespace smv {
   struct CaptureSource
   {
+    /**
+     * @brief Reads a new range of bytes from the underlying source
+     * @details The returned range is valid until the next call to next
+     * therefore, the caller should copy the data if it needs to keep it
+     *
+     * @return std::optional<std::basic_string_view<uint8_t>>
+     */
     virtual auto inline next() noexcept
-      -> std::optional<std::basic_string_view<uint8_t>>         = 0;
+      -> std::optional<std::basic_string_view<uint8_t>> = 0;
+
+    /**
+     * @brief Returns any error that may have occurred
+     *
+     * @return std::optional<std::string>
+     */
     virtual auto error() noexcept -> std::optional<std::string> = 0;
     virtual ~CaptureSource()                                    = default;
   };
@@ -31,10 +44,10 @@ namespace smv {
   // used on the QT side, they are stored as int
   enum class ScreenshotFormat
   {
-    PNG = 0x1,
-    JPG = 0x2,
-    PPM = 0x4,
-    QOI = 0x8,
+    PNG  = 0x1,
+    JPEG = 0x2,
+    PPM  = 0x4,
+    QOI  = 0x8,
   };
 
   enum class AudioCaptureFormat

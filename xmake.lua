@@ -19,6 +19,7 @@ add_requires("qml-colors 1.0")
 if is_mode("debug") then
     -- https://doc.qt.io/qt-5/qtquick-debugging.html#debugging-module-imports
     -- set_runenv("QML_IMPORT_TRACE", "1")
+    -- add_runenvs("QT_DEBUG_PLUGINS", "1")
 end
 
 target("capture")
@@ -35,7 +36,7 @@ target("capture")
     add_files("src/capture.qrc")
     add_includedirs("include", {public = true})
     -- add_cxflags("-fstack-protector-strong", "-mshstk", {tools = {"g++", "clang"}})
-    add_runenvs("SPDLOG_LEVEL", "=info,smv::winclient=off,smv::autocancel=off")
+    add_runenvs("SPDLOG_LEVEL", "=info,smv::winclient=info,smv::autocancel=off")
     includes("src/platform")
     add_deps("winclient")
 

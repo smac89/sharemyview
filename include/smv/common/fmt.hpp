@@ -95,7 +95,7 @@ namespace fmt {
     {
       std::string_view name = "Unknown";
       switch (ssFmt) {
-        case smv::ScreenshotFormat::JPG:
+        case smv::ScreenshotFormat::JPEG:
           name = "Jpeg";
           break;
         case smv::ScreenshotFormat::PNG:

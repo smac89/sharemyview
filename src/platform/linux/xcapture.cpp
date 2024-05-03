@@ -1,6 +1,5 @@
 #include "xcapture.hpp"
 #include "smv/capture_impl.hpp"
-#include "smv/common/c_iter.hpp"
 #include "smv/log.hpp"
 #include "smv/record.hpp"
 #include "xtools.hpp"
@@ -47,6 +46,7 @@ namespace smv::details {
 
       for (size_t i = 0; i + MAX_BYTES_PER_PIXEL < size;
            i += MAX_BYTES_PER_PIXEL) {
+        // reverse the bytes so that they are in the order blue, green, red
         captureBytes.insert(captureBytes.end(),
                             std::reverse_iterator(&bytes[i + 3]),
                             std::reverse_iterator(&bytes[i]));

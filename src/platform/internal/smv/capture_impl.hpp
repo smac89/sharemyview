@@ -1,31 +1,23 @@
 #pragma once
 
-#include "smv/log.hpp"
 #include "smv/record.hpp"
 #include "smv/window.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 namespace smv::details {
-  using smv::log::logger;
-
   class ScreenshotSource
     : public CaptureSource
     , private Size
   {
   public:
-    ScreenshotSource()
-      : ScreenshotSource({}, { 0, 0 })
-    {
-    }
+    explicit ScreenshotSource();
 
     ScreenshotSource(std::variant<std::vector<uint8_t>, std::string> &&data,
-                     Size dimension)
-      : ScreenshotSource(std::move(data), dimension, 3, 1, 0)
-    {
-    }
+                     Size dimension);
 
     /**
      * @brief Construct a new Screenshot Source object
@@ -50,60 +42,32 @@ namespace smv::details {
                      Size    dimension,
                      uint8_t channelCount,
                      uint8_t bytesPerPixel,
-                     uint8_t scanlinePadding)
-      : Size(dimension)
-      , channelCount(channelCount)
-      , bytesPerPixel(bytesPerPixel)
-      , scanlinePaddingBytes(scanlinePadding)
-    {
-      if (std::holds_alternative<std::vector<uint8_t>>(data)) {
-        captureBytes = std::get<std::vector<uint8_t>>(std::move(data));
-      } else {
-        errMsg = std::get<std::string>(std::move(data));
-        logger->debug("Failed to capture screenshot: {}", errMsg.value());
-      }
-    }
+                     uint8_t scanlinePadding);
 
+    auto error() noexcept -> std::optional<std::string> override;
     auto next() noexcept
-      -> std::optional<std::basic_string_view<uint8_t>> override
-    {
-      if (readPos >= captureBytes.size()) {
-        return std::nullopt;
-      }
-      auto bytes =
-        std::basic_string_view(captureBytes.data(), captureBytes.size());
-      readPos = bytes.size();
-      return bytes;
-    }
+      -> std::optional<std::basic_string_view<uint8_t>> override;
+    virtual auto width() const noexcept -> uint32_t;
+    virtual auto height() const noexcept -> uint32_t;
+    virtual auto scanLine() const noexcept -> uint32_t;
+    virtual auto channels() const noexcept -> uint8_t;
+    virtual auto encoding() const noexcept -> std::optional<ScreenshotFormat>;
 
-    virtual auto width() const noexcept -> uint32_t { return w; }
-    virtual auto height() const noexcept -> uint32_t { return h; }
-    virtual auto scanLine() const noexcept -> uint32_t
-    {
-      return bytesPerPixel * channelCount * w + scanlinePaddingBytes;
-    }
-    virtual auto channels() const noexcept -> uint8_t { return channelCount; }
-    virtual auto encoding() const noexcept -> std::optional<ScreenshotFormat>
-    {
-      return format;
-    }
-
-    auto error() noexcept -> std::optional<std::string> override
-    {
-      return errMsg;
-    }
-
-    static auto toPNG(const ScreenshotSource &source)
+    static auto toPNG(ScreenshotSource &source)
       -> std::optional<ScreenshotSource>;
 
-    static auto toJPG(const ScreenshotSource &source, int quality)
+    static auto toJPG(ScreenshotSource &source, int quality)
       -> std::optional<ScreenshotSource>;
 
-    static auto toPPM(const ScreenshotSource &source)
+    static auto toPPM(ScreenshotSource &source)
       -> std::optional<ScreenshotSource>;
 
-    static auto toQoi(const ScreenshotSource & /*unused*/)
+    static auto toQoi(ScreenshotSource & /*unused*/)
       -> std::optional<ScreenshotSource>;
+
+    // allow writeFunc to access private members.
+    // See capture_screenshot_impl.cpp
+    friend void writeFunc(void *context, void *data, int size);
 
   private:
     uint8_t                         channelCount;
@@ -119,6 +83,15 @@ namespace smv::details {
   {};
   struct VideoCaptureSource: CaptureSource
   {};
+
+  /**
+   * @brief Used by stb_image for writing encoded images
+   *
+   * @param context the context supplied to the image writing function
+   * @param data the data to write
+   * @param size the number of bytes to write
+   */
+  void writeFunc(void *context, void *data, int size);
 
   auto createScreenshotCaptureSource(const ScreenshotConfig &)
     -> std::shared_ptr<ScreenshotSource>;

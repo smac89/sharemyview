@@ -5,6 +5,7 @@
 #include <type_traits>
 
 #include <QDateTime>
+#include <QIODevice>
 #include <QMetaEnum>
 #include <QObject>
 
@@ -42,9 +43,9 @@ class ScreenshotFormatClass
 public:
   enum class Value
   {
-    PNG = static_cast<FormatType>(smv::ScreenshotFormat::PNG),
-    JPG = static_cast<FormatType>(smv::ScreenshotFormat::JPG),
-    PPM = static_cast<FormatType>(smv::ScreenshotFormat::PPM),
+    PNG  = static_cast<FormatType>(smv::ScreenshotFormat::PNG),
+    JPEG = static_cast<FormatType>(smv::ScreenshotFormat::JPEG),
+    PPM  = static_cast<FormatType>(smv::ScreenshotFormat::PPM),
   };
   Q_ENUM(Value);
 
@@ -67,6 +68,6 @@ using ScreenshotFormat = ScreenshotFormatClass::Value;
  * @param name The name used to save the image
  * @return QString
  */
-auto saveScreenshot(const QImage  &image,
+auto saveScreenshot(QIODevice     &image,
                     const QString &location,
                     const QString &name) -> QString;

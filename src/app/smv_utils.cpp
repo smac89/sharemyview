@@ -1,13 +1,13 @@
 #include "smv_utils.hpp"
-#include "qobjectdefs.h"
 #include "smv/window.hpp"
 
 #include <filesystem>
 #include <regex>
 
 #include <QCoreApplication>
+#include <QDataStream>
 #include <QDir>
-#include <QImage>
+#include <QFile>
 #include <QMetaEnum>
 #include <QRect>
 #include <QStandardPaths>
@@ -44,15 +44,17 @@ const QStringList ScreenshotFormatClass::allFormats = []() {
   return formats;
 }();
 
-auto saveScreenshot(const QImage  &image,
+auto saveScreenshot(QIODevice     &image,
                     const QString &location,
                     const QString &name) -> QString
 {
   fs::create_directories(location.toStdString());
-
   const auto savePath = location + QDir::separator() + name;
 
-  if (!image.save(savePath)) {
+  if (QFile file(savePath); file.open(QIODevice::WriteOnly)) {
+    file.write(image.readAll());
+    file.close();
+  } else {
     // TODO: handle error
     spdlog::error("Failed to save screenshot: {}", savePath.toStdString());
   }

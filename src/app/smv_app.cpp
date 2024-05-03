@@ -8,14 +8,12 @@
 #include "smv_capture.hpp"
 #include "smv_utils.hpp"
 
-#include <QBuffer>
 #include <QDateTime>
 #include <QMetaEnum>
 #include <QObject>
 #include <QPropertyAnimation>
 #include <QStandardPaths>
 #include <QThread>
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 // QT Globals: https://doc.qt.io/qt-5/qtglobal.html
@@ -107,16 +105,7 @@ void AppCore::takeScreenshot(const QRect &rect, QObject *screenshotConfig)
     }
     const auto &extension = format;
     auto        imageIO   = CaptureSourceIO(&source);
-    QImage      image;
-    if (!image.load(&imageIO, extension.toLocal8Bit())) {
-      const auto msg =
-        fmt::format("Failed to load '{}' image", extension.toStdString());
-      emit mediaCaptureFailed(CaptureMode::Screenshot,
-                              QString::fromStdString(msg));
-      spdlog::error(msg);
-      return;
-    }
-    auto fileName = QString("%1%2.%3")
+    auto        fileName  = QString("%1%2.%3")
                       .arg(screenshotConfig->property("prefix").toString())
                       .arg(QDateTime::currentDateTime().toString(
                         screenshotConfig->property("suffix").toString()))
@@ -124,7 +113,7 @@ void AppCore::takeScreenshot(const QRect &rect, QObject *screenshotConfig)
 
     emit mediaCaptureSuccess(
       CaptureMode::Screenshot,
-      saveScreenshot(image,
+      saveScreenshot(imageIO,
                      screenshotConfig->property("saveLocation").toString(),
                      fileName));
   });
