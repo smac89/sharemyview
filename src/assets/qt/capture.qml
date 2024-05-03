@@ -130,9 +130,19 @@ ApplicationWindow {
         // width: initialWidth
         // height: initialHeight
         radius: 5
-        border.color: Qt.lighter(rootWindow.palette.window)
-        border.width: 5
+        border.color: palette.text
+        border.width: 4
         color: parent.color
+
+        CloseButton {
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.rightMargin: 20
+            anchors.topMargin: 30
+            width: 30
+            height: 30
+            visible: !windowFrame.drawerOpen
+        }
 
         ControlSettings {
             parent: windowFrame
