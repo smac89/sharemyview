@@ -41,6 +41,8 @@ class ScreenshotFormatClass
   using FormatType = std::underlying_type_t<smv::ScreenshotFormat>;
 
 public:
+  // Note: The order of these enums is the same order that will be presented in
+  // the UI
   enum class Value
   {
     PNG  = static_cast<FormatType>(smv::ScreenshotFormat::PNG),
@@ -66,7 +68,7 @@ using ScreenshotFormat = ScreenshotFormatClass::Value;
  * @param image The image to save
  * @param location The folder to save the image
  * @param name The name used to save the image
- * @return QString
+ * @return QString The final path to the saved image
  */
 auto saveScreenshot(QIODevice     &image,
                     const QString &location,

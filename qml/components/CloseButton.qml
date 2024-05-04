@@ -4,6 +4,7 @@ import QtQuick.Window 2.15
 
 RoundButton {
     id: root
+    anchors.margins: 5
 
     icon {
         source: "image://smv/icons/close.svg"
@@ -11,7 +12,11 @@ RoundButton {
         height: root.height - 5
         color: mouseArea.containsMouse ? "#d81616" : palette.buttonText
 
-        ColorAnimation on color {}
+        Behavior on color {
+            ColorAnimation {
+                duration: 150
+            }
+        }
     }
 
     MouseArea {

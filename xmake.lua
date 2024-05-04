@@ -33,7 +33,7 @@ target("capture")
     -- include .hpp files so that the moc compiler can do it's thing
     add_files("src/main.cpp", "src/app/**.cpp", "src/app/**.hpp")
     -- include .qrc files to that they are transpiled by rcc
-    add_files("src/capture.qrc")
+    add_files("qml/main.qrc")
     add_includedirs("include", {public = true})
     -- add_cxflags("-fstack-protector-strong", "-mshstk", {tools = {"g++", "clang"}})
     add_runenvs("SPDLOG_LEVEL", "=info,smv::winclient=info,smv::autocancel=off")

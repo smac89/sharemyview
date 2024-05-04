@@ -3,6 +3,7 @@
 // https://doc.qt.io/qt-5/qtqml-javascript-functionlist.html
 
 import QtQuick 2.15
+import QtGraphicalEffects 1.15
 import QtQuick.Controls 2.15
 import QtQuick.Shapes 1.15
 import smv.app.CaptureMode 1.0
@@ -10,8 +11,8 @@ import smv.app.ScreenshotFormat 1.0
 import smv.app.AppCore 1.0
 import smv.app.AppData 1.0
 import easy.colors 1.0
+import "qrc:/components/settings"
 import "qrc:/components"
-import "qrc:/settings"
 
 ApplicationWindow {
     // smvApp.qquickWindowReady(rootWindow);
@@ -24,6 +25,10 @@ ApplicationWindow {
     property int targetHeight: initialHeight
     property int targetPosX: initialX
     property int targetPosY: initialY
+
+    Component.onDestruction: {
+        console.log("Window destroyed");
+    }
 
     width: initialWidth
     height: initialHeight
@@ -125,6 +130,7 @@ ApplicationWindow {
 
         property int mode
         property bool drawerOpen: false
+        property bool modeSettingsOpen: false
         property bool resizing: false
 
         // width: initialWidth
@@ -141,7 +147,50 @@ ApplicationWindow {
             anchors.topMargin: 30
             width: 30
             height: 30
-            visible: !windowFrame.drawerOpen
+            visible: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
+        }
+
+        ModeSettings {
+            anchors.centerIn: parent
+            width: recordingControls.controlsWidth + background.anchors.rightMargin - 50
+            height: {
+                // https://doc.qt.io/qt-5/qtqml-syntax-propertybinding.html
+                const h = parent.height - recordingControls.height * 2;
+                // TODO: control height better
+                return h > 400 ? 400 : h;
+            }
+            visible: windowFrame.modeSettingsOpen
+            mode: parent.mode
+            onClosed: {
+                parent.modeSettingsOpen = false;
+            }
+        }
+
+        AutoSizeRowLayout {
+            anchors.centerIn: parent
+            spacing: 0
+            Rectangle {
+                width: 150
+                height: 50
+                radius: 5
+                color: "transparent"
+                border.color: palette.text
+                border.width: 2
+
+                ModeSelect {
+                    anchors.fill: parent
+                    onModeChanged: {
+                        windowFrame.mode = mode;
+                    }
+                }
+            }
+
+            SettingsButton {
+                buttonColor: $.invert(windowFrame.color)
+                onClicked: {
+                    windowFrame.modeSettingsOpen = true;
+                }
+            }
         }
 
         ControlSettings {
@@ -172,6 +221,7 @@ ApplicationWindow {
             id: recordingControls
             width: parent.width - 20
             height: 50
+            visible: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.margins: 10
@@ -182,45 +232,6 @@ ApplicationWindow {
             }
             onOpenRecordingSettings: open => {
                 parent.drawerOpen = open;
-            }
-        }
-
-        Rectangle {
-            width: 150
-            height: 50
-            anchors.centerIn: parent
-            radius: 5
-            color: "transparent"
-            border.color: palette.text
-            border.width: 2
-
-            ModeSelect {
-                anchors.fill: parent
-                onModeChanged: {
-                    windowFrame.mode = mode;
-                }
-            }
-        }
-
-        DragHandler {
-            id: dragHandler
-            target: null
-            enabled: !windowFrame.drawerOpen
-            acceptedButtons: Qt.LeftButton
-            dragThreshold: 10
-            acceptedDevices: PointerDevice.GenericPointer
-            // grabPermissions: PointerHandler.CanTakeOverFromItems | PointerHandler.CanTakeOverFromHandlersOfDifferentType | PointerHandler.ApprovesTakeOverByItems
-            grabPermissions: PointerHandler.TakeOverForbidden
-            // TODO: Fix bug with after resizing, cannot start dragging
-            onActiveChanged: {
-                // if this seems confusing where we get "active" from,
-                // it's actually in the name of this handler. It's a handler for when the
-                // active attribute of this component changes
-                if (active) {
-                    console.log("Start system move");
-                    // https://codereview.qt-project.org/c/qt/qtbase/+/219277
-                    rootWindow.startSystemMove();
-                }
             }
         }
 
@@ -268,25 +279,60 @@ ApplicationWindow {
             anchors.bottom: parent.bottom
         }
 
+        // MouseArea {
+        //     anchors.fill: parent
+        //     acceptedButtons: Qt.LeftButton
+        //     enabled: pointer.pressed
+        //     propagateComposedEvents: true
+
+        //     onPressed: {
+        //         mouse.accepted = false;
+        //     }
+
+        //     onReleased: {
+        //         if (pointer.pressed) {
+        //             console.log("End system move");
+        //         }
+        //     }
+        // }
+
+        TapHandler {
+            id: pointer
+            dragThreshold: 5
+            gesturePolicy: TapHandler.DragThreshold
+            enabled: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
+            // grabPermissions: PointerHandler.TakeOverForbidden
+            onGrabChanged: (transition, pt) => {
+                console.log("Grab changed", transition, pt.state);
+                if (transition === EventPoint.GrabPassive) {
+                    console.log("Start system move");
+                    // https://codereview.qt-project.org/c/qt/qtbase/+/219277
+                    rootWindow.startSystemMove();
+                }
+            }
+        }
+
         Behavior on color {
-            ColorAnimation {}
+            ColorAnimation {
+                duration: 150
+            }
         }
 
         Component.onCompleted: {
             color = Qt.binding(function () {
-                if (drawerOpen) {
+                if (drawerOpen || modeSettingsOpen) {
                     return rgba("#1a1918", 0.8);
                 }
-                if (resizing || dragHandler.active) {
+                if (resizing || pointer.active) {
                     return rgba("#1a1918", 0.4);
                 }
                 switch (mode) {
                 case CaptureMode.Screenshot:
-                    return rgba("#e3c61e", 0.8);
+                    return rgba("#058e0e", 0.7);
                 case CaptureMode.Record:
-                    return rgba("#c5066f", 0.8);
+                    return rgba("#c5066f", 0.7);
                 case CaptureMode.Stream:
-                    return rgba("#3339ee", 0.8);
+                    return rgba("#3339ee", 0.7);
                 default:
                     return "transparent";
                 }

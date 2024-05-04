@@ -1,0 +1,9 @@
+Internal Debugable components/Debugable.qml
+
+ResizeGrip components/ResizeGrip.qml
+CloseButton components/CloseButton.qml
+SettingsButton components/SettingsButton.qml
+AutoSizeRowLayout components/AutoSizeRowLayout.qml
+RecordingControls components/RecordingControls.qml
+ModeSelect components/ModeSelect.qml
+ModeSettings settings/components/ModeSettings.qml

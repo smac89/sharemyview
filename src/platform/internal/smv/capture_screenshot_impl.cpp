@@ -151,8 +151,7 @@ namespace smv::details {
 
     std::stringstream oss;
     oss << "P6\n"
-        << source.width() << "\n"
-        << source.height() << "\n255\n"
+        << source.width() << " " << source.height() << "\n255\n"
         << source.captureBytes.data();
     std::vector<uint8_t> captureBytes(std::move(source.captureBytes));
     captureBytes.resize(oss.flush().tellp());
@@ -167,7 +166,7 @@ namespace smv::details {
   auto ScreenshotSource::toQoi(ScreenshotSource & /*unused*/)
     -> std::optional<ScreenshotSource>
   {
-    // TODO
+    // TODO QOI conversion. See https://qoiformat.org/
     logger->warn("QOI conversion not yet implemented");
     return std::nullopt;
   }

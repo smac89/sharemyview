@@ -43,7 +43,6 @@ Item {
 
             Loader {
                 id: screenshotLoader
-                enabled: !root.drawerOpen
                 anchors.centerIn: parent
                 sourceComponent: screenshotControls
                 active: mode === CaptureMode.Screenshot
@@ -58,7 +57,6 @@ Item {
 
             Loader {
                 anchors.centerIn: parent
-                enabled: !root.drawerOpen
                 sourceComponent: recordControls
                 active: mode === CaptureMode.Record
                 onLoaded: () => {
@@ -68,7 +66,6 @@ Item {
 
             Loader {
                 anchors.centerIn: parent
-                enabled: !root.drawerOpen
                 sourceComponent: streamControls
                 active: mode === CaptureMode.Stream
                 onLoaded: () => {
@@ -156,6 +153,7 @@ Item {
                 samples: 17
                 color: Qt.darker(palette.button, 1.5)
                 source: button
+                cached: true
             }
 
             MouseArea {
@@ -242,6 +240,7 @@ Item {
             samples: 17
             color: Qt.darker(palette.button)
             source: button
+            cached: true
 
             MouseArea {
                 anchors.fill: parent

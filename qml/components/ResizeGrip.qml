@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Shapes 1.15
 import easy.colors 1.0
+import "qrc:/components"
 
 Item {
     id: root
@@ -29,7 +30,7 @@ Item {
 
     required property int position
     // https://rgbcolorpicker.com/0-1
-    property color gripColor: rgba("#4a7c15", 0.8)
+    property color gripColor: rgba("#0d1406", 0.8)
 
     QtObject {
         id: priv
@@ -64,11 +65,10 @@ Item {
     }
 
     Rectangle {
+        id: handle
         anchors.fill: parent
         color: "transparent"
-        visible: mouseArea.containsPress
-
-        // border.color: "white"
+        visible: hover.hovered
 
         Shape {
             anchors.fill: parent
@@ -95,25 +95,20 @@ Item {
             }
         }
     }
-
-    MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-        // acceptedButtons: Qt.LeftButton
-        hoverEnabled: true
-        // propagateComposedEvents: false
+    HoverHandler {
+        id: hover
+        acceptedDevices: PointerDevice.Mouse
         cursorShape: priv.cursorType
-        onPressed: mouse => {
-            console.log("Pressed");
-            root.dragStarted(priv.edges);
-        }
-        onReleased: mouse => {
-            console.log("Released");
-            root.dragEnded();
-        }
-        onExited: mouse => {
-            console.log("Released");
-            root.dragEnded();
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        onPressedChanged: {
+            if (pressed) {
+                root.dragStarted(priv.edges);
+            } else {
+                root.dragEnded();
+            }
         }
     }
 }

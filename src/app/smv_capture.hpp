@@ -50,6 +50,7 @@ protected:
 
   auto writeData(const char * /*data*/, qint64 /*maxSize*/) -> qint64 override
   {
+    // Writes are not supported.
     return -1;
   }
 

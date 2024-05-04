@@ -15,10 +15,10 @@ Frame {
 
     background: Rectangle {
         border.width: 2
+        border.color: palette.text
         radius: 5
-        anchors.margins: 5
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
+        // anchors.leftMargin: 10
+        // anchors.rightMargin: 10
         color: "transparent"
     }
 
@@ -39,12 +39,11 @@ Frame {
         Debugable {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            Layout.bottomMargin: root.height > 400 ? 10 : 5
+            Layout.bottomMargin: 5
             AutoSizeColumnLayout {
                 anchors.topMargin: 5
                 anchors.bottomMargin: 5
                 Label {
-                    id: title
                     text: "Screenshot Settings"
                     Layout.alignment: Qt.AlignHCenter
                     font.letterSpacing: -1
@@ -52,7 +51,6 @@ Frame {
                     font.pointSize: 20
                 }
                 Rectangle {
-                    id: titleDivider
                     Layout.fillWidth: true
                     color: palette.buttonText
                     width: parent.width
@@ -66,42 +64,50 @@ Frame {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
             AutoSizeColumnLayout {
+                anchors.fill: parent
                 spacing: 10
                 SettingTitle {
                     id: naming
                     text: "Name format"
                 }
                 AutoSizeRowLayout {
-                    id: nameOpts
                     spacing: 4
+                    Layout.fillWidth: true
                     Label {
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
                         text: "Prefix"
+                        Layout.fillWidth: true
                     }
                     TextField {
                         id: prefix
                         Layout.fillWidth: true
+                        cursorPosition: 0
+                        selectByMouse: true
                         text: AppData.screenshot.prefix
                         placeholderText: "Screenshot_"
                         onEditingFinished: {
                             AppData.screenshot.prefix = prefix.text;
                         }
                     }
+                }
+                AutoSizeRowLayout {
+                    spacing: 4
+                    Layout.fillWidth: true
                     Label {
                         Layout.fillWidth: true
-                        elide: Text.ElideRight
                         text: "Suffix"
                     }
+                    // TODO: find fix for textfield not shrinking in width at smaller sizes
                     TextField {
                         id: suffix
                         Layout.fillWidth: true
+                        cursorPosition: 0
+                        selectByMouse: true
                         text: AppData.screenshot.suffix
                         placeholderText: "yyyy-MMM-dd_hh-mm-ss-zzz"
                         onEditingFinished: {
-                            // TODO check if text is valid before
+                            // TODO check if format is valid before accepting
                             // new Date(Date.now()).toLocaleString(Qt.locale(), suffix_)
-                            AppData.screenshot.suffix = suffix.text;
+                            AppData.screenshot.suffix = text;
                         }
                     }
                 }
@@ -188,41 +194,10 @@ Frame {
     }
 
     component SettingTitle: Label {
-        font.bold: true
+        font.weight: Font.DemiBold
         font.pointSize: 15
         font.letterSpacing: -1
         font.capitalization: Font.Capitalize
-    }
-
-    component AutoSizeRowLayout: RowLayout {
-        property bool autoWidth: true
-        property bool autoHeight: true
-
-        spacing: 10
-        Component.onCompleted: {
-            // TODO: Why does this syntax work?? 🤯
-            if (autoWidth) {
-                implicitWidth: childrenRect.width + anchors.leftMargin + anchors.rightMargin;
-            }
-            if (autoHeight) {
-                implicitHeight: childrenRect.height + anchors.topMargin + anchors.bottomMargin;
-            }
-        }
-    }
-
-    component AutoSizeColumnLayout: ColumnLayout {
-        property bool autoWidth: true
-        property bool autoHeight: true
-
-        spacing: 10
-        Component.onCompleted: {
-            if (autoWidth) {
-                implicitWidth: childrenRect.width + anchors.leftMargin + anchors.rightMargin;
-            }
-            if (autoHeight) {
-                implicitHeight: childrenRect.height + anchors.topMargin + anchors.bottomMargin;
-            }
-        }
     }
 
     SystemPalette {

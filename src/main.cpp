@@ -53,7 +53,7 @@ auto main(int argc, char *argv[]) -> int
   qRegisterMetaType<CaptureMode>("CaptureMode");
   qRegisterMetaType<ScreenshotFormat>("ScreenshotFormat");
 
-  const QUrl            mainUrl("qrc:/qml/capture.qml");
+  const QUrl            mainUrl("qrc:/main.qml");
   QQmlApplicationEngine engine;
 
   const QMetaObject::Connection connection = QObject::connect(
@@ -85,10 +85,9 @@ auto main(int argc, char *argv[]) -> int
   });
 
   AppCore::registerInstance();
-  auto imageProvider = std::make_shared<AppImageProvider>();
-  QQmlApplicationEngine::setObjectOwnership(imageProvider.get(),
-                                            QQmlEngine::CppOwnership);
-  engine.addImageProvider("smv", imageProvider.get());
+  // NOLINTBEGIN(cppcoreguidelines-owning-memory)
+  engine.addImageProvider("smv", new AppImageProvider);
+  // NOLINTEND(cppcoreguidelines-owning-memory)
   engine.load(mainUrl);
   return QGuiApplication::exec();
 }
