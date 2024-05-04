@@ -1,39 +1,37 @@
-// https://doc.qt.io/qtcreator/creator-quick-ui-forms.html
-// https://doc.qt.io/qt-5/qml-qtqml-qt.html
-// https://doc.qt.io/qt-5/qtqml-javascript-functionlist.html
-
 import QtQuick 2.15
-import QtGraphicalEffects 1.15
 import QtQuick.Controls 2.15
 import smv.app.CaptureMode 1.0
-import smv.app.ScreenshotFormat 1.0
 import smv.app.AppCore 1.0
 import smv.app.AppData 1.0
 import easy.colors 1.0
 import "qrc:/components"
 import "qrc:/components/settings"
 
-ApplicationWindow {
-    // smvApp.qquickWindowReady(rootWindow);
-    id: rootWindow
-    readonly property int initialWidth: 1024
-    readonly property int initialHeight: 768
-    readonly property int initialX: rootWindow.x
-    readonly property int initialY: rootWindow.y
-    property int targetWidth: initialWidth
-    property int targetHeight: initialHeight
-    property int targetPosX: initialX
-    property int targetPosY: initialY
+// https://doc.qt.io/qtcreator/creator-quick-ui-forms.html
+// https://doc.qt.io/qt-5/qml-qtqml-qt.html
+// https://doc.qt.io/qt-5/qtqml-javascript-functionlist.html
 
-    width: initialWidth
-    height: initialHeight
-    minimumWidth: 480
-    minimumHeight: minimumWidth
-    visible: true
+ApplicationWindow {
+    id: rootWindow
     title: "Share My View"
     color: "transparent"
+    minimumWidth: 480
+    minimumHeight: minimumWidth
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowSystemMenuHint
+    visible: true
     background: windowFrame
+
+    WindowTracking {
+        onTargetResized: (width, height) => {
+            rootWindow.width = width;
+            rootWindow.height = height;
+        }
+
+        onTargetMoved: (x, y) => {
+            rootWindow.x = x;
+            rootWindow.y = y;
+        }
+    }
 
     MediaCaptureHandler {
         id: mediaCapture
@@ -49,76 +47,6 @@ ApplicationWindow {
         }
     }
 
-    SequentialAnimation {
-        id: reparentAnimation
-
-        onFinished: {
-            console.log("Reparent finished");
-        }
-
-        SmoothedAnimation {
-            target: rootWindow
-            property: "opacity"
-            duration: 300
-            to: 0
-        }
-
-        ParallelAnimation {
-            PropertyAction {
-                target: rootWindow
-                property: "x"
-                value: targetPosX
-            }
-
-            PropertyAction {
-                target: rootWindow
-                property: "y"
-                value: targetPosY
-            }
-        }
-
-        SmoothedAnimation {
-            target: rootWindow
-            property: "opacity"
-            duration: 500
-            to: 1
-        }
-    }
-
-    Connections {
-        // reparentAnimation.restart()
-        // animateSizePos.restart()
-        // rootWindow.width = sz.width
-        // rootWindow.height = sz.height
-        // animateSizePos.restart()
-        // reparentAnimation.restart()
-        // rootWindow.width = sz.width
-        // rootWindow.height = sz.height
-        // animateSizePos.restart()
-
-        // https://doc.qt.io/qt-5/qtqml-cppintegration-interactqmlfromcpp.html
-        function onTargetWindowMoved(pos: point) {
-            console.log("Target moved:", pos);
-            // rootWindow.x = pos.x
-            // rootWindow.y = pos.y
-            targetPosX = pos.x;
-            targetPosY = pos.y;
-        }
-
-        function onTargetWindowResized(sz: size) {
-            console.log("Target resized:", sz);
-        }
-
-        function onTargetWindowChanged(sz: size, pos: point) {
-            console.log("Target changed:", sz, pos);
-            // rootWindow.x = pos.x
-            // rootWindow.y = pos.y
-            targetPosX = pos.x;
-            targetPosY = pos.y;
-        }
-        target: AppCore
-    }
-
     Rectangle {
         id: windowFrame
 
@@ -127,8 +55,6 @@ ApplicationWindow {
         property bool modeSettingsOpen: false
         property bool resizing: false
 
-        // width: initialWidth
-        // height: initialHeight
         radius: 5
         border.color: palette.text
         border.width: 4
@@ -180,7 +106,7 @@ ApplicationWindow {
             }
 
             SettingsButton {
-                buttonColor: $.invert(windowFrame.color)
+                buttonColor: palette.base
                 onClicked: {
                     windowFrame.modeSettingsOpen = true;
                 }
@@ -273,32 +199,14 @@ ApplicationWindow {
             anchors.bottom: parent.bottom
         }
 
-        // MouseArea {
-        //     anchors.fill: parent
-        //     acceptedButtons: Qt.LeftButton
-        //     enabled: pointer.pressed
-        //     propagateComposedEvents: true
-
-        //     onPressed: {
-        //         mouse.accepted = false;
-        //     }
-
-        //     onReleased: {
-        //         if (pointer.pressed) {
-        //             console.log("End system move");
-        //         }
-        //     }
-        // }
-
-        TapHandler {
+        DragHandler {
             id: pointer
-            dragThreshold: 5
-            gesturePolicy: TapHandler.DragThreshold
+            target: null
             enabled: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
-            // grabPermissions: PointerHandler.TakeOverForbidden
             onGrabChanged: (transition, pt) => {
-                console.log("Grab changed", transition, pt.state);
-                if (transition === EventPoint.GrabPassive) {
+                // console.log("Grab changed", transition, pt.state);
+                // console.log(EventPoint.Updated);
+                if (transition === EventPoint.GrabExclusive && pt.state === EventPoint.Updated) {
                     console.log("Start system move");
                     // https://codereview.qt-project.org/c/qt/qtbase/+/219277
                     rootWindow.startSystemMove();

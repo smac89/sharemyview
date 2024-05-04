@@ -84,11 +84,15 @@ auto main(int argc, char *argv[]) -> int
     }
   });
 
-  AppCore::registerInstance();
+  auto typeId = AppCore::registerInstance();
   // NOLINTBEGIN(cppcoreguidelines-owning-memory)
   engine.addImageProvider("smv", new AppImageProvider);
   // NOLINTEND(cppcoreguidelines-owning-memory)
   engine.load(mainUrl);
+  if (auto *window = dynamic_cast<QWindow *>(engine.rootObjects().first())) {
+    auto *appCore = engine.singletonInstance<AppCore *>(typeId);
+    appCore->setQmlWindow(window);
+  }
   return QGuiApplication::exec();
 }
 

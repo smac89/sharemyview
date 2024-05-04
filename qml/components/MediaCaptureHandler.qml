@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Window 2.15
+import QtQuick.Controls 2.15
 import smv.app.CaptureMode 1.0
 import smv.app.AppCore 1.0
 
@@ -8,7 +8,7 @@ Item {
     required property var screenshotCallback
     required property var recordingCallback
     required property var streamCallback
-    readonly property Window target: Window.window
+    readonly property ApplicationWindow target: ApplicationWindow.window
 
     signal mediaCaptureRequested(int mode)
     signal mediaCaptureStarted(int mode)

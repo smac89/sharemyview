@@ -1,5 +1,4 @@
 #include "smv_app.hpp"
-#include "qqmllist.h"
 #include "smv/common/autocancel.hpp"
 #include "smv/events.hpp"
 #include "smv/record.hpp"
@@ -12,6 +11,7 @@
 #include <QMetaEnum>
 #include <QObject>
 #include <QPropertyAnimation>
+#include <QQmlApplicationEngine>
 #include <QStandardPaths>
 #include <QThread>
 #include <spdlog/spdlog.h>
@@ -65,6 +65,11 @@ void AppCore::operator()(const smv::EventDataMouseEnter &data)
       spdlog::info("Mouse enter {{x: {}, y: {}}}", data.x, data.y);
     }
   }
+}
+
+void AppCore::setQmlWindow(QWindow *window)
+{
+  mQmlWindow = window;
 }
 
 void AppCore::takeScreenshot(const QRect &rect, QObject *screenshotConfig)
@@ -140,17 +145,6 @@ void AppCore::updateRecordRegion(const QSize &size)
 void AppCore::updateRecordRegion(const QSize &size, const QPoint &point)
 {
   mRecordRegion = QRect(point, size);
-}
-
-// void App::qquickWindowReady(QQuickWindow *window)
-// {
-//   mRecordRegion = window->geometry();
-//   mGeomAnimation.qquickWindowReady(window);
-// }
-
-auto AppCore::mode() const -> AppCore::Mode
-{
-  return mMode;
 }
 
 auto AppCore::targetWindow() const -> std::shared_ptr<smv::Window>

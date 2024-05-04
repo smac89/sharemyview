@@ -23,6 +23,11 @@ AppData::AppData(QObject *parent)
   spdlog::info("AppData created");
 }
 
+auto AppData::screenshot() -> ScreenshotsConfig *
+{
+  return mScreenshot.data();
+}
+
 ScreenshotsConfig::ScreenshotsConfig(QObject *parent)
   : QObject(parent)
 {
@@ -136,7 +141,9 @@ auto ScreenshotsConfig::formatEnum() const -> ScreenshotFormat
 auto AppData::create([[maybe_unused]] QQmlEngine *engine,
                      [[maybe_unused]] QJSEngine  *scriptEngine) -> QObject *
 {
+  // NOLINTBEGIN(cppcoreguidelines-owning-memory)
   return new AppData;
+  // NOLINTEND(cppcoreguidelines-owning-memory)
 }
 
 const int AppData::typeId = AppData::registerType();

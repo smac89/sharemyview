@@ -28,7 +28,14 @@ namespace {
 namespace smv {
   using smv::log::logger;
 
+  /**
+   * @brief Initialize the platform-specific backend
+   */
   void init() noexcept;
+
+  /**
+   * @brief Deinitialize the platform-specific backend
+   */
   void deinit() noexcept;
 
   /**

@@ -21,8 +21,10 @@ class AppCore: public QObject
   Q_PROPERTY(Mode mode MEMBER mMode NOTIFY modeChanged)
   Q_PROPERTY(std::shared_ptr<smv::Window> targetWindow READ targetWindow WRITE
                setTargetWindow NOTIFY targetWindowChanged)
-public:
   explicit AppCore(QObject *parent = nullptr);
+
+public:
+  static auto create(QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject *;
 
   enum class Mode
   {
@@ -31,11 +33,10 @@ public:
   };
   Q_ENUM(Mode)
 
-  auto mode() const -> Mode;
   auto targetWindow() const -> std::shared_ptr<smv::Window>;
+  void setQmlWindow(QWindow *window);
   void setTargetWindow(const std::shared_ptr<smv::Window> &);
   void operator()(const smv::EventDataMouseEnter &data);
-
   ~AppCore() override;
 
 signals:
@@ -63,21 +64,22 @@ private:
   QRect                        mRecordRegion;
   Mode                         mMode = Mode::Window;
   smv::Cancel                  mCancel;
+  QWindow                     *mQmlWindow = nullptr;
   std::shared_mutex            mMutex;
   std::weak_ptr<smv::Window>   mActiveWindow;
   std::shared_ptr<smv::Window> mTargetWindow;
 
 public:
   static constexpr auto               QML_NAME = "AppCore";
+  static constexpr auto               QML_URI  = "smv.app.AppCore";
   [[maybe_unused]] inline static auto registerInstance() -> int
   {
     static AppCore appCore;
     // register the app core as a singleton. see:
     // https://doc.qt.io/qt-5/qtqml-cppintegration-overview.html#choosing-the-correct-integration-method-between-c-and-qml
     auto typeId =
-      qmlRegisterSingletonInstance("smv.app.AppCore", 1, 0, QML_NAME, &appCore);
-    spdlog::info(
-      "AppCore registered. Name={}, URL={}", QML_NAME, "smv.app.AppCore");
+      qmlRegisterSingletonInstance(QML_URI, 1, 0, QML_NAME, &appCore);
+    spdlog::info("AppCore registered. Name={}, URL={}", QML_NAME, QML_URI);
     return typeId;
   }
 };

@@ -14,6 +14,7 @@
     <file alias="Debugable.qml">components/Debugable.qml</file>
     <file alias="ResizeGrip.qml">components/ResizeGrip.qml</file>
     <file alias="RecordingControls.qml">components/RecordingControls.qml</file>
+    <file alias="WindowTracking.qml">components/WindowTracking.qml</file>
 </qresource>
 <qresource prefix="/components/settings">
     <file alias="ControlSettings.qml">components/settings/ControlSettings.qml</file>

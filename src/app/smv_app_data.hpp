@@ -1,10 +1,12 @@
 #pragma once
 
 #include "smv_utils.hpp"
-#include "spdlog/fmt/bundled/compile.h"
 
+#include <QCursor>
+#include <QGuiApplication>
 #include <QObject>
 #include <QQmlEngine>
+#include <QScreen>
 #include <QSharedMemory>
 #include <QString>
 #include <QStringList>
@@ -20,24 +22,27 @@ class AppData: public QObject
 {
   Q_OBJECT
   Q_PROPERTY(ScreenshotsConfig *screenshot READ screenshot CONSTANT)
+  Q_PROPERTY(QScreen *cursorScreen READ cursorScreen)
 
   explicit AppData(QObject *parent = nullptr);
-
-public:
-  ~AppData() override = default;
-
-  auto        screenshot() -> ScreenshotsConfig        *{ return mScreenshot.data(); }
-  static auto create(QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject *;
 
 private:
   const QSharedPointer<ScreenshotsConfig> mScreenshot;
 
 public:
+  ~AppData() override = default;
+
+  auto        screenshot() -> ScreenshotsConfig *;
+  static auto create(QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject *;
   static constexpr auto QML_NAME = "AppData";
   static constexpr auto QML_URI  = "smv.app.AppData";
   // https://doc.qt.io/qt-5/qqmlengine.html#singletonInstance
   // https://forum.qt.io/topic/70370/how-should-i-get-the-qml-application-engine
   static const int   typeId;
+  inline static auto cursorScreen() -> QScreen *
+  {
+    return QGuiApplication::screenAt(QCursor::pos());
+  }
   inline static auto registerType()
   {
     auto typeId = qmlRegisterSingletonType<AppData>(

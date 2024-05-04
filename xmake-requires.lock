@@ -290,14 +290,6 @@
             },
             version = "2.1.1"
         },
-        ["python#31fecfc4"] = {
-            repo = {
-                branch = "master",
-                commit = "edb4e3ce197bac59aa5c3a6980851ed9ff4a861e",
-                url = "https://gitlab.com/tboox/xmake-repo.git"
-            },
-            version = "3.12.3"
-        },
         ["python 3.x#31fecfc4"] = {
             repo = {
                 branch = "master",
