@@ -19,7 +19,6 @@
 // QT Globals: https://doc.qt.io/qt-5/qtglobal.html
 AppCore::AppCore(QObject *parent)
   : QObject(parent)
-  , mGeomAnimation(this)
   , mCancel(smv::listen<smv::EventType::MouseEnter>(
       [this](const smv::EventDataMouseEnter &data) {
   (*this)(data);

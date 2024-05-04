@@ -1,7 +1,5 @@
 #pragma once
-#include "mainwindow_geom_proxy.hpp"
 #include "smv/events.hpp"
-#include "smv_app_data.hpp"
 #include "smv_utils.hpp"
 
 #include <memory>
@@ -15,9 +13,6 @@
 #include <QRect>
 #include <QVariant>
 #include <spdlog/spdlog.h>
-
-// TODO: remove?
-Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
 
 class AppCore: public QObject
 {
@@ -66,7 +61,6 @@ public slots:
 
 private:
   QRect                        mRecordRegion;
-  MainWindowGeomAnim           mGeomAnimation;
   Mode                         mMode = Mode::Window;
   smv::Cancel                  mCancel;
   std::shared_mutex            mMutex;

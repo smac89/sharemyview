@@ -7,6 +7,10 @@
 #include <QQuickWindow>
 #include <QRect>
 
+/**
+ * @brief This is a qobject that we used to animate the movement
+ * of the QML window.
+ */
 class MainWindowGeomAnim: public QObject
 {
   Q_OBJECT
@@ -30,9 +34,12 @@ public:
     mTargetWindow->setWidth(size.width());
     mTargetWindow->setHeight(size.height());
   }
-  QRect  geometry() const { return mTargetWindow->geometry(); }
-  QPoint position() const { return mTargetWindow->geometry().topLeft(); }
-  QSize  size() const { return mTargetWindow->geometry().size(); }
+  auto geometry() const -> QRect { return mTargetWindow->geometry(); }
+  auto position() const -> QPoint
+  {
+    return mTargetWindow->geometry().topLeft();
+  }
+  auto size() const -> QSize { return mTargetWindow->geometry().size(); }
 
   void animateProperty(const QRect &rect)
   {
