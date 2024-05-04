@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Window 2.15
 import smv.app.CaptureMode 1.0
 import smv.app.AppCore 1.0
 
@@ -7,13 +8,25 @@ Item {
     required property var screenshotCallback
     required property var recordingCallback
     required property var streamCallback
-    required property QtObject target
+    readonly property Window target: Window.window
 
     signal mediaCaptureRequested(int mode)
     signal mediaCaptureStarted(int mode)
     signal mediaCaptureFailed(int mode, string error)
     signal mediaCaptureSuccess(int mode, variant result)
     signal mediaCaptureRequestEnded(int mode)
+
+    QtObject {
+        // TODO: Can we find a better way?
+        // used to keep track of the global position of the target window
+        property point targetPos: root.target.background.mapToGlobal(0, 0)
+
+        Component.onCompleted: {
+            // Keeps track of the windows global position as it seems to forget after becoming invisible
+            root.target.x = Qt.binding(() => targetPos.x);
+            root.target.y = Qt.binding(() => targetPos.y);
+        }
+    }
 
     states: [
         State {
@@ -155,17 +168,4 @@ Item {
         property: "visible"
         duration: 0
     }
-
-    // Component {
-    //     id: transitionMedia
-    //     // can be used in a signal handler!
-    //     // https://doc.qt.io/qt-5/qml-qtquick-propertyanimation.html#details
-    //     PropertyAnimation {
-    //         required property var callback
-    //         property: "opacity"
-    //         target: root.target
-    //         easing.type: Easing.InOutQuad
-    //         onFinished: callback()
-    //     }
-    // }
 }

@@ -5,14 +5,13 @@
 import QtQuick 2.15
 import QtGraphicalEffects 1.15
 import QtQuick.Controls 2.15
-import QtQuick.Shapes 1.15
 import smv.app.CaptureMode 1.0
 import smv.app.ScreenshotFormat 1.0
 import smv.app.AppCore 1.0
 import smv.app.AppData 1.0
 import easy.colors 1.0
-import "qrc:/components/settings"
 import "qrc:/components"
+import "qrc:/components/settings"
 
 ApplicationWindow {
     // smvApp.qquickWindowReady(rootWindow);
@@ -26,10 +25,6 @@ ApplicationWindow {
     property int targetPosX: initialX
     property int targetPosY: initialY
 
-    Component.onDestruction: {
-        console.log("Window destroyed");
-    }
-
     width: initialWidth
     height: initialHeight
     minimumWidth: 480
@@ -42,7 +37,6 @@ ApplicationWindow {
 
     MediaCaptureHandler {
         id: mediaCapture
-        target: rootWindow
         screenshotCallback: () => {
             AppCore.takeScreenshot(Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height), AppData.screenshot);
         }
