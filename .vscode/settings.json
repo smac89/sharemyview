@@ -145,5 +145,4 @@
     "lldb.showDisassembly": "auto",
     "lldb.dereferencePointers": true,
     "lldb.consoleMode": "evaluate",
-    "qmlFormat.command": "/usr/lib/qt6/bin/qmlformat"
 }
