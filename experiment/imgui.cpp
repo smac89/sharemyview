@@ -1,4 +1,4 @@
-#include "smv/winclient.hpp"
+#include "smv/client.hpp"
 #include <GLFW/glfw3.h>
 #define GLFW_NATIVE_INCLUDE_NONE
 #ifdef __linux__
@@ -14,7 +14,7 @@
 
 static void sigHandler(int);
 
-int main()
+auto main() -> int
 {
   spdlog::cfg::load_env_levels();
   std::signal(SIGINT, sigHandler);

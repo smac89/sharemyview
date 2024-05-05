@@ -1,3 +1,4 @@
+#include "capture_screenshot.hpp"
 #include "capture_impl.hpp"
 #include "smv/common/c_iter.hpp"
 #include "smv/log.hpp"
@@ -6,6 +7,7 @@
 #include <cstdint>
 #include <iterator>
 #include <sstream>
+#include <thread>
 
 extern "C"
 {
@@ -19,6 +21,22 @@ extern "C"
 
 namespace smv::details {
   using log::logger;
+
+  void capture(const ScreenshotConfig      &config,
+               TCaptureCb<ScreenshotSource> callback)
+  {
+    if (!config.isValid()) {
+      logger->warn("Invalid capture config");
+      return;
+    }
+
+    std::thread([config = config, callback = std::move(callback)]() {
+      auto source = details::createScreenshotCaptureSource(config);
+      if (source) {
+        callback(*source);
+      }
+    }).detach();
+  }
 
   ScreenshotSource::ScreenshotSource()
     : ScreenshotSource({}, { 0, 0 })
@@ -192,3 +210,76 @@ namespace smv::details {
       dest->captureBytes.end(), iter.begin(), iter.end());
   }
 } // namespace smv::details
+
+namespace smv {
+  using log::logger;
+  using smv::details::capture;
+  using smv::details::ScreenshotSource;
+
+  void capture(ScreenshotConfig config,
+               ScreenshotFormat format,
+               CaptureCb        callback)
+  {
+
+    capture(config,
+            [callback = std::move(callback),
+             format,
+             config = std::move(config)](ScreenshotSource &source) {
+      std::optional<ScreenshotSource> formattedSource = std::nullopt;
+      if (source.error()) {
+        callback(source);
+        return;
+      }
+      switch (format) {
+        case ScreenshotFormat::PNG: {
+          logger->info("Converting screenshot to PNG");
+          auto pngSource = ScreenshotSource::toPNG(source);
+          if (pngSource) {
+            formattedSource = std::move(pngSource);
+          } else {
+            logger->error("Failed to convert screenshot to PNG");
+          }
+          break;
+        }
+        case ScreenshotFormat::JPEG: {
+          logger->info("Converting screenshot to JPG");
+          auto jpgSource = ScreenshotSource::toJPG(source, config.jpegQuality);
+          if (jpgSource) {
+            formattedSource = std::move(jpgSource);
+          } else {
+            logger->error("Failed to convert screenshot to JPG");
+          }
+          break;
+        }
+        case ScreenshotFormat::PPM: {
+          logger->info("Converting screenshot to PPM");
+          auto ppmSource = ScreenshotSource::toPPM(source);
+          if (ppmSource) {
+            formattedSource = std::move(ppmSource);
+          } else {
+            logger->error("Failed to convert screenshot to PPM");
+          }
+          break;
+        }
+        case ScreenshotFormat::QOI: {
+          logger->info("Converting screenshot to QOI");
+          auto qoiSource = ScreenshotSource::toQoi(source);
+          if (qoiSource) {
+            formattedSource = std::move(qoiSource);
+          } else {
+            logger->error("Failed to convert screenshot to QOI");
+          }
+          break;
+        }
+        default:
+          logger->error("Unsupported screenshot format: {}", format);
+          break;
+      }
+      if (formattedSource) {
+        callback(*formattedSource);
+      } else {
+        callback(source);
+      }
+    });
+  }
+} // namespace smv

@@ -1,5 +1,6 @@
 #include "xevents.hpp"
 #include "smv/common/fmt.hpp" // IWYU pragma: keep
+#include "smv/events.hpp"
 #include "smv/log.hpp"
 #include "xloop.hpp"
 #include "xmonitor.hpp"
@@ -10,6 +11,7 @@
 #include <chrono>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <thread>
 #include <tuple>
@@ -18,6 +20,7 @@
 #include <assert.hpp>
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
+#include <xcb/xproto.h>
 
 namespace smv::details {
   using smv::log::logger;
@@ -357,6 +360,46 @@ namespace smv::details {
       // ensure that the callback is only called once
       std::call_once(flag, cancelCb);
     };
+  }
+
+  template<EventType E>
+  auto requestEvent(xcb_window_t /*window*/,
+                    const EventData & /*data*/,
+                    const EventCB & /*callback*/) -> std::nullopt_t
+  {
+    return std::nullopt;
+  }
+
+  template<>
+  auto requestEvent<EventType::WindowVisible>(xcb_window_t     window,
+                                              const EventData &data,
+                                              EventCB          callback)
+    -> std::optional<Cancel>
+  {
+    const auto &requestData =
+      dynamic_cast<const EventDataWindowVisible &>(data);
+
+    bool visibleRequest = requestData.visible;
+
+    Cancel cancel =
+      registerEvent(EventType::WindowVisible,
+                    [visibleRequest,
+                     callback = std::move(callback)](const EventData &result) {
+      const auto responseData =
+        dynamic_cast<const EventDataWindowVisible &>(result);
+      if (responseData.visible == visibleRequest) {
+        callback(result);
+      }
+    });
+
+    if (visibleRequest) {
+      xcb_map_window(res::connection.get(), window);
+    } else {
+      xcb_unmap_window(res::connection.get(), window);
+    }
+    xcb_flush(res::connection.get());
+
+    return cancel;
   }
 
   template<EventType E, typename D>

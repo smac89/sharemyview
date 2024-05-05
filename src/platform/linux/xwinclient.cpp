@@ -1,5 +1,5 @@
+#include "smv/client.hpp"
 #include "smv/events.hpp"
-#include "smv/winclient.hpp"
 #include "xcapture.hpp"
 #include "xevents.hpp"
 #include "xmonitor.hpp"
@@ -95,4 +95,37 @@ namespace smv {
     waitConnection();
     return details::registerEvent(type, std::move(callback));
   }
+
+  template<EventType E>
+  void sendRequest(uint32_t wid, const EventData &data, EventCB callback)
+  {
+    waitConnection();
+    struct once_callback
+    {
+      std::optional<Cancel> mCancel {};
+
+      operator bool() const { return mCancel.has_value(); }
+      void cancel()
+      {
+        if (mCancel) {
+          mCancel.value()();
+          mCancel = std::nullopt;
+        }
+      }
+    };
+
+    auto once     = std::make_shared<once_callback>();
+    once->mCancel = details::requestEvent<E>(
+      wid,
+      data,
+      [callback = std::move(callback), once](const EventData &result) {
+      callback(result);
+      once->cancel();
+    });
+  }
+
+  template void smv::sendRequest<smv::EventType::WindowVisible>(
+    uint32_t,
+    const EventData &,
+    EventCB);
 } // namespace smv

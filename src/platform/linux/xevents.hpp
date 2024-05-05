@@ -197,6 +197,19 @@ namespace smv::details {
    * the event
    */
   auto registerEvent(EventType type, EventCB callback) -> Cancel;
+
+  /**
+   * @brief Request that an event be triggered
+   *
+   * @details See https://xcb.freedesktop.org/windowcontextandmanipulation/
+   * @param window The window to send the event to
+   * @param data The data containing what should be done
+   * @param callback The callback to call when the event occurs
+   */
+  template<EventType E>
+  auto requestEvent(xcb_window_t     window,
+                    const EventData &data,
+                    EventCB          callback) -> std::optional<Cancel>;
 } // namespace smv::details
 
 namespace fmt {

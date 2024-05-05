@@ -5,5 +5,5 @@
 
 namespace smv::log {
   extern const std::shared_ptr<spdlog::logger> logger;
-  constexpr auto LOGGER_NAME_WINCLIENT = "smv::winclient";
+  constexpr auto LOGGER_NAME_NATIVECLIENT = "smv::nativeclient";
 } // namespace smv::log

@@ -74,4 +74,50 @@ namespace smv {
       }
     });
   }
+
+  template<EventType E>
+  extern void sendRequest(uint32_t         wid,
+                          const EventData &data,
+                          EventCB          callback);
+
+  /**
+   * @brief send an event
+   * @details the event is sent to the native window manager. The callback is
+   * only called once then it is automatically unsubscribed
+   * @param type the type of event
+   * @param wid the id of the window to send the event to
+   * @param data the data to send
+   * @param func the function to call when the event occurs
+   */
+  template<typename D>
+  inline void sendRequest(const uint32_t wid,
+                          const D       &data,
+                          TEventCB<D>    func) noexcept
+  {
+    static_assert(std::is_base_of_v<EventData, D>,
+                  "Data must inherit from EventData");
+
+    sendRequest<D::type>(
+      wid, data, [func = std::move(func)](const EventData &data) {
+      func(dynamic_cast<const D &>(data));
+    });
+  }
+
+  template<typename D, typename F>
+  inline void sendRequest(const uint32_t wid, const D &data, F func)
+  {
+    return sendRequest<D>(
+      wid,
+      data,
+      std::forward<TEventCB<D>>([func = std::move(func)](const D &data) {
+      func(data);
+    }));
+  }
+
+  template<typename D, typename F>
+  inline void sendRequest(const D &data, F func)
+  {
+    return sendRequest<D, F>(
+      data.window.lock()->id(), data, std::forward<F>(func));
+  }
 } // namespace smv

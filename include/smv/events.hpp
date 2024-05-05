@@ -20,6 +20,7 @@ namespace smv {
   enum class EventType : uint16_t
   {
     None          = 0x0,
+    WindowVisible = 0x1,
     WindowMove    = 0x2,
     WindowResize  = 0x4,
     MouseEnter    = 0x8,
@@ -256,5 +257,16 @@ namespace smv {
     // check the name of the window
     std::string                name;
     constexpr static EventType type = EventType::WindowRenamed;
+  };
+
+  struct EventDataWindowVisible final: EventData
+  {
+    EventDataWindowVisible(const std::weak_ptr<Window> &window, bool visible)
+      : EventData(window)
+      , visible(visible)
+    {
+    }
+    bool                       visible;
+    constexpr static EventType type = EventType::WindowVisible;
   };
 } // namespace smv

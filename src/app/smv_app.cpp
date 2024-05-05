@@ -1,8 +1,8 @@
 #include "smv_app.hpp"
+#include "smv/client.hpp"
 #include "smv/common/autocancel.hpp"
 #include "smv/events.hpp"
 #include "smv/record.hpp"
-#include "smv/winclient.hpp"
 #include "smv/window.hpp"
 #include "smv_capture.hpp"
 #include "smv_utils.hpp"
@@ -121,6 +121,9 @@ void AppCore::takeScreenshot(const QRect &rect, QObject *screenshotConfig)
                      screenshotConfig->property("saveLocation").toString(),
                      fileName));
   });
+  smv::sendRequest(mQmlWindow->winId(),
+                   smv::EventDataWindowVisible { {}, false },
+                   [&](const smv::EventDataWindowVisible &) {});
 }
 
 void AppCore::startRecording() {}

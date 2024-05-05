@@ -103,9 +103,16 @@ namespace smv::details {
             }
             break;
           }
-          default: {
-            logger->debug("Received default event: {}",
-                          getEventName(event.get()));
+          case XCB_UNMAP_NOTIFY: {
+            auto unmap =
+              std::reinterpret_pointer_cast<xcb_unmap_notify_event_t>(event);
+            logger->debug("Window unmapped: {:#x}", unmap->window);
+            break;
+          }
+          case XCB_MAP_NOTIFY: {
+            auto unmap =
+              std::reinterpret_pointer_cast<xcb_map_notify_event_t>(event);
+            logger->debug("Window mapped: {:#x}", unmap->window);
             break;
           }
         }

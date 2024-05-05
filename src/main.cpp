@@ -1,7 +1,7 @@
 #include "app/smv_app.hpp"
 #include "app/smv_image_provider.hpp"
 #include "app/smv_utils.hpp"
-#include "smv/winclient.hpp"
+#include "smv/client.hpp"
 
 #include <csignal>
 #include <cstdlib>
@@ -111,5 +111,5 @@ void setupSignals()
 
 namespace smv::log {
   extern std::shared_ptr<spdlog::logger> const logger =
-    spdlog::stderr_color_mt(LOGGER_NAME_WINCLIENT);
+    spdlog::stderr_color_mt(LOGGER_NAME_NATIVECLIENT);
 }

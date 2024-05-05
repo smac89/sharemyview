@@ -6,7 +6,7 @@ if is_plat("linux") then
     add_requires("xmake::stb 2023.12.15")
 end
 
-target("winclient")
+target("smvnative")
     set_default(false)
     set_kind("static") --[[ TODO: set-kind: object?? ]]
     add_includedirs("$(projectdir)/include", "./internal")
