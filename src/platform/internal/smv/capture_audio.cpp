@@ -12,7 +12,7 @@ namespace smv::details {
                TCaptureCb<AudioCaptureSource> callback)
   {
     if (config.sourceId == 0) {
-      logger->warn("No audio source specified for audio capture");
+      logger->error("No audio source specified for audio capture");
       return;
     }
     std::thread([config, callback = std::move(callback)]() {

@@ -1,6 +1,7 @@
 #include "capture_screenshot.hpp"
 #include "capture_impl.hpp"
 #include "smv/common/c_iter.hpp"
+#include "smv/common/fmt.hpp" // IWYU pragma: keep
 #include "smv/log.hpp"
 #include "smv/record.hpp"
 

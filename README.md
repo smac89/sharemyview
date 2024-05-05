@@ -1,4 +1,61 @@
-# Capture Application
+## Name
+SMV Capture Application (Alpha)
+
+![Qt](https://img.shields.io/badge/5.15-%2341CD52?style=for-the-badge&logo=Qt&logoColor=white&logoSize=auto)
+![C++](https://img.shields.io/badge/17-%2300599C?style=for-the-badge&logo=cplusplus&logoColor=white&logoSize=auto)
+![X11](https://img.shields.io/badge/XCB-%23F28834?style=for-the-badge&logo=xdotorg&logoColor=white&logoSize=auto)
+
+## Description
+Share My View (SMV) is being designed with the simple goal of making anything you can see on your desktop, sharable with anyone you choose. The target device form-factor are desktops computers (especially Linux), because screen-sharing is ubiquitos on mobile.
+
+The goal is to have a very simple interface that doesn't get in your way (or becomes cluttered), so that all you really have to do to share is to select a region of your screen, and start sharing.
+With that being said, the potential for misuse cannot be ignored, therefore secondary goal of SMV is to be as secure as possible so that potential misuse is easy to detect.
+
+Although SMV is meant to be cross-platform (Windows, MacOs, Linux), I am primarily a Linux user, so the current focus is on the Linux side.
+
+## Visuals (captured with SMV :smile:)
+<div style="width: 100%; display: flex; flex-wrap: wrap">
+<img src="docs/images/screenshot.png" style="max-width: 320px">
+<img src="docs/images/record.png" style="max-width: 320px">
+<img src="docs/images/stream.png" style="max-width: 320px">
+<img src="docs/images/settings.png" style="max-width: 320px">
+</div>
+
+## Installation
+At the moment, no installation instructions are provided because we are still in very early stages
+
+## Usage
+- You need `xmake`
+- Run `xmake b --rebuild capture`
+- Run `xmake run capture`
+
+## Support
+Expect bugs. Report any glaring ones
+
+## Roadmap
+- At the moment, it only supports taking screenshots of the desktop and saving it in `png`, or `jpg`. I plan to add one more useful image format: `GIF`.
+- Integrate sharing via KDE-Connect or GSConnect
+- Display list of recent captures
+- Support for recording audio, and video
+- Support for streaming audio and video
+- Address many of the TODO's in the code (there's a lot)
+
+## Contributing
+I've only been developing this for a month (April 30th, 2024), so all the
+
+## Authors and acknowledgment
+Show your appreciation to those who have contributed to the project.
+
+## License
+CC BY-NC 4.0
+
+## Project status
+Currently under heavy maintenance
+
+---
+
+## Maintainer notes
+The following are notes I've made for myself as I developed this app. I had no idea how XCB, QT, QML worked before starting. I had also never written a C++ application desktop application before, so these served as useful references for both learning and reminding myself. I also scattered a number of links throughout the code.
 
 ### Useful links
 - https://github.com/alaingalvan/CrossWindow
@@ -28,46 +85,3 @@
 ### Some questions that could be answered
 - https://stackoverflow.com/questions/71131688/how-can-i-get-all-events-on-the-root-window-with-xcb
 - https://stackoverflow.com/questions/37359063/x11-list-top-level-windows
-
-### TODO
-- Some debug logging could use source location and line number. See https://github.com/gabime/spdlog/issues/1823
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

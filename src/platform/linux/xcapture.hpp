@@ -1,6 +1,6 @@
 #pragma once
 
-#include "smv/capture_impl.hpp"
+#include "smv/capture_screenshot.hpp"
 #include "smv/record.hpp"
 
 #include <cstdint>

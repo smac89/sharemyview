@@ -13,7 +13,7 @@ namespace smv::details {
                TCaptureCb<VideoCaptureSource> callback)
   {
     if (!config.isValid()) {
-      logger->warn("Invalid capture config");
+      logger->error("Invalid capture config");
       return;
     }
     std::thread([config, callback = std::move(callback)]() {
