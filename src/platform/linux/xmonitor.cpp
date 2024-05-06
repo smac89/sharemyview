@@ -1,5 +1,5 @@
 #include "xmonitor.hpp"
-#include "smv/common/c_iter.hpp"
+#include "smv/common/raw_iter.hpp"
 #include "smv/log.hpp"
 #include "xevents.hpp"
 #include "xutils.hpp"
@@ -83,8 +83,8 @@ namespace smv::details {
           _defer(&reply, &xcb_ewmh_get_windows_reply_wipe);
 
         logger->debug("Screen {} with {} virtual roots", i, reply.windows_len);
-        for (const auto &win : utils::CPtrIterator<xcb_window_t>(
-               reply.windows, reply.windows_len)) {
+        for (const auto &win :
+             utils::RawIterator(reply.windows, reply.windows_len)) {
           if (std::find(existing_screens.begin(),
                         existing_screens.end(),
                         win) == existing_screens.end()) {
@@ -148,13 +148,13 @@ namespace smv::details {
 
       logger->debug("Children of {:#x}: [{:#x}]",
                     parent,
-                    fmt::join(smv::utils::CPtrIterator<xcb_window_t>(
+                    fmt::join(smv::utils::RawIterator(
                                 children, query_tree_rep->children_len),
                               ", "));
 
       all_children.reserve(all_children.size() + query_tree_rep->children_len);
-      for (const auto &child : smv::utils::CPtrIterator<xcb_window_t>(
-             children, query_tree_rep->children_len)) {
+      for (const auto &child :
+           smv::utils::RawIterator(children, query_tree_rep->children_len)) {
         all_children.push_back(child);
       }
     }

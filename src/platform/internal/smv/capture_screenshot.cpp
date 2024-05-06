@@ -1,7 +1,7 @@
 #include "capture_screenshot.hpp"
 #include "capture_impl.hpp"
-#include "smv/common/c_iter.hpp"
 #include "smv/common/fmt.hpp" // IWYU pragma: keep
+#include "smv/common/raw_iter.hpp"
 #include "smv/log.hpp"
 #include "smv/record.hpp"
 
@@ -205,10 +205,9 @@ namespace smv::details {
         dest->captureBytes.reserve(dest->captureBytes.size() + (size << 1));
       }
     }
-    auto iter =
-      utils::CPtrIterator<uint8_t>(static_cast<uint8_t *>(data), size);
+    auto iter = utils::RawIterator(static_cast<uint8_t *>(data), size);
     dest->captureBytes.insert(
-      dest->captureBytes.end(), iter.begin(), iter.end());
+      dest->captureBytes.end(), iter.cbegin(), iter.cend());
   }
 } // namespace smv::details
 
