@@ -121,9 +121,6 @@ void AppCore::takeScreenshot(const QRect &rect, QObject *screenshotConfig)
                      screenshotConfig->property("saveLocation").toString(),
                      fileName));
   });
-  smv::sendRequest(mQmlWindow->winId(),
-                   smv::EventDataWindowVisible { {}, false },
-                   [&](const smv::EventDataWindowVisible &) {});
 }
 
 void AppCore::startRecording() {}

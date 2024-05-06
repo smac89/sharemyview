@@ -123,9 +123,4 @@ namespace smv {
       once->cancel();
     });
   }
-
-  template void smv::sendRequest<smv::EventType::WindowVisible>(
-    uint32_t,
-    const EventData &,
-    EventCB);
 } // namespace smv

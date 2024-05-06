@@ -75,10 +75,9 @@ namespace smv {
     });
   }
 
+  // Note that usage of this template may require explicit instantiation
   template<EventType E>
-  extern void sendRequest(uint32_t         wid,
-                          const EventData &data,
-                          EventCB          callback);
+  void sendRequest(uint32_t wid, const EventData &data, EventCB callback);
 
   /**
    * @brief send an event
