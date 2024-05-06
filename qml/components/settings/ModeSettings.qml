@@ -7,7 +7,7 @@ Popup {
     id: root
     dim: false
     modal: false
-    padding: 4
+    padding: 2
     enter: Transition {
         NumberAnimation {
             property: "opacity"

@@ -50,19 +50,14 @@ Frame {
                     font.capitalization: Font.Capitalize
                     font.pointSize: 20
                 }
-                Rectangle {
+                Divider {
                     Layout.fillWidth: true
-                    color: palette.buttonText
-                    width: parent.width
-                    anchors.margins: 10
-                    height: 2
                 }
             }
         }
 
         Debugable {
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
             AutoSizeColumnLayout {
                 anchors.fill: parent
                 spacing: 10
@@ -96,7 +91,6 @@ Frame {
                         Layout.fillWidth: true
                         text: "Suffix"
                     }
-                    // TODO: find fix for textfield not shrinking in width at smaller sizes
                     TextField {
                         id: suffix
                         Layout.fillWidth: true
@@ -112,8 +106,9 @@ Frame {
                     }
                 }
                 Label {
-                    topPadding: 10
-                    bottomPadding: 10
+                    topPadding: 5
+                    elide: Text.ElideMiddle
+                    Layout.fillWidth: true
                     font.italic: true
                     font.pointSize: 12
                     text: {
@@ -126,39 +121,51 @@ Frame {
                         return "";
                     }
                 }
+                Divider {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: "gray"
+                }
             }
         }
 
         Debugable {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            AutoSizeRowLayout {
+            AutoSizeColumnLayout {
                 anchors.fill: parent
-                SettingTitle {
-                    anchors.bottomMargin: 20
-                    text: "Save location"
+                AutoSizeRowLayout {
+                    SettingTitle {
+                        anchors.bottomMargin: 20
+                        text: "Save location"
+                    }
+                    TextField {
+                        id: saveLocation
+                        selectByMouse: true
+                        anchors.topMargin: 10
+                        Layout.fillWidth: true
+                        text: AppData.screenshot.saveLocation
+                        placeholderText: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                        onEditingFinished: {
+                            AppData.screenshot.saveLocation = saveLocation.text;
+                        }
+                    }
+                    Button {
+                        text: "..."
+                        width: 10
+                        background: Rectangle {
+                            color: palette.button
+                            radius: 5
+                        }
+                        onClicked: {
+                            saveLocationDialog.open();
+                        }
+                    }
                 }
-                TextField {
-                    id: saveLocation
-                    selectByMouse: true
-                    anchors.topMargin: 10
+                Divider {
                     Layout.fillWidth: true
-                    text: AppData.screenshot.saveLocation
-                    placeholderText: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
-                    onEditingFinished: {
-                        AppData.screenshot.saveLocation = saveLocation.text;
-                    }
-                }
-                Button {
-                    text: "..."
-                    width: 10
-                    background: Rectangle {
-                        color: palette.button
-                        radius: 5
-                    }
-                    onClicked: {
-                        saveLocationDialog.open();
-                    }
+                    height: 1
+                    color: "gray"
                 }
             }
         }
@@ -198,6 +205,12 @@ Frame {
         font.pointSize: 15
         font.letterSpacing: -1
         font.capitalization: Font.Capitalize
+    }
+
+    component Divider: Rectangle {
+        color: palette.buttonText
+        anchors.margins: 10
+        height: 2
     }
 
     SystemPalette {
