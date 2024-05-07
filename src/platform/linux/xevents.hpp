@@ -176,7 +176,8 @@ namespace smv::details {
      */
     void unwatchAllWindows();
 
-    std::atomic_bool             mRunning = false;
+    std::atomic_bool mRunning = false;
+    // marked mutable because it's used in some const functions
     mutable std::recursive_mutex mSyncMut {};
     std::vector<xcb_window_t>    mRoots {};
     std::optional<xcb_window_t>  mCurrentWindow {};

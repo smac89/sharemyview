@@ -41,7 +41,7 @@ Expect bugs. Report any glaring ones
 - Address many of the TODO's in the code (there's a lot)
 
 ## Contributing
-I've only been developing this for a month (April 30th, 2024), so I don't have any way of guiding anyone wishing to contribute. You can take a look at the TODO's litered all over the code if you have a solution for some of them.
+I've only been developing this for a month, so I don't have any way of guiding anyone wishing to contribute. You can take a look at the TODO's litered all over the code if you have a solution for some of them.
 
 ## Authors and acknowledgment
 

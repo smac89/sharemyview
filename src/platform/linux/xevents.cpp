@@ -2,6 +2,7 @@
 #include "smv/common/fmt.hpp" // IWYU pragma: keep
 #include "smv/events.hpp"
 #include "smv/log.hpp"
+#include "xevents_pub.hpp"
 #include "xloop.hpp"
 #include "xmonitor.hpp"
 #include "xutils.hpp"
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <deque>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -411,7 +413,7 @@ namespace smv::details {
     if (!isEventInteresting(E)) {
       return;
     }
-    // create a container for subscribers of the event
+
     auto callbacks = std::vector<EventCB> {};
     {
       std::shared_lock _ { listenerMutx };
@@ -420,15 +422,16 @@ namespace smv::details {
       for (auto const &subscriber : subscribers) {
         callbacks.push_back(std::get<1>(subscriber));
       }
+
+      logger->debug("Before publishing {} event: {}", E, data);
+      events::enqueueNotifications(data, callbacks);
+      logger->debug("After publishing {} event", E);
     }
-    logger->debug("Before publishing {} event: {}", E, data);
-    std::thread([cbs = std::move(callbacks), data = std::move(data)]() {
-      for (auto const &callback : cbs) {
-        callback(data);
-      }
-    }).detach();
-    logger->debug("After publishing {} event", E);
-    std::this_thread::yield();
+    // std::thread([cbs = std::move(callbacks), data = std::move(data)]() {
+    //   for (auto const &callback : cbs) {
+    //     callback(data);
+    //   }
+    // }).join();
   }
 
   auto isEventInteresting(EventType type) -> bool
