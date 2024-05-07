@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <deque>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -53,8 +52,12 @@ namespace smv::details {
 
   XEvents::XEvents()
   {
-    ASSERT(
-      res::connection != nullptr, "X connection is invalid", res::connection);
+
+    ASSERT(/* NOLINT */
+           res::connection != nullptr,
+           "X connection is invalid",
+           res::connection);
+
     auto new_screens = findNewScreens(mRoots);
     if (!new_screens.empty()) {
       prepareScreens(new_screens);

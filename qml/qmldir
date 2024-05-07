@@ -1,4 +1,4 @@
-Internal Debugable components/Debugable.qml
+Internal Debuggable components/Debuggable.qml
 
 ResizeGrip components/ResizeGrip.qml
 CloseButton components/CloseButton.qml

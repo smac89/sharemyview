@@ -31,9 +31,9 @@ namespace smv {
   using smv::details::VideoCaptureSource;
   using smv::log::logger;
 
-  void capture(VideoCaptureConfig config,
-               VideoCaptureFormat format,
-               CaptureCb          callback)
+  void capture(const VideoCaptureConfig &config,
+               VideoCaptureFormat /*unused*/,
+               CaptureCb callback)
   {
     capture(config,
             [callback = std::move(callback)](const VideoCaptureSource &) {
@@ -42,11 +42,11 @@ namespace smv {
     });
   }
 
-  void captureStream(VideoStreamConfig config,
-                     VideoStreamFormat format,
-                     CaptureCb         callback)
+  void captureStream(const VideoStreamConfig &config,
+                     VideoStreamFormat /*unused*/,
+                     CaptureCb callback)
   {
-    capture(dynamic_cast<VideoCaptureConfig &>(config),
+    capture(dynamic_cast<const VideoCaptureConfig &>(config),
             [callback = std::move(callback)](const VideoCaptureSource &) {
       // TODO: capture the video and call the callback
       logger->warn("Video streaming not yet implemented");

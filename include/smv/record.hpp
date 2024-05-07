@@ -145,13 +145,13 @@ namespace smv {
    * @param format The format of the capture
    * @param callback The callback to call as capture continues
    */
-  void capture(VideoCaptureConfig config,
-               VideoCaptureFormat format,
-               CaptureCb          callback);
+  void capture(const VideoCaptureConfig &config,
+               VideoCaptureFormat        format,
+               CaptureCb                 callback);
 
-  void capture(AudioCaptureConfig config,
-               AudioCaptureFormat format,
-               CaptureCb          callback);
+  void capture(const AudioCaptureConfig &config,
+               AudioCaptureFormat        format,
+               CaptureCb                 callback);
 
   /**
    * @brief Asynchronously start capturing for a screenshot
@@ -160,15 +160,15 @@ namespace smv {
    * @param format The format of the screenshot
    * @param callback The callback to call when the screenshot is ready
    */
-  void capture(ScreenshotConfig config,
-               ScreenshotFormat format,
-               CaptureCb        callback);
+  void capture(const ScreenshotConfig &config,
+               ScreenshotFormat        format,
+               CaptureCb               callback);
 
-  void captureStream(VideoStreamConfig config,
-                     VideoStreamFormat format,
-                     CaptureCb         callback);
+  void captureStream(const VideoStreamConfig &config,
+                     VideoStreamFormat        format,
+                     CaptureCb                callback);
 
-  void captureStream(AudioStreamConfig config,
-                     AudioStreamFormat format,
-                     CaptureCb         callback);
+  void captureStream(const AudioStreamConfig &config,
+                     AudioStreamFormat        format,
+                     CaptureCb                callback);
 } // namespace smv

@@ -12,7 +12,7 @@ import "qrc:/components/settings"
 // https://doc.qt.io/qt-5/qtqml-javascript-functionlist.html
 
 ApplicationWindow {
-    id: rootWindow
+    id: root
     title: "Share My View"
     color: "transparent"
     minimumWidth: 480
@@ -21,22 +21,24 @@ ApplicationWindow {
     visible: true
     background: windowFrame
 
+    property bool resizing: false
+
     WindowTracking {
         onTargetResized: (width, height) => {
-            rootWindow.width = width;
-            rootWindow.height = height;
+            root.width = width;
+            root.height = height;
         }
 
         onTargetMoved: (x, y) => {
-            rootWindow.x = x;
-            rootWindow.y = y;
+            root.x = x;
+            root.y = y;
         }
     }
 
     MediaCaptureHandler {
         id: mediaCapture
         screenshotCallback: () => {
-            AppCore.takeScreenshot(Qt.rect(rootWindow.x, rootWindow.y, rootWindow.width, rootWindow.height), AppData.screenshot);
+            AppCore.takeScreenshot(Qt.rect(root.x, root.y, root.width, root.height), AppData.screenshot);
         }
         recordingCallback: () => {
             console.log("Recording not implemented");
@@ -53,7 +55,6 @@ ApplicationWindow {
         property int mode
         property bool drawerOpen: false
         property bool modeSettingsOpen: false
-        property bool resizing: false
 
         radius: 5
         border.color: palette.text
@@ -155,61 +156,15 @@ ApplicationWindow {
             }
         }
 
-        ResizeGrip {
-            position: ResizeGrip.Pos.TL
-            onDragStarted: {
-                rootWindow.startSystemResize(edges);
-                parent.resizing = true;
-            }
-            onDragEnded: parent.resizing = false
-            anchors.left: parent.left
-            anchors.top: parent.top
-        }
-
-        ResizeGrip {
-            position: ResizeGrip.Pos.TR
-            onDragStarted: {
-                rootWindow.startSystemResize(edges);
-                parent.resizing = true;
-            }
-            onDragEnded: parent.resizing = false
-            anchors.right: parent.right
-            anchors.top: parent.top
-        }
-
-        ResizeGrip {
-            position: ResizeGrip.Pos.BL
-            onDragStarted: {
-                rootWindow.startSystemResize(edges);
-                parent.resizing = true;
-            }
-            onDragEnded: parent.resizing = false
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-        }
-
-        ResizeGrip {
-            position: ResizeGrip.Pos.BR
-            onDragStarted: {
-                rootWindow.startSystemResize(edges);
-                parent.resizing = true;
-            }
-            onDragEnded: parent.resizing = false
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-        }
-
         DragHandler {
             id: pointer
             target: null
             enabled: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
             onGrabChanged: (transition, pt) => {
-                // console.log("Grab changed", transition, pt.state);
-                // console.log(EventPoint.Updated);
                 if (transition === EventPoint.GrabExclusive && pt.state === EventPoint.Updated) {
                     console.log("Start system move");
                     // https://codereview.qt-project.org/c/qt/qtbase/+/219277
-                    rootWindow.startSystemMove();
+                    root.startSystemMove();
                 }
             }
         }
@@ -225,7 +180,7 @@ ApplicationWindow {
                 if (drawerOpen || modeSettingsOpen) {
                     return rgba("#1a1918", 0.8);
                 }
-                if (resizing || pointer.active) {
+                if (root.resizing || pointer.active) {
                     return rgba("#1a1918", 0.4);
                 }
                 switch (mode) {
@@ -240,5 +195,53 @@ ApplicationWindow {
                 }
             });
         }
+    }
+
+    ResizeGrip {
+        position: Item.TopLeft
+        z: 100
+        onDragStarted: {
+            root.startSystemResize(edges);
+            root.resizing = true;
+        }
+        onDragEnded: root.resizing = false
+        anchors.horizontalCenter: parent.left
+        anchors.verticalCenter: parent.top
+    }
+
+    ResizeGrip {
+        position: Item.TopRight
+        z: 100
+        onDragStarted: {
+            root.startSystemResize(edges);
+            root.resizing = true;
+        }
+        onDragEnded: root.resizing = false
+        anchors.horizontalCenter: parent.right
+        anchors.verticalCenter: parent.top
+    }
+
+    ResizeGrip {
+        position: Item.BottomLeft
+        z: 100
+        onDragStarted: {
+            root.startSystemResize(edges);
+            root.resizing = true;
+        }
+        onDragEnded: root.resizing = false
+        anchors.horizontalCenter: parent.left
+        anchors.verticalCenter: parent.bottom
+    }
+
+    ResizeGrip {
+        position: Item.BottomRight
+        z: 100
+        onDragStarted: {
+            root.startSystemResize(edges);
+            root.resizing = true;
+        }
+        onDragEnded: root.resizing = false
+        anchors.horizontalCenter: parent.right
+        anchors.verticalCenter: parent.bottom
     }
 }

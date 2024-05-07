@@ -29,9 +29,9 @@ namespace smv {
   using smv::details::capture;
   using smv::log::logger;
 
-  void capture(AudioCaptureConfig config,
-               AudioCaptureFormat format,
-               CaptureCb          callback)
+  void capture(const AudioCaptureConfig &config,
+               AudioCaptureFormat /*unused*/,
+               CaptureCb callback)
   {
     capture(config,
             [callback = std::move(callback)](const AudioCaptureSource &) {
@@ -40,11 +40,11 @@ namespace smv {
     });
   }
 
-  void captureStream(AudioStreamConfig config,
-                     AudioStreamFormat format,
-                     CaptureCb         callback)
+  void captureStream(const AudioStreamConfig &config,
+                     AudioStreamFormat /*unused*/,
+                     CaptureCb callback)
   {
-    capture(dynamic_cast<AudioCaptureConfig &>(config),
+    capture(dynamic_cast<const AudioCaptureConfig &>(config),
             [callback = std::move(callback)](const AudioCaptureSource &) {
       // TODO: capture the audio and call the callback
       logger->warn("Audio streaming not yet implemented");

@@ -115,6 +115,8 @@ namespace smv::details {
             logger->debug("Window mapped: {:#x}", unmap->window);
             break;
           }
+          default:
+            break;
         }
       }
     }

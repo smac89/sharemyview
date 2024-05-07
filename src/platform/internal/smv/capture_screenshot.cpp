@@ -216,15 +216,14 @@ namespace smv {
   using smv::details::capture;
   using smv::details::ScreenshotSource;
 
-  void capture(ScreenshotConfig config,
-               ScreenshotFormat format,
-               CaptureCb        callback)
+  void capture(const ScreenshotConfig &config,
+               ScreenshotFormat        format,
+               CaptureCb               callback)
   {
 
     capture(config,
-            [callback = std::move(callback),
-             format,
-             config = std::move(config)](ScreenshotSource &source) {
+            [callback = std::move(callback), format, config = config](
+              ScreenshotSource &source) {
       std::optional<ScreenshotSource> formattedSource = std::nullopt;
       if (source.error()) {
         callback(source);

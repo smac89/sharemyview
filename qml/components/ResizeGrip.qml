@@ -5,23 +5,13 @@ import "qrc:/components"
 
 Item {
     id: root
-    width: 20
-    height: 20
+    width: 30
+    height: 30
     anchors.margins: 5
-
-    // TODO: This might need to be removed to detect mouse enter
-    // containmentMask: gripShape
 
     SystemPalette {
         id: palette
         colorGroup: SystemPalette.Active
-    }
-
-    enum Pos {
-        TL,
-        TR,
-        BL,
-        BR
     }
 
     // https://doc.qt.io/qt-5/qtqml-syntax-signals.html#adding-signals-to-custom-qml-types
@@ -42,21 +32,21 @@ Item {
 
     Component.onCompleted: {
         switch (position) {
-        case ResizeGrip.Pos.TL:
+        case Item.TopLeft:
             priv.cursorType = Qt.SizeFDiagCursor;
             priv.edges = Qt.TopEdge | Qt.LeftEdge;
             break;
-        case ResizeGrip.Pos.TR:
+        case Item.TopRight:
             priv.cursorType = Qt.SizeBDiagCursor;
             priv.edges = Qt.TopEdge | Qt.RightEdge;
             root.rotation = 90;
             break;
-        case ResizeGrip.Pos.BL:
+        case Item.BottomLeft:
             priv.cursorType = Qt.SizeBDiagCursor;
             priv.edges = Qt.BottomEdge | Qt.LeftEdge;
             root.rotation = -90;
             break;
-        case ResizeGrip.Pos.BR:
+        case Item.BottomRight:
             priv.cursorType = Qt.SizeFDiagCursor;
             priv.edges = Qt.BottomEdge | Qt.RightEdge;
             root.rotation = 180;
@@ -67,12 +57,14 @@ Item {
     Rectangle {
         id: handle
         anchors.fill: parent
+        // color: q(cc`random`)
         color: "transparent"
-        visible: hover.hovered
+        visible: mouseArea.containsMouse
 
         Shape {
             anchors.fill: parent
             containsMode: Shape.FillContains
+            // visible: mouseArea.containsMouse /* TODO: Do we need this */
             ShapePath {
                 strokeWidth: 2
                 strokeColor: palette.window
@@ -94,21 +86,25 @@ Item {
                 }
             }
         }
-    }
-    HoverHandler {
-        id: hover
-        acceptedDevices: PointerDevice.Mouse
-        cursorShape: priv.cursorType
-    }
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton
-        onPressedChanged: {
-            if (pressed) {
-                root.dragStarted(priv.edges);
-            } else {
-                root.dragEnded();
+        DragHandler {
+            acceptedDevices: PointerDevice.Mouse
+            acceptedButtons: Qt.LeftButton
+            // grabPermissions: PointerHandler.CanTakeOverFromAnything
+            onGrabChanged: (transition, pt) => {
+                if (transition === EventPoint.GrabExclusive && pt.state === EventPoint.Updated) {
+                    root.dragStarted(priv.edges);
+                } else if (transition === EventPoint.CancelGrabExclusive) {
+                    root.dragEnded();
+                }
             }
         }
+    }
+
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: priv.cursorType
     }
 }

@@ -1,5 +1,4 @@
 #include "xevents_pub.hpp"
-#include "smv/events.hpp"
 
 #include <atomic>
 #include <chrono>

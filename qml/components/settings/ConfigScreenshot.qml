@@ -36,7 +36,7 @@ Frame {
         spacing: 15
         anchors.bottomMargin: 5
         anchors.topMargin: 5
-        Debugable {
+        Debuggable {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
             Layout.bottomMargin: 5
@@ -56,7 +56,7 @@ Frame {
             }
         }
 
-        Debugable {
+        Debuggable {
             Layout.fillWidth: true
             AutoSizeColumnLayout {
                 anchors.fill: parent
@@ -129,7 +129,7 @@ Frame {
             }
         }
 
-        Debugable {
+        Debuggable {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
             AutoSizeColumnLayout {
@@ -170,7 +170,7 @@ Frame {
             }
         }
 
-        Debugable {
+        Debuggable {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
             AutoSizeRowLayout {

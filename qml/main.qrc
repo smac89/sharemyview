@@ -11,7 +11,7 @@
     <file alias="ModeSelect.qml">components/ModeSelect.qml</file>
     <file alias="AutoSizeRowLayout.qml">components/AutoSizeRowLayout.qml</file>
     <file alias="AutoSizeColumnLayout.qml">components/AutoSizeColumnLayout.qml</file>
-    <file alias="Debugable.qml">components/Debugable.qml</file>
+    <file alias="Debuggable.qml">components/Debuggable.qml</file>
     <file alias="ResizeGrip.qml">components/ResizeGrip.qml</file>
     <file alias="RecordingControls.qml">components/RecordingControls.qml</file>
     <file alias="WindowTracking.qml">components/WindowTracking.qml</file>
