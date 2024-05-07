@@ -16,12 +16,12 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-static void setupSignals();
+static void registerSignals();
 
 auto main(int argc, char *argv[]) -> int
 {
   spdlog::cfg::load_env_levels();
-  setupSignals();
+  registerSignals();
 
   spdlog::info("Starting...");
   smv::init();
@@ -102,7 +102,7 @@ void sigHandler(int /*unused*/)
   std::call_once(flag, &QCoreApplication::quit);
 }
 
-void setupSignals()
+void registerSignals()
 {
   std::signal(SIGINT, sigHandler);
   std::signal(SIGTERM, sigHandler);

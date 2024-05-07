@@ -66,7 +66,6 @@ namespace smv::details {
       captureBytes = std::get<std::vector<uint8_t>>(std::move(data));
     } else {
       errMsg = std::get<std::string>(std::move(data));
-      logger->debug("Failed to capture screenshot: {}", errMsg.value());
     }
   }
 
@@ -226,7 +225,7 @@ namespace smv {
               ScreenshotSource &source) {
       std::optional<ScreenshotSource> formattedSource = std::nullopt;
       if (source.error()) {
-        callback(source);
+        logger->error("Failed to capture screenshot: {}", source.errorStr());
         return;
       }
       switch (format) {

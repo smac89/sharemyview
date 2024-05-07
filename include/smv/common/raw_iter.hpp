@@ -31,8 +31,8 @@ namespace {
       return mIndex != other.mIndex;
     }
 
-    T          *mRef;
-    std::size_t mIndex;
+    T   *mRef;
+    long mIndex; // negative index is allowed
   };
 } // namespace
 
@@ -55,13 +55,25 @@ namespace smv::utils {
     constexpr auto size() const -> std::size_t { return mSize; }
 
     auto begin() const -> iterator { return { mPtr, 0 }; }
-    auto end() const -> iterator { return { nullptr, mSize }; }
-    auto cbegin() const -> const_iterator { return { mPtr, mSize }; }
-    auto cend() const -> const_iterator { return { nullptr, mSize }; }
-    auto rbegin() const -> iterator { return { mPtr, mSize - 1 }; }
-    auto rend() const -> iterator { return { nullptr, 0 }; }
-    auto crbegin() const -> const_iterator { return { mPtr, mSize - 1 }; }
-    auto crend() const -> const_iterator { return { nullptr, 0 }; }
+    auto end() const -> iterator
+    {
+      return { nullptr, static_cast<long>(mSize) };
+    }
+    auto cbegin() const -> const_iterator { return { mPtr, 0 }; }
+    auto cend() const -> const_iterator
+    {
+      return { nullptr, static_cast<long>(mSize) };
+    }
+    auto rbegin() const -> iterator
+    {
+      return { mPtr, static_cast<long>(mSize) - 1 };
+    }
+    auto rend() const -> iterator { return { nullptr, -1 }; }
+    auto crbegin() const -> const_iterator
+    {
+      return { mPtr, static_cast<long>(mSize) - 1 };
+    }
+    auto crend() const -> const_iterator { return { nullptr, -1 }; }
 
   private:
     T          *mPtr;

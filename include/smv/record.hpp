@@ -32,7 +32,8 @@ namespace smv {
      * @return std::optional<std::string>
      */
     virtual auto error() noexcept -> std::optional<std::string> = 0;
-    virtual ~CaptureSource()                                    = default;
+    virtual auto errorStr() -> std::string { return error().value_or(""); }
+    virtual ~CaptureSource() = default;
   };
 
   template<typename S,
