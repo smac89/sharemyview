@@ -120,7 +120,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "2.30.2"
+            version = "2.30.3"
         },
         ["libx11#31fecfc4"] = {
             repo = {
@@ -280,7 +280,7 @@
                 commit = "04815a3cc8b79401e41ebfa93eb6c3a2339173ed",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "3.2.1"
+            version = "3.3.0"
         },
         ["pkg-config#31fecfc4"] = {
             repo = {

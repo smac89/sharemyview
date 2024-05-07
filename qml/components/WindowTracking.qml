@@ -5,11 +5,14 @@ import smv.app.AppCore 1.0
 import smv.app.AppData 1.0
 
 Item {
+    id: root
     readonly property int initialWidth: 1024
     readonly property int initialHeight: 768
 
     signal targetResized(int width, int height)
     signal targetMoved(int x, int y)
+
+    readonly property Window target: Window.window
 
     property int targetWidth: initialWidth
     property int targetHeight: initialHeight

@@ -9,6 +9,7 @@ Item {
     required property var recordingCallback
     required property var streamCallback
     readonly property ApplicationWindow target: ApplicationWindow.window
+    property point targetPos
 
     signal mediaCaptureRequested(int mode)
     signal mediaCaptureStarted(int mode)
@@ -16,21 +17,14 @@ Item {
     signal mediaCaptureSuccess(int mode, variant result)
     signal mediaCaptureRequestEnded(int mode)
 
-    QtObject {
-        // TODO: Can we find a better way?
-        // used to keep track of the global position of the target window
-        property point targetPos: root.target.background.mapToGlobal(0, 0)
-
-        Component.onCompleted: {
-            // Keeps track of the windows global position as it seems to forget after becoming invisible
-            root.target.x = Qt.binding(() => targetPos.x);
-            root.target.y = Qt.binding(() => targetPos.y);
-        }
-    }
-
     states: [
         State {
             name: "screenshotRequested"
+            PropertyChanges {
+                target: root
+                explicit: true
+                targetPos: Qt.point(root.target.x, root.target.y)
+            }
             PropertyChanges {
                 target: root.target
                 opacity: 0
@@ -64,7 +58,13 @@ Item {
         Transition {
             to: ""
             SequentialAnimation {
-                AnimateVisible {}
+                // ScriptAction {
+                //     script: {
+                //         root.target.x = root.targetPos.x;
+                //         root.target.y = root.targetPos.y;
+                //     }
+                // }
+                // AnimateVisible {}
                 AnimateOpacity {}
             }
         },
@@ -72,7 +72,7 @@ Item {
             to: "screenshotRequested"
             SequentialAnimation {
                 AnimateOpacity {}
-                AnimateVisible {}
+                // AnimateVisible {}
                 ScriptAction {
                     scriptName: "takeScreenshot"
                 }
@@ -154,6 +154,7 @@ Item {
         AppCore.mediaCaptureFailed.connect(root.mediaCaptureFailed);
         AppCore.mediaCaptureSuccess.connect(root.mediaCaptureSuccess);
         AppCore.mediaCaptureStopped.connect(root.mediaCaptureRequestEnded);
+        targetPos = Qt.point(target.x, target.y);
     }
 
     component AnimateOpacity: NumberAnimation {

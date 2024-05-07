@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Window 2.15
 import smv.app.CaptureMode 1.0
 import smv.app.AppCore 1.0
 import smv.app.AppData 1.0
@@ -28,7 +29,6 @@ ApplicationWindow {
             root.width = width;
             root.height = height;
         }
-
         onTargetMoved: (x, y) => {
             root.x = x;
             root.y = y;
@@ -38,8 +38,13 @@ ApplicationWindow {
     MediaCaptureHandler {
         id: mediaCapture
         screenshotCallback: () => {
-            AppCore.takeScreenshot(Qt.rect(root.x, root.y, root.width, root.height), AppData.screenshot);
+            const x = Math.max(0, root.x);
+            const y = Math.max(0, root.y);
+            const w = Math.min(root.width + (root.x > 0 ? 0 : root.x), Screen.width - root.x);
+            const h = Math.min(root.height + (root.y > 0 ? 0 : root.y), Screen.height - root.y);
+            AppCore.takeScreenshot(Qt.rect(x, y, w, h), AppData.screenshot);
         }
+
         recordingCallback: () => {
             console.log("Recording not implemented");
         }
