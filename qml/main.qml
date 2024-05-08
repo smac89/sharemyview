@@ -249,4 +249,11 @@ ApplicationWindow {
         anchors.horizontalCenter: parent.right
         anchors.verticalCenter: parent.bottom
     }
+
+    // Behavior on opacity {
+    //     SmoothedAnimation {
+    //         duration: 3000
+    //         velocity: 0.3
+    //     }
+    // }
 }

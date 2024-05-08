@@ -17,17 +17,28 @@ Item {
     signal mediaCaptureSuccess(int mode, variant result)
     signal mediaCaptureRequestEnded(int mode)
 
+    Component.onCompleted: {
+        // https://doc.qt.io/qt-5/qtqml-syntax-signals.html#connecting-signals-to-methods-and-signals
+        AppCore.mediaCaptureStarted.connect(root.mediaCaptureStarted);
+        AppCore.mediaCaptureFailed.connect(root.mediaCaptureFailed);
+        AppCore.mediaCaptureSuccess.connect(root.mediaCaptureSuccess);
+        AppCore.mediaCaptureStopped.connect(root.mediaCaptureRequestEnded);
+        targetPos = Qt.point(target.x, target.y);
+    }
+
     states: [
         State {
             name: "screenshotRequested"
+            // PropertyChanges {
+            //     target: root.target
+            //     opacity: 0
+            //     restoreEntryValues: false
+            // }
             PropertyChanges {
                 target: root
-                explicit: true
+                explicit: true // means: do not bind the property to the assigned value
                 targetPos: Qt.point(root.target.x, root.target.y)
-            }
-            PropertyChanges {
-                target: root.target
-                opacity: 0
+                restoreEntryValues: false
             }
             PropertyChanges {
                 target: root.target
@@ -43,36 +54,37 @@ Item {
             extend: ""
             PropertyChanges {
                 target: root.target
-                visible: true
+                x: root.targetPos.x
+                y: root.targetPos.y
+                restoreEntryValues: false
             }
-            PropertyChanges {
-                target: root.target
-                opacity: 1
-            }
+            // PropertyChanges {
+            //     target: root.target
+            //     opacity: 1
+            //     restoreEntryValues: false
+            // }
         }
     ]
 
     transitions: [
         // Note: transitions are run in parallel depending on which match the current state
         // See https://doc.qt.io/qt-5/qml-qtquick-transition.html#reversible-prop
-        Transition {
-            to: ""
-            SequentialAnimation {
-                // ScriptAction {
-                //     script: {
-                //         root.target.x = root.targetPos.x;
-                //         root.target.y = root.targetPos.y;
-                //     }
-                // }
-                // AnimateVisible {}
-                AnimateOpacity {}
-            }
-        },
+        // Transition {
+        //     from: "screenshotRequested"
+        //     // AnimateVisible {}
+        //     // AnimateOpacity {}
+        //     SequentialAnimation {}
+        // },
         Transition {
             to: "screenshotRequested"
             SequentialAnimation {
-                AnimateOpacity {}
+                // AnimateOpacity {}
                 // AnimateVisible {}
+                PauseAnimation {
+                    // TODO: This is mostly done to prevent the window
+                    // from still being visible when the screenshot is taken
+                    duration: 300
+                }
                 ScriptAction {
                     scriptName: "takeScreenshot"
                 }
@@ -148,20 +160,12 @@ Item {
         target: root
     }
 
-    Component.onCompleted: {
-        // https://doc.qt.io/qt-5/qtqml-syntax-signals.html#connecting-signals-to-methods-and-signals
-        AppCore.mediaCaptureStarted.connect(root.mediaCaptureStarted);
-        AppCore.mediaCaptureFailed.connect(root.mediaCaptureFailed);
-        AppCore.mediaCaptureSuccess.connect(root.mediaCaptureSuccess);
-        AppCore.mediaCaptureStopped.connect(root.mediaCaptureRequestEnded);
-        targetPos = Qt.point(target.x, target.y);
-    }
-
     component AnimateOpacity: NumberAnimation {
         target: root.target
         property: "opacity"
-        easing.type: Easing.InOutQuad
-        duration: 300
+        // easing.type: Easing.InOutQuad
+        duration: 3000
+        // velocity: 1
     }
 
     component AnimateVisible: NumberAnimation {
