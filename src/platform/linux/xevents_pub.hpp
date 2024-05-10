@@ -7,6 +7,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 namespace smv::events {
@@ -21,16 +22,25 @@ namespace smv::events {
     void publishNotifications();
   } // namespace details
 
-  template<typename D>
+  /**
+   * @brief queues up a notification for delivery
+   * @details ensures the notifications are delivered in the order they were
+   * received
+   * @tparam D the type of the notification
+   * @param data
+   * @param funcs
+   */
+  template<typename D,
+           typename = std::enable_if<std::is_base_of_v<EventData, D>>>
   void enqueueNotifications(
     const D                                             &data,
     std::vector<std::function<void(const EventData &)>> &funcs)
   {
-
     {
       std::lock_guard _ { details::queueMutex };
-      for (auto const &func : funcs) {
-        details::notificationQueue.push_back([func, data = data]() {
+      for (auto &func : funcs) {
+        details::notificationQueue.emplace_back(
+          [func = std::move(func), data = data]() {
           func(data);
         });
       }

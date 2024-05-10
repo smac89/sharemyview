@@ -36,6 +36,8 @@ namespace smv::details {
 
   /**
    * @brief Publishes an event
+   * @details It's imperative that this function is called with a lock being
+   * held Failure to do so may result in out-of-order events
    *
    * @param data the data to send
    */
@@ -423,7 +425,7 @@ namespace smv::details {
       const auto      &subscribers = listeners.at(E);
       callbacks.reserve(subscribers.size());
       for (auto const &subscriber : subscribers) {
-        callbacks.push_back(std::get<1>(subscriber));
+        callbacks.emplace_back(std::get<1>(subscriber));
       }
 
       logger->debug("Before publishing {} event: {}", E, data);

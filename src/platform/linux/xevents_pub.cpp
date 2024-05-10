@@ -1,4 +1,5 @@
 #include "xevents_pub.hpp"
+#include "smv/log.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -13,16 +14,21 @@ namespace smv::events::details {
   std::mutex                        queueMutex;
   std::atomic_bool                  running { false };
 
+  using log::logger;
+
   void publishNotifications()
   {
     auto now = std::chrono::steady_clock::now();
     for (auto published = false; running; published = false) {
-      std::lock_guard _ { queueMutex };
       for (; !notificationQueue.empty(); published = true) {
-        std::thread(notificationQueue.front()).detach();
+        notificationQueue
+          .front()(); // NOTE: we can only reliably do this because dequeue does
+                      // not invalidate elements when resizing
+        std::lock_guard _ { queueMutex };
         notificationQueue.pop_front();
       }
-      std::this_thread::yield();
+      logger->debug("Idling publisher for 4ms...");
+      std::this_thread::sleep_for(std::chrono::milliseconds(4)); // no spin
       if (published) {
         // reset the idle timer here
         now = std::chrono::steady_clock::now();
