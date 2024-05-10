@@ -1,10 +1,9 @@
 = SMV Capture (Alpha)
 Nobleman <https://github.com/smac89[@smac89]>
 v1.0, 2024-05-01
-ifdef::env-github[]
-endif::[]
-// variables
+:toc:
 :url-screencast: https://github.com/smac89/sharemyview/assets/8305511/b2558685-1433-48ab-b37a-7536a86e7b4e
+// variables
 :image-url-qtbadge: https://img.shields.io/badge/5.15-%2341CD52?style=for-the-badge&logo=Qt&logoColor=white&logoSize=auto
 :image-url-cppbadge: https://img.shields.io/badge/17-%2300599C?style=for-the-badge&logo=cplusplus&logoColor=white&logoSize=auto
 :image-url-x11badge: https://img.shields.io/badge/XCB-%23F28834?style=for-the-badge&logo=xdotorg&logoColor=white&logoSize=auto
@@ -23,10 +22,18 @@ With that being said, the potential for misuse cannot be ignored, therefore seco
 Although SMV is meant to be cross-platform (Windows, MacOs, Linux), I am primarily a Linux user, so the current focus is on the Linux side.
 
 == Current capabilities
+ifdef::env-github[]
+
 [#demo-screencast,link={url-screencast}]
 video::{url-screencast}[title="Demo Screencast.webm",width=640]
 
+endif::[]
+
+ifndef::env-github[]
+See link:{url-screencast}[Demo Screencast.webm].
+endif::[]
 See link:docs/[/docs/] for more images.
+
 
 == Installation
 At the moment, no installation instructions are provided because we are still in very early stages
