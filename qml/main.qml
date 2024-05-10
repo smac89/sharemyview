@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Shapes 1.15
 import QtQuick.Window 2.15
 import smv.app.CaptureMode 1.0
 import smv.app.AppCore 1.0
@@ -38,6 +39,7 @@ ApplicationWindow {
     MediaCaptureHandler {
         id: mediaCapture
         screenshotCallback: () => {
+            // Updates the screenshot area to only the visible portions
             const x = Math.max(0, root.x);
             const y = Math.max(0, root.y);
             const w = Math.min(root.width + (root.x > 0 ? 0 : root.x), Screen.width - root.x);
@@ -46,11 +48,11 @@ ApplicationWindow {
         }
 
         recordingCallback: () => {
-            console.log("Recording not implemented");
+            console.warn("Recording not implemented");
         }
 
         streamCallback: () => {
-            console.log("Stream not implemented");
+            console.warn("Stream not implemented");
         }
     }
 
@@ -58,13 +60,14 @@ ApplicationWindow {
         id: windowFrame
 
         property int mode
-        property bool drawerOpen: false
+        property bool mediaListOpen: false
         property bool modeSettingsOpen: false
+        readonly property bool modalIsOpen: mediaListOpen || modeSettingsOpen
 
         radius: 5
         border.color: palette.text
-        border.width: 4
-        color: parent.color
+        border.width: 2
+        color: "transparent"
 
         CloseButton {
             anchors.top: parent.top
@@ -73,7 +76,7 @@ ApplicationWindow {
             anchors.topMargin: 30
             width: 30
             height: 30
-            visible: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
+            visible: !windowFrame.modalIsOpen
         }
 
         ModeSettings {
@@ -94,15 +97,16 @@ ApplicationWindow {
 
         AutoSizeRowLayout {
             anchors.centerIn: parent
+            enabled: !windowFrame.modalIsOpen
             spacing: 0
             Rectangle {
                 width: 150
                 height: 50
                 radius: 5
                 color: "transparent"
+                // TODO: dim border when disabled
                 border.color: palette.text
                 border.width: 2
-
                 ModeSelect {
                     anchors.fill: parent
                     onModeChanged: {
@@ -110,7 +114,6 @@ ApplicationWindow {
                     }
                 }
             }
-
             SettingsButton {
                 buttonColor: palette.base
                 onClicked: {
@@ -119,27 +122,17 @@ ApplicationWindow {
             }
         }
 
-        ControlSettings {
+        MediaList {
+            id: mediaList
             parent: windowFrame
-            width: recordingControls.controlsWidth + background.anchors.rightMargin - 50
-            height: {
-                // https://doc.qt.io/qt-5/qtqml-syntax-propertybinding.html
-                const h = parent.height - recordingControls.height * 2;
-                // TODO: control height better
-                return h > 400 ? 400 : h;
-            }
-            visible: windowFrame.drawerOpen
+            topMargin: (parent.height - height) / 2
+            rightPadding: background.anchors.rightMargin
+            width: Math.min(parent.width - 100, 400)
+            height: parent.height - recordingControls.height * 2
             mode: parent.mode
-            background: Rectangle {
-                color: palette.base
-                radius: 10
-                border.width: 2
-                border.color: palette.text
-                anchors.fill: parent
-                anchors.rightMargin: (windowFrame.width - recordingControls.controlsWidth) / 2 + 25
-            }
+            visible: windowFrame.mediaListOpen
             onClosed: {
-                parent.drawerOpen = false;
+                windowFrame.mediaListOpen = false;
             }
         }
 
@@ -147,28 +140,28 @@ ApplicationWindow {
             id: recordingControls
             width: parent.width - 20
             height: 50
-            visible: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
+            visible: !windowFrame.modalIsOpen
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.margins: 10
             mode: parent.mode
-            drawerOpen: parent.drawerOpen
+            drawerOpen: parent.mediaListOpen
             onTakeScreenshot: {
                 mediaCapture.mediaCaptureRequested(CaptureMode.Screenshot);
             }
-            onOpenRecordingSettings: open => {
-                parent.drawerOpen = open;
+            onOpenRecordMenu: open => {
+                parent.mediaListOpen = open;
             }
         }
 
         DragHandler {
-            id: pointer
+            id: drag
             target: null
-            enabled: !(windowFrame.drawerOpen || windowFrame.modeSettingsOpen)
+            enabled: !windowFrame.modalIsOpen
             onGrabChanged: (transition, pt) => {
                 if (transition === EventPoint.GrabExclusive && pt.state === EventPoint.Updated) {
-                    console.log("Start system move");
                     // https://codereview.qt-project.org/c/qt/qtbase/+/219277
+                    console.log("Start system move");
                     root.startSystemMove();
                 }
             }
@@ -182,10 +175,10 @@ ApplicationWindow {
 
         Component.onCompleted: {
             color = Qt.binding(function () {
-                if (drawerOpen || modeSettingsOpen) {
+                if (modalIsOpen) {
                     return rgba("#1a1918", 0.8);
                 }
-                if (root.resizing || pointer.active) {
+                if (root.resizing || drag.active) {
                     return rgba("#1a1918", 0.4);
                 }
                 switch (mode) {
@@ -249,11 +242,4 @@ ApplicationWindow {
         anchors.horizontalCenter: parent.right
         anchors.verticalCenter: parent.bottom
     }
-
-    // Behavior on opacity {
-    //     SmoothedAnimation {
-    //         duration: 3000
-    //         velocity: 0.3
-    //     }
-    // }
 }

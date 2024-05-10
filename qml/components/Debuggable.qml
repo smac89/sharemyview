@@ -6,8 +6,8 @@ import easy.colors 1.0
 StackView {
     id: root
     initialItem: child
-    implicitWidth: child.width
-    implicitHeight: child.height
+    implicitWidth: child.childrenRect.width
+    implicitHeight: child.childrenRect.height
 
     // TODO: Choose a contrasting color automatically
     property string borderColor: q(cc`random`)
@@ -17,6 +17,12 @@ StackView {
 
     // this will usually correspond to the last child
     default required property Item child
+
+    Component.onCompleted: {
+        if (!(child instanceof Item)) {
+            console.log("Error: Debuggable must have a child of type Item");
+        }
+    }
 
     DebugRect {
         id: debugParent

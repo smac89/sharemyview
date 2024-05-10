@@ -20,7 +20,7 @@ Item {
     readonly property int controlsY: controls.y
 
     signal takeScreenshot
-    signal openRecordingSettings(bool open)
+    signal openRecordMenu(bool open)
     signal recordRegion(bool streaming)
 
     SystemPalette {
@@ -88,7 +88,7 @@ Item {
                     source: root.drawerOpen ? "image://smv/icons/menu_on.svg" : "image://smv/icons/menu_off.svg"
                     color: palette.buttonText
                 }
-                onClicked: root.openRecordingSettings(!root.drawerOpen)
+                onClicked: root.openRecordMenu(!root.drawerOpen)
             }
         }
     }

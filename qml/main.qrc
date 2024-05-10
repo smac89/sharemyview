@@ -8,6 +8,8 @@
     <file alias="CloseButton.qml">components/CloseButton.qml</file>
     <file alias="SettingsButton.qml">components/SettingsButton.qml</file>
     <file alias="MediaCaptureHandler.qml">components/MediaCaptureHandler.qml</file>
+    <file alias="MediaList.qml">components/MediaList.qml</file>
+    <file alias="OptimusRect.qml">components/OptimusRect.qml</file>
     <file alias="ModeSelect.qml">components/ModeSelect.qml</file>
     <file alias="AutoSizeRowLayout.qml">components/AutoSizeRowLayout.qml</file>
     <file alias="AutoSizeColumnLayout.qml">components/AutoSizeColumnLayout.qml</file>
@@ -17,7 +19,6 @@
     <file alias="WindowTracking.qml">components/WindowTracking.qml</file>
 </qresource>
 <qresource prefix="/components/settings">
-    <file alias="ControlSettings.qml">components/settings/ControlSettings.qml</file>
     <file alias="ConfigScreenshot.qml">components/settings/ConfigScreenshot.qml</file>
     <file alias="ModeSettings.qml">components/settings/ModeSettings.qml</file>
 </qresource>
@@ -41,5 +42,8 @@
     <file alias="mode_record.svg">assets/icons/mode_record.svg</file>
     <file alias="close.svg">assets/icons/close.svg</file>
     <file alias="settings.svg">assets/icons/settings.svg</file>
+</qresource>
+<qresource prefix="/images">
+    <file alias="nomedia.svg">assets/images/nomedia.svg</file>
 </qresource>
 </RCC>

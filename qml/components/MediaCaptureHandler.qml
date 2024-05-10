@@ -38,6 +38,7 @@ Item {
             PropertyChanges {
                 target: root.target
                 visible: false
+                restoreEntryValues: false
             }
             StateChangeScript {
                 name: "takeScreenshot"
@@ -62,9 +63,16 @@ Item {
         Transition {
             to: "screenshotRequested"
             SequentialAnimation {
+                ScriptAction {
+                    script: {
+                        console.log("Target Position Before:", targetPos);
+                        console.log("Window Position Before:", root.target.x, root.target.y);
+                    }
+                }
                 PauseAnimation {
                     /* TODO: This is mostly done to prevent the window
                     from still being visible when the screenshot is taken.
+                    The bug is due to window-closing animations on some linux desktops.
 
                     Things I've tried:
                     - Using opacity to slowly fade out the window
@@ -72,6 +80,7 @@ Item {
                     - Manually hiding the window in Qt.
                         - This didn't work. Even though window.isVisible() returns false, and the window manager reports that the window is unmapped,
                         the window is still sometimes caught by the screenshot.
+
                     Things I haven't tried:
                     - Instruct the window manager not to use compositing effects on the window, as
                     I suspect this is what keeps the window still visible even after it has been made invisible*/
@@ -79,6 +88,22 @@ Item {
                 }
                 ScriptAction {
                     scriptName: "takeScreenshot"
+                }
+            }
+        },
+        Transition {
+            from: "screenshotRequested"
+            SequentialAnimation {
+                PropertyAction {
+                    target: root.target
+                    property: "visible"
+                    value: true
+                }
+                ScriptAction {
+                    script: {
+                        console.log("Target Position After:", targetPos);
+                        console.log("Window Position After:", root.target.x, root.target.y);
+                    }
                 }
             }
         }
@@ -148,7 +173,6 @@ Item {
                 }
             }
         }
-
         target: root
     }
 }

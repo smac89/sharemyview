@@ -32,6 +32,18 @@ ComboBox {
             "mode": CaptureMode.Stream
         }
     ]
+    delegate: ItemDelegate {
+        text: modelData.text
+        width: parent.width
+        icon.source: modelData.icon
+        highlighted: root.highlightedIndex === index
+
+        background: Rectangle {
+            width: parent.width
+            height: parent.height
+            color: root.currentIndex === index ? Qt.lighter(palette.button) : palette.window
+        }
+    }
     onActivated: {
         mode = root.currentValue;
         var text = "mode changed: %1";
@@ -78,19 +90,6 @@ ComboBox {
             anchors.fill: chevron
             source: chevron
             color: palette.buttonText
-        }
-    }
-
-    delegate: ItemDelegate {
-        text: modelData.text
-        width: parent.width
-        icon.source: modelData.icon
-        highlighted: root.highlightedIndex === index
-
-        background: Rectangle {
-            width: parent.width
-            height: parent.height
-            color: root.currentIndex === index ? Qt.lighter(palette.button) : palette.window
         }
     }
 }
