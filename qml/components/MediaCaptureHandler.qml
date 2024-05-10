@@ -29,11 +29,6 @@ Item {
     states: [
         State {
             name: "screenshotRequested"
-            // PropertyChanges {
-            //     target: root.target
-            //     opacity: 0
-            //     restoreEntryValues: false
-            // }
             PropertyChanges {
                 target: root
                 explicit: true // means: do not bind the property to the assigned value
@@ -58,31 +53,28 @@ Item {
                 y: root.targetPos.y
                 restoreEntryValues: false
             }
-            // PropertyChanges {
-            //     target: root.target
-            //     opacity: 1
-            //     restoreEntryValues: false
-            // }
         }
     ]
 
     transitions: [
         // Note: transitions are run in parallel depending on which match the current state
         // See https://doc.qt.io/qt-5/qml-qtquick-transition.html#reversible-prop
-        // Transition {
-        //     from: "screenshotRequested"
-        //     // AnimateVisible {}
-        //     // AnimateOpacity {}
-        //     SequentialAnimation {}
-        // },
         Transition {
             to: "screenshotRequested"
             SequentialAnimation {
-                // AnimateOpacity {}
-                // AnimateVisible {}
                 PauseAnimation {
-                    // TODO: This is mostly done to prevent the window
-                    // from still being visible when the screenshot is taken
+                    /* TODO: This is mostly done to prevent the window
+                    from still being visible when the screenshot is taken.
+
+                    Things I've tried:
+                    - Using opacity to slowly fade out the window
+                        - This didn't work. Opacity did not ever go to zero no matter how long the animation lasted
+                    - Manually hiding the window in Qt.
+                        - This didn't work. Even though window.isVisible() returns false, and the window manager reports that the window is unmapped,
+                        the window is still sometimes caught by the screenshot.
+                    Things I haven't tried:
+                    - Instruct the window manager not to use compositing effects on the window, as
+                    I suspect this is what keeps the window still visible even after it has been made invisible*/
                     duration: 300
                 }
                 ScriptAction {
@@ -158,19 +150,5 @@ Item {
         }
 
         target: root
-    }
-
-    component AnimateOpacity: NumberAnimation {
-        target: root.target
-        property: "opacity"
-        // easing.type: Easing.InOutQuad
-        duration: 3000
-        // velocity: 1
-    }
-
-    component AnimateVisible: NumberAnimation {
-        target: root.target
-        property: "visible"
-        duration: 0
     }
 }
