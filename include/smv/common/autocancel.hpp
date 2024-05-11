@@ -39,7 +39,7 @@ namespace smv::utils {
       if (mId != other.mId) {
         this->tryCancel();
         {
-          std::lock_guard lk(cancelablesMut);
+          std::lock_guard _(cancelablesMut);
           if (auto ref = cancelables.find(other.mId);
               ref != cancelables.end()) {
             ref->second++;
@@ -106,7 +106,9 @@ namespace smv::utils {
         return false;
       }
 
-      VERIFY("No refs", cancelables.at(mId) == 0);
+      VERIFY(/* NOLINT */
+             "No refs",
+             cancelables.at(mId) == 0);
       doCancel(isDestroy);
       return true;
     }
@@ -136,7 +138,7 @@ namespace smv::utils {
       // then we don't need a new id
       uint32_t id = ids++;
       {
-        std::lock_guard lk(cancelablesMut);
+        std::lock_guard _(cancelablesMut);
         // the first time we create a cancelable,
         // we assume its use count is 0
         cancelables[id] = 0;
@@ -144,9 +146,4 @@ namespace smv::utils {
       return AutoCancel(std::move(cancel), id);
     }
   };
-
-  // inline Cancel autoCancel(Cancel cancel)
-  // {
-  //   return AutoCancel::wrap(std::move(cancel));
-  // }
 } // namespace smv::utils

@@ -47,21 +47,6 @@ Item {
         if (radius < 0) {
             radius = 0;
         }
-        // if (borderWidth < 0) {
-        //     borderWidth = Math.abs(borderWidth);
-        // }
-        // if (topLeftRadius < 0) {
-        //     topLeftRadius = 0;
-        // }
-        // if (topRightRadius < 0) {
-        //     topRightRadius = 0;
-        // }
-        // if (bottomLeftRadius < 0) {
-        //     bottomLeftRadius = 0;
-        // }
-        // if (bottomRightRadius < 0) {
-        //     bottomRightRadius = 0;
-        // }
     }
 
     Rectangle {
@@ -404,42 +389,6 @@ Item {
                     break;
                 }
             }
-
-            // Rectangle {
-            //     property int corner: -1
-
-            //     color: root.bgColor
-            // width: radius * 2
-            // height: radius * 2
-            //     // border.width: root.borderWidth
-            //     // border.color: "transparent"
-            //     parent: root
-
-            //     onCornerChanged: {
-            //         switch (corner) {
-            //         case Item.TopLeft:
-            //             anchors.top = root.top;
-            //             anchors.left = root.left;
-            //             radius = Math.abs(root.topLeftRadius);
-            //             break;
-            //         case Item.TopRight:
-            //             anchors.top = root.top;
-            //             anchors.right = root.right;
-            //             radius = Math.abs(root.topRightRadius);
-            //             break;
-            //         case Item.BottomLeft:
-            //             anchors.bottom = root.bottom;
-            //             anchors.left = root.left;
-            //             radius = Math.abs(root.bottomLeftRadius);
-            //             break;
-            //         case Item.BottomRight:
-            //             anchors.bottom = root.bottom;
-            //             anchors.right = root.right;
-            //             radius = Math.abs(root.bottomRightRadius);
-            //             break;
-            //         }
-            //     }
-            // }
         }
     }
 
@@ -507,55 +456,6 @@ Item {
                         }
                         y: shape.height / 2
                     }
-
-                    // PathMove {
-                    //     x: curve.startX
-                    //     y: curve.startY
-                    // }
-
-                    // PathLine {
-                    //     relativeX: 0
-                    //     y: shape.height / 2
-                    // }
-                    // PathLine {
-                    //     relativeX: 0
-                    //     y: {
-                    //         switch (corner) {
-                    //         case Item.TopLeft:
-                    //         case Item.TopRight:
-                    //             return shape.height;
-                    //         case Item.BottomLeft:
-                    //         case Item.BottomRight:
-                    //             return 0;
-                    //         }
-                    //     }
-                    // }
-                    // PathLine {
-                    //     x: {
-                    //         switch (corner) {
-                    //         case Item.TopLeft:
-                    //         case Item.BottomLeft:
-                    //             return 0;
-                    //         case Item.TopRight:
-                    //         case Item.BottomRight:
-                    //             return shape.width;
-                    //         }
-                    //     }
-                    //     relativeY: 0
-                    // }
-                    // PathLine {
-                    //     relativeX: 0
-                    //     y: {
-                    //         switch (corner) {
-                    //         case Item.TopLeft:
-                    //         case Item.TopRight:
-                    //             return 0;
-                    //         case Item.BottomLeft:
-                    //         case Item.BottomRight:
-                    //             return shape.height;
-                    //         }
-                    //     }
-                    // }
                 }
             }
             Shape {
@@ -683,84 +583,7 @@ Item {
                     }
                 ]
             }
-            // Rectangle {
-            //     color: root.bgColor
-            //     width: shape.width
-            //     height: width
-            //     Component.onCompleted: {
-            //         switch (corner) {
-            //         case Item.TopLeft:
-            //         case Item.TopRight:
-            //             anchors.bottom = arcShape.top;
-            //             break;
-            //         case Item.BottomLeft:
-            //         case Item.BottomRight:
-            //             anchors.bottom = arcShape.top;
-            //             break;
-            //         }
-            //     }
-            // }
-            // Shape {
-            //     anchors.top: arcShape.bottom
-            //     ShapePath {
-            //         fillRule: ShapePath.WindingFill
-            //         // fillColor: "purple"
-            //         fillColor: root.bgColor
-            //         // strokeColor: "red"
-            //         strokeColor: root.borderColor
-            //         strokeWidth: root.borderWidth
-            //         startX: {
-            //             switch (corner) {
-            //             case Item.TopLeft:
-            //             case Item.BottomLeft:
-            //                 return shape.width;
-            //             case Item.BottomRight:
-            //             case Item.TopRight:
-            //                 return 0;
-            //             }
-            //         }
-            //         startY: shape.height / 2
-            //         PathLine {
-            //             relativeX: 0
-            //             y: {
-            //                 switch (corner) {
-            //                 case Item.TopLeft:
-            //                 case Item.TopRight:
-            //                     return shape.height;
-            //                 case Item.BottomLeft:
-            //                 case Item.BottomRight:
-            //                     return 0;
-            //                 }
-            //             }
-            //         }
-            //         PathLine {
-            //             x: {
-            //                 switch (corner) {
-            //                 case Item.TopLeft:
-            //                 case Item.BottomLeft:
-            //                     return 0;
-            //                 case Item.TopRight:
-            //                 case Item.BottomRight:
-            //                     return shape.width;
-            //                 }
-            //             }
-            //             relativeY: 0
-            //         }
-            //         PathLine {
-            //             relativeX: 0
-            //             y: {
-            //                 switch (corner) {
-            //                 case Item.TopLeft:
-            //                 case Item.TopRight:
-            //                     return 0;
-            //                 case Item.BottomLeft:
-            //                 case Item.BottomRight:
-            //                     return shape.height;
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
+
             onCornerChanged: {
                 switch (corner) {
                 case Item.TopLeft:

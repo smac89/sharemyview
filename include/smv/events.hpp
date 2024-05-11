@@ -76,11 +76,11 @@ namespace smv {
   {
 
     EventDataMouseEnter(const std::weak_ptr<Window> &window,
-                        uint32_t                     x,
-                        uint32_t                     y)
+                        uint32_t                     xPos,
+                        uint32_t                     yPos)
       : EventData(window)
-      , x(x)
-      , y(y)
+      , x(xPos)
+      , y(yPos)
     {
     }
 
@@ -97,11 +97,11 @@ namespace smv {
   struct EventDataMouseLeave final: EventData
   {
     EventDataMouseLeave(const std::weak_ptr<Window> &window,
-                        uint32_t                     x,
-                        uint32_t                     y)
+                        uint32_t                     xPos,
+                        uint32_t                     yPos)
       : EventData(window)
-      , x(x)
-      , y(y)
+      , x(xPos)
+      , y(yPos)
     {
     }
     auto format() const -> std::string override
@@ -117,13 +117,13 @@ namespace smv {
   struct EventDataMouseMove final: EventData
   {
     EventDataMouseMove(const std::weak_ptr<Window> &window,
-                       uint32_t                     x,
-                       uint32_t                     y,
+                       uint32_t                     xPos,
+                       uint32_t                     yPos,
                        int32_t                      dx,
                        int32_t                      dy)
       : EventData(window)
-      , x(x)
-      , y(y)
+      , x(xPos)
+      , y(yPos)
       , delta_x(dx)
       , delta_y(dy)
     {
@@ -139,13 +139,13 @@ namespace smv {
   struct EventDataMouseDown final: EventData
   {
     EventDataMouseDown(const std::weak_ptr<Window> &window,
-                       uint32_t                     x,
-                       uint32_t                     y,
-                       MouseButton                  b)
+                       uint32_t                     xPos,
+                       uint32_t                     yPos,
+                       MouseButton                  btn)
       : EventData(window)
-      , x(x)
-      , y(y)
-      , button(b)
+      , x(xPos)
+      , y(yPos)
+      , button(btn)
     {
     }
 
@@ -158,13 +158,13 @@ namespace smv {
   struct EventDataMouseUp final: EventData
   {
     EventDataMouseUp(const std::weak_ptr<Window> &window,
-                     uint32_t                     x,
-                     uint32_t                     y,
-                     MouseButton                  b)
+                     uint32_t                     xPos,
+                     uint32_t                     yPos,
+                     MouseButton                  btn)
       : EventData(window)
-      , x(x)
-      , y(y)
-      , button(b)
+      , x(xPos)
+      , y(yPos)
+      , button(btn)
     {
     }
 
@@ -193,11 +193,11 @@ namespace smv {
   struct EventDataWindowResize final: EventData
   {
     EventDataWindowResize(const std::weak_ptr<Window> &window,
-                          uint32_t                     w,
-                          uint32_t                     h)
+                          uint32_t                     width,
+                          uint32_t                     height)
       : EventData(window)
-      , w(w)
-      , h(h)
+      , w(width)
+      , h(height)
     {
     }
 
@@ -209,13 +209,13 @@ namespace smv {
   struct EventDataWindowMove final: EventData
   {
     EventDataWindowMove(const std::weak_ptr<Window> &window,
-                        int32_t                      x,
-                        int32_t                      y,
+                        int32_t                      xPos,
+                        int32_t                      yPos,
                         int32_t                      dx,
                         int32_t                      dy)
       : EventData(window)
-      , x(x)
-      , y(y)
+      , x(xPos)
+      , y(yPos)
       , delta_x(dx)
       , delta_y(dy)
     {

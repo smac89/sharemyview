@@ -39,8 +39,10 @@ namespace smv::details {
     auto pixelsToVector(const uint8_t *bytes, size_t size)
       -> std::vector<uint8_t>
     {
-      ASSERT(
-        size % MAX_BYTES_PER_PIXEL == 0, "size must be a multiple of 4", size);
+      ASSERT(/* NOLINT */
+             size % MAX_BYTES_PER_PIXEL == 0,
+             "size must be a multiple of 4",
+             size);
       std::vector<uint8_t> captureBytes {};
       captureBytes.reserve(size);
 
