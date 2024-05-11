@@ -9,21 +9,6 @@
 #include <optional>
 #include <xcb/xcb_image.h>
 
-/**
- * @brief Record screen and audio
- * @details How do we actually record on demand?
- * When a user chooses to record a portion of the screen
- * we create a shared memory buffer to store images captured
- * from the region send back to the user as fast as possible
- *
- * If instead they choose to record window, we need to capture
- * the window's pixmap...
- *
- * TODO:For now, let's just capture a region
- *
- * As far as capturing audio, we will postpone that for now
- * I think we can use libsoundio/rtaudio for that
- */
 namespace smv::details {
   class XRecord
   {
